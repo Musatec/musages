@@ -1,26 +1,188 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 240 10% 3.9%;
+        --card: 240 5.9% 96.1%;
+        --card-foreground: 240 10% 3.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 240 10% 3.9%;
+        --primary: 16 100% 50%;
+        --primary-foreground: 0 0% 100%;
+        --ring: 16 100% 50%;
+        --secondary: 240 4.8% 95.9%;
+        --secondary-foreground: 240 5.9% 10%;
+        --muted: 240 4.8% 95.9%;
+        --muted-foreground: 240 3.8% 46.1%;
+        --accent: 240 4.8% 95.9%;
+        --accent-foreground: 240 5.9% 10%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 240 5.9% 90%;
+        --input: 240 5.9% 90%;
+        --ring: 16 100% 50%;
+        --radius: 1rem;
+    }
+
+    .dark {
+        --background: 240 10% 3.9%;
+        --foreground: 0 0% 98%;
+        --card: 240 10% 6%;
+        --card-foreground: 0 0% 98%;
+        --popover: 240 10% 3.9%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 16 100% 50%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 240 3.7% 15.9%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 240 3.7% 15.9%;
+        --muted-foreground: 240 5% 64.9%;
+        --accent: 240 3.7% 15.9%;
+        --accent-foreground: 0 0% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 240 3.7% 15.9%;
+        --input: 240 3.7% 15.9%;
+        --ring: 16 100% 50%;
+    }
+
+    .navy {
+        --background: 222.2 47.4% 11.2%;
+        --foreground: 210 40% 98%;
+        --card: 222.2 47.4% 15%;
+        --card-foreground: 210 40% 98%;
+        --popover: 222.2 47.4% 11.2%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 16 100% 50%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 217.2 32.6% 17.5%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217.2 32.6% 17.5%;
+        --muted-foreground: 215 20.2% 65.1%;
+        --accent: 217.2 32.6% 17.5%;
+        --accent-foreground: 210 40% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 217.2 32.6% 25%;
+        --input: 217.2 32.6% 17.5%;
+        --ring: 16 100% 50%;
+    }
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@layer base {
+    * {
+        border-color: hsl(var(--border));
+        outline-color: hsl(var(--ring) / 0.5);
+    }
+
+    body {
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        transition: background-color 0.3s ease, color 0.3s ease;
+        font-feature-settings: "rlig" 1, "calt" 1;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Selection Highlighting */
+    ::selection {
+        background: hsl(var(--primary) / 0.3);
+        color: inherit;
+    }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* --- PREMIUM UTILITIES --- */
+
+.glass {
+    background: hsla(var(--background) / 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid hsla(var(--foreground) / 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.glass-card {
+    background: linear-gradient(135deg, hsla(var(--foreground) / 0.03) 0%, hsla(var(--foreground) / 0.01) 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsla(var(--foreground) / 0.05);
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    border-color: hsla(var(--foreground) / 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px -4px rgba(0, 0, 0, 0.2);
+}
+
+/* --- SCROLLBAR --- */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.1);
+    border-radius: 100px;
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.4);
+}
+
+/* --- ANIMATIONS --- */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-soft {
+
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.pulse-soft {
+    animation: pulse-soft 4s ease-in-out infinite;
+}
+
+/* Tiptap Task List Styles */
+ul[data-type="taskList"] {
+    list-style: none;
+    padding: 0;
+}
+
+ul[data-type="taskList"] li {
+    display: flex !important;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+ul[data-type="taskList"] input[type="checkbox"] {
+    accent-color: hsl(var(--primary));
+    margin-top: 0.3rem;
+    margin-right: 0.8rem;
 }

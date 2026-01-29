@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 200" fill="none">
+  <defs>
+    <linearGradient id="lavaPrime" x1="0" y1="200" x2="200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f97316"/>
+      <stop offset="1" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  
+  <g transform="translate(40, -28)">
+      <path d="M48 208V48l80 80 80-80v160" stroke="url(#lavaPrime)" stroke-width="32" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  
+  <text x="320" y="145" fill="white" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="120" letter-spacing="4">MINDOS</text>
+</svg>

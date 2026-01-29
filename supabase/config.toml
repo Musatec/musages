@@ -1,0 +1,36 @@
+# Supabase Configuration File
+# Generated for Musages Project
+
+[api]
+# Port to use for the local development server
+port = 54321
+# Schemas to expose in your API
+schemas = ["public", "graphql_public"]
+# Extra schemas to expose in your API
+extra_search_path = ["public", "extensions"]
+# Maximum rows returned by a single query
+max_rows = 1000
+
+[db]
+# Port to use for the local database server
+port = 54322
+# PostgreSQL major version to use
+major_version = 17
+
+[studio]
+# Port to use for Supabase Studio
+port = 54323
+
+[auth]
+# The base URL of your website
+site_url = "http://localhost:3000"
+# A list of URLs that are allowed to make requests to your API
+additional_redirect_urls = ["https://localhost:3000"]
+# How long tokens are valid for
+jwt_expiry = 3600
+# Disable signup
+enable_signup = true
+
+[storage]
+# The maximum file size allowed for uploads
+file_size_limit = "50MiB"
