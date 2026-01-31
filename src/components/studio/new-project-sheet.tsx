@@ -101,7 +101,7 @@ export function NewProjectSheet() {
                     due_date: formData.due_date ? new Date(formData.due_date).toISOString() : null,
                     user_id: user.id,
                     progress: 0,
-                    status: 'IDEA',
+                    status: 'idee',
                     image_url: formData.image_url || null
                 });
 
@@ -117,6 +117,7 @@ export function NewProjectSheet() {
             });
             setPreviewUrl(null);
 
+            router.push('/studio');
             router.refresh();
 
         } catch (error: unknown) {

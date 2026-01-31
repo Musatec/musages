@@ -15,11 +15,13 @@ import { toast } from "sonner";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useTranslations, useLocale } from "next-intl";
 import { optimizeImage } from "@/lib/image-optimizer";
+import { useRouter } from "@/i18n/routing";
 
 export default function StudioPage() {
     // --- STATE ---
     const { user } = useSupabase();
     const t = useTranslations("Studio");
+    const router = useRouter();
     const locale = useLocale();
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState(true);
@@ -138,7 +140,7 @@ export default function StudioPage() {
             category: selectedCategory,
             image_url: imageUrl,
             user_id: user.id,
-            status: 'IDEA',
+            status: 'idee',
             progress: 0
         };
 
@@ -151,6 +153,8 @@ export default function StudioPage() {
             setCaptureText("");
             setCaptureTitle("");
             setImageFile(null);
+            router.push('/studio');
+            router.refresh();
             setIsExpanded(false);
 
             // If we are currently filtered to something else, switch back to 'all' or the current category to show the new item
@@ -159,6 +163,9 @@ export default function StudioPage() {
             } else {
                 await fetchProjects();
             }
+
+            // Redirect to ensure we are looking at the gallery
+            router.push('/studio');
         }
         setIsSubmitting(false);
     };

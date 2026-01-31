@@ -6,8 +6,6 @@ import { supabase } from "@/lib/supabase";
 import {
     User,
     Bell,
-    Shield,
-    Trash2,
     Camera,
     Save,
     Loader2,
@@ -25,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useRouter, usePathname } from "@/i18n/routing";
 import { useTheme } from "next-themes";
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import {
     Sheet,
     SheetContent,
@@ -132,8 +130,9 @@ export default function SettingsPage() {
 
             if (error) throw error;
             toast.success("Profil mis à jour avec succès ! ✨");
-        } catch (error: any) {
-            toast.error(error?.message || "Erreur lors de la mise à jour");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur inconnue";
+            toast.error(message || "Erreur lors de la mise à jour");
         } finally {
             setSaving(false);
         }
@@ -144,8 +143,9 @@ export default function SettingsPage() {
             const { error } = await supabase.auth.updateUser({ email: newEmail });
             if (error) throw error;
             toast.success("Un email de confirmation a été envoyé ! 📧");
-        } catch (error: any) {
-            toast.error(error?.message || "Erreur");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur inconnue";
+            toast.error(message || "Erreur");
         }
     };
 
@@ -154,26 +154,12 @@ export default function SettingsPage() {
             const { error } = await supabase.auth.updateUser({ password: newPass });
             if (error) throw error;
             toast.success("Mot de passe mis à jour ! 🔐");
-        } catch (error: any) {
-            toast.error(error?.message || "Erreur");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur inconnue";
+            toast.error(message || "Erreur");
         }
     };
 
-    const handleDeleteAccount = async () => {
-        const confirm = window.confirm("ATTENTION : Cette action est irréversible.");
-        if (!confirm) return;
-
-        try {
-            const { error: profileError } = await supabase.from('profiles').delete().eq('id', user?.id);
-            if (profileError) throw profileError;
-
-            await supabase.auth.signOut();
-            toast.success("Compte supprimé.");
-            router.push('/');
-        } catch (error: any) {
-            toast.error(error?.message || "Erreur");
-        }
-    };
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -193,8 +179,9 @@ export default function SettingsPage() {
             const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
             setAvatarUrl(data.publicUrl);
             toast.success("Avatar téléversé !");
-        } catch (error: any) {
-            toast.error(error?.message || "Erreur de téléversement");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur inconnue";
+            toast.error(message || "Erreur de téléversement");
         } finally {
             setUploading(false);
         }

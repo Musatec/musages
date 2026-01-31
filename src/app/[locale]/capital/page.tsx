@@ -3,11 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { supabase } from "@/lib/supabase";
-import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
     Wallet, TrendingUp, TrendingDown,
-    Plus, Filter, ArrowUpRight, ArrowDownRight,
+    Plus, ArrowUpRight, ArrowDownRight,
     Loader2
 } from "lucide-react";
 import { toast } from "sonner";
@@ -17,7 +16,6 @@ import { NewTransactionSheet } from "@/components/capital/new-transaction-sheet"
 
 export default function CapitalPage() {
     const { user } = useSupabase();
-    const t = useTranslations("Capital");
 
     // States
     const [loading, setLoading] = useState(true);
@@ -77,13 +75,13 @@ export default function CapitalPage() {
             setIncomeMonth(currentMonthIncome);
             setExpenseMonth(currentMonthExpense);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error fetching transactions:", error);
             toast.error("Erreur de chargement des données financières.");
         } finally {
             setLoading(false);
         }
-    }, [user, filterMonth]);
+    }, [user]);
 
     useEffect(() => {
         fetchTransactions();

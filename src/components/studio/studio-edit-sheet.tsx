@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import { Project, CategoryId } from "@/types/studio";
 import { CATEGORIES } from "./constants";
 import { supabase } from "@/lib/supabase";
@@ -148,7 +148,7 @@ export function StudioEditSheet({ project, open, onOpenChange, onUpdate }: Studi
                             <div className="relative w-24 h-24 shrink-0 bg-background/40 rounded-xl overflow-hidden border border-border group">
                                 {imageUrl ? (
                                     <>
-                                        <Image src={imageUrl} alt="Cover" className="w-full h-full object-cover" width={100} height={100} unoptimized />
+                                        <SafeImage src={imageUrl} alt="Cover" className="w-full h-full object-cover" width={100} height={100} unoptimized />
                                         <button
                                             type="button"
                                             onClick={() => { setImageUrl(null); setImageFile(null); }}

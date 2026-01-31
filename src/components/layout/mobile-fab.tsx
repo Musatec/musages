@@ -4,17 +4,14 @@ import { useState, useRef } from "react";
 import {
     Plus,
     Camera,
-    FileText,
-    CheckCircle2,
-    Lightbulb,
     X,
     Loader2,
     Wallet
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import { useRouter } from "@/i18n/routing";
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { toast } from "sonner";
 import { CATEGORIES } from "@/components/studio/constants";
@@ -22,6 +19,7 @@ import { CategoryId } from "@/types/studio";
 import { NewTransactionSheet } from "@/components/capital/new-transaction-sheet";
 
 export function MobileFab() {
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
 
     // Dialog States
@@ -44,7 +42,6 @@ export function MobileFab() {
     const [isSubmittingNote, setIsSubmittingNote] = useState(false);
     const [isCapturing, setIsCapturing] = useState(false);
 
-    const router = useRouter();
     const { user } = useSupabase();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,7 +94,7 @@ export function MobileFab() {
                 category: studioCategory,
                 image_url: imageUrl,
                 user_id: user.id,
-                status: 'idée',
+                status: 'idee',
                 progress: 0
             });
 
@@ -110,9 +107,14 @@ export function MobileFab() {
             setStudioImage(null);
             setStudioCategory("idea");
             setIsStudioDialogOpen(false);
-        } catch (error: any) {
+
+            // Redirect to Studio (Gallery)
+            router.push('/studio');
+            router.refresh();
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur inconnue";
             console.error(error);
-            toast.error("Erreur capture : " + error.message, { id: toastId });
+            toast.error("Erreur capture : " + message, { id: toastId });
         } finally {
             setIsCapturing(false);
         }
@@ -137,8 +139,9 @@ export function MobileFab() {
             toast.success("Mission ajoutée au Pilote ! ✅");
             setNewTaskTitle("");
             setIsTaskDialogOpen(false);
-        } catch (error: any) {
-            toast.error("Erreur mission : " + error.message);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur inconnue";
+            toast.error("Erreur mission : " + message);
         } finally {
             setIsSubmittingTask(false);
         }
@@ -176,8 +179,9 @@ export function MobileFab() {
             toast.success("Idée capturée dans le Labo ! 🧠");
             setNewNoteContent("");
             setIsNoteDialogOpen(false);
-        } catch (error: any) {
-            toast.error("Erreur note : " + error.message);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur inconnue";
+            toast.error("Erreur note : " + message);
         } finally {
             setIsSubmittingNote(false);
         }

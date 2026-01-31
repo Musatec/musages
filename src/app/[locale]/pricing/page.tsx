@@ -2,7 +2,6 @@
 
 import { Check, Zap, Rocket, Star, ArrowRight, ShieldCheck, Sparkles, Clock3 } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function PricingPage() {
@@ -121,7 +120,7 @@ export default function PricingPage() {
                             onClick={handleWaitlist}
                             className="mt-12 w-full py-5 bg-primary hover:opacity-90 text-primary-foreground rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-primary/20 flex items-center justify-center gap-3"
                         >
-                            Liste d'attente
+                            Liste d&apos;attente
                             <Clock3 className="w-4 h-4" />
                         </button>
                     </div>
@@ -148,7 +147,7 @@ export default function PricingPage() {
                         <Star className="w-8 h-8 text-muted-foreground" />
                         <div>
                             <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground">Beta Club</h4>
-                            <p className="text-[9px] text-muted-foreground font-bold uppercase trekking-tighter">Participez à l'évolution de l'OS.</p>
+                            <p className="text-[9px] text-muted-foreground font-bold uppercase trekking-tighter">Participez à l&apos;évolution de l&apos;OS.</p>
                         </div>
                     </div>
                 </div>

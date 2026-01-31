@@ -92,61 +92,56 @@ export function AccountsTab({ groups, profiles, fetchData, setProfiles }: Accoun
             {groups.map((group) => (
                 <section key={group.id} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
                     {/* Brand Header */}
-                    <div className="group relative overflow-hidden rounded-[3rem] border border-border bg-card shadow-2xl">
+                    <div className="group relative overflow-hidden rounded-2xl md:rounded-[2.5rem] border-2 border-orange-500/30 bg-gradient-to-br from-orange-950/20 via-[#0a0a0a] to-[#0a0a0a] shadow-2xl shadow-orange-900/10">
                         {/* Banner */}
-                        <div className="h-48 w-full relative overflow-hidden">
+                        <div className="h-20 md:h-28 w-full relative overflow-hidden border-b border-orange-500/20">
                             {group.banner_url ? (
-                                <Image src={group.banner_url} alt={group.name} fill className="object-cover brightness-50 group-hover:scale-105 transition-transform duration-700" />
+                                <Image src={group.banner_url} alt={group.name} fill className="object-cover opacity-40 group-hover:scale-110 transition-transform duration-1000" />
                             ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-primary/20 via-card to-background" />
+                                <div className="w-full h-full bg-gradient-to-r from-orange-600/20 via-zinc-900 to-orange-600/10" />
                             )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent" />
                         </div>
 
                         {/* Brand Info */}
-                        <div className="px-10 pb-10 -mt-12 relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-                            <div className="flex items-end gap-6">
-                                <div className="w-24 h-24 rounded-3xl bg-secondary border-4 border-card shadow-2xl flex items-center justify-center overflow-hidden">
+                        <div className="px-5 md:px-8 pb-5 md:pb-6 -mt-4 md:-mt-6 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-zinc-900 border-2 border-orange-500/50 shadow-2xl flex items-center justify-center overflow-hidden shrink-0 group-hover:border-orange-500 transition-colors">
                                     {group.banner_url ? (
-                                        <Image src={group.banner_url} alt={group.name} width={96} height={96} className="object-cover" />
+                                        <Image src={group.banner_url} alt={group.name} width={64} height={64} className="object-cover" />
                                     ) : (
-                                        <Target className="w-10 h-10 text-primary" />
+                                        <Target className="w-6 h-6 text-orange-500" />
                                     )}
                                 </div>
-                                <div className="pb-2">
-                                    <h2 className="text-4xl font-black italic tracking-tighter text-foreground uppercase">{group.name}</h2>
-                                    <div className="flex items-center gap-4 mt-2">
-                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                            <Globe className="w-3.5 h-3.5" />
-                                            <span>{t('official_entity')}</span>
+                                <div className="min-w-0">
+                                    <h2 className="text-xl md:text-2xl font-black italic tracking-tighter text-white uppercase truncate group-hover:text-orange-500 transition-colors">{group.name}</h2>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1 text-[8px] font-bold text-orange-500/70 uppercase tracking-widest">
+                                            <Globe className="w-2.5 h-2.5" />
+                                            <span>ENTITÉ OFFICIELLE</span>
                                         </div>
-                                        {group.website_url && (
-                                            <a href={group.website_url} target="_blank" className="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline underline-offset-4">
-                                                SITE WEB <ExternalLink className="w-3 h-3" />
-                                            </a>
-                                        )}
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex gap-3">
+                            <div className="flex items-center gap-2">
                                 <NewNetworkSheet
                                     onSuccess={fetchData}
                                     trigger={
-                                        <button className="bg-transparent border border-zinc-700 text-white hover:border-orange-500 hover:text-orange-500 hover:bg-orange-500/10 font-black px-6 py-3 rounded-2xl transition-all flex items-center gap-2 shadow-xl active:scale-95 uppercase text-[10px] tracking-widest">
-                                            <Plus className="h-4 w-4" />
-                                            S&apos;étendre
+                                        <button className="flex-1 md:flex-none bg-orange-600 text-white border border-orange-400/50 px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest active:scale-95 shadow-lg shadow-orange-900/40">
+                                            <Plus className="h-3.5 w-3.5" />
+                                            <span>S&apos;ÉTENDRE</span>
                                         </button>
                                     }
                                 />
-                                <button className="p-3 bg-secondary/50 border border-border rounded-2xl text-muted-foreground hover:text-foreground transition-all">
-                                    <Settings2 className="w-5 h-5" />
+                                <button className="p-2.5 bg-zinc-900 border border-white/10 rounded-xl text-zinc-500 hover:text-orange-500 transition-all">
+                                    <Settings2 className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     {/* Profiles Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 justify-items-center">
                         {profiles.filter((p) => p.group_id === group.id).map((profile) => {
                             const config = PLATFORM_CONFIG[profile.platform] || { icon: Globe, brandColor: "#FFFFFF" };
                             const status = translatedStatus[profile.status as keyof typeof translatedStatus] || translatedStatus["Actif"];
@@ -156,55 +151,56 @@ export function AccountsTab({ groups, profiles, fetchData, setProfiles }: Accoun
                             return (
                                 <div
                                     key={profile.id}
-                                    className="group relative bg-card border border-border rounded-[2rem] p-6 hover:bg-accent/10 hover:border-primary/50 transition-all duration-300 shadow-xl shadow-black/10 flex flex-col h-full"
+                                    className="group relative bg-[#111111]/80 backdrop-blur-sm border border-white/5 rounded-2xl p-4 hover:border-primary/30 transition-all duration-500 shadow-2xl flex flex-col h-full w-full max-w-[280px] sm:max-w-none mx-auto"
                                 >
-                                    <div className="flex justify-between items-start mb-6">
+                                    <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-2xl bg-secondary border border-border flex items-center justify-center shadow-lg">
-                                                <Icon className="w-5 h-5 transition-colors" style={{ color: config.brandColor }} />
+                                            <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center shadow-lg">
+                                                <Icon className="w-5 h-5" style={{ color: config.brandColor }} />
                                             </div>
-                                            <div className="flex flex-col">
-                                                <h3 className="text-xs font-black text-foreground uppercase tracking-tight truncate max-w-[120px]">{profile.platform}</h3>
-                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em]">{profile.username || "Identifié"}</p>
+                                            <div className="flex flex-col min-w-0">
+                                                <h3 className="text-[10px] font-black text-white uppercase tracking-tight truncate">{profile.platform}</h3>
+                                                <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest truncate">{profile.username || "ACTIF"}</p>
                                             </div>
                                         </div>
-                                        <div className={cn("px-2.5 py-1 rounded-lg border text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5", status.bg, status.color, status.border)}>
+                                        <div className={cn("p-1.5 rounded-lg border flex items-center shrink-0", status.bg, status.color, status.border)}>
                                             <StatusIcon className="w-3 h-3" />
-                                            {status.label}
                                         </div>
                                     </div>
 
                                     <div className="flex-1 space-y-4">
                                         {profile.bio && (
-                                            <p className="text-xs text-muted-foreground leading-relaxed italic line-clamp-2">&quot;{profile.bio}&quot;</p>
+                                            <p className="text-[10px] text-zinc-400 leading-relaxed italic line-clamp-2 px-1 border-l border-zinc-800">
+                                                &quot;{profile.bio}&quot;
+                                            </p>
                                         )}
                                         {profile.goal && (
-                                            <div className="bg-secondary/30 rounded-xl p-3 border border-border/50">
-                                                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Cible Stratégique</p>
-                                                <p className="text-xs font-bold text-foreground">{profile.goal}</p>
+                                            <div className="bg-zinc-900/50 rounded-lg p-2.5 border border-white/5">
+                                                <p className="text-[7px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-1">CIBLE STRATÉGIQUE</p>
+                                                <p className="text-[10px] font-bold text-white truncate">{profile.goal}</p>
                                             </div>
                                         )}
 
                                         <CredentialsView username={profile.username} password={profile.password} />
                                     </div>
 
-                                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/50">
-                                        <a href={profile.url || '#'} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-primary hover:underline flex items-center gap-1.5 group/link uppercase tracking-widest">
-                                            Visualiser <ExternalLink className="w-3 h-3 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+                                    <div className="flex items-center justify-between mt-5 pt-3 border-t border-white/5">
+                                        <a href={profile.url || '#'} target="_blank" rel="noopener noreferrer" className="text-[9px] font-black text-orange-500 hover:text-orange-400 flex items-center gap-1.5 transition-colors uppercase tracking-[0.15em]">
+                                            VISUALISER <ExternalLink className="w-2.5 h-2.5" />
                                         </a>
 
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1">
                                             <NewNetworkSheet
                                                 onSuccess={fetchData}
                                                 profileToEdit={profile}
                                                 trigger={
-                                                    <button className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary">
-                                                        <Settings2 className="w-3.5 h-3.5" />
+                                                    <button className="p-1.5 text-zinc-600 hover:text-zinc-300 transition-colors">
+                                                        <Settings2 className="w-3 h-3" />
                                                     </button>
                                                 }
                                             />
-                                            <button onClick={() => deleteProfile(profile.id)} className="p-2 text-muted-foreground hover:text-rose-500 transition-colors rounded-lg hover:bg-rose-500/10">
-                                                <Trash2 className="w-3.5 h-3.5" />
+                                            <button onClick={() => deleteProfile(profile.id)} className="p-1.5 text-zinc-600 hover:text-rose-500 transition-colors">
+                                                <Trash2 className="w-3 h-3" />
                                             </button>
                                         </div>
                                     </div>

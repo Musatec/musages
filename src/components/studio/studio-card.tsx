@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Project } from "@/types/studio";
 import { CATEGORIES } from "./constants";
 import { Copy, ExternalLink, Trash2 } from "lucide-react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import { useTranslations, useLocale } from "next-intl";
 
 export interface StudioCardProps {
@@ -73,7 +73,7 @@ export function StudioCard({ project, onEdit, onDelete, onDuplicate }: StudioCar
                 className="break-inside-avoid mb-6 cursor-pointer group relative rounded-3xl overflow-hidden bg-black aspect-[4/5] hover:-translate-y-1 transition-all duration-300 shadow-md hover:shadow-xl"
                 onClick={() => onEdit(project)}
             >
-                <Image
+                <SafeImage
                     src={project.image_url}
                     alt={project.title}
                     width={400}

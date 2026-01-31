@@ -215,17 +215,17 @@ export function NewNetworkSheet({ onSuccess, profileToEdit, trigger }: { onSucce
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
                 {trigger ? trigger : (
-                    <button className="bg-foreground text-background font-black px-6 py-3.5 rounded-2xl hover:bg-primary hover:text-primary-foreground transition-all flex items-center gap-2 shadow-xl active:scale-95 uppercase text-[10px] tracking-widest">
-                        <Plus className="h-5 w-5" />
-                        <span>{t('linker_actif')}</span>
+                    <button className="w-fit bg-foreground text-background font-black px-4 py-2.5 rounded-xl hover:bg-primary hover:text-primary-foreground transition-all flex items-center gap-2 shadow-xl active:scale-95 uppercase text-[9px] tracking-widest">
+                        <Plus className="h-4 w-4" />
+                        <span>AJOUTER UN COMPTE</span>
                     </button>
                 )}
             </SheetTrigger>
 
             <SheetContent side="right" className="w-[100%] sm:w-[600px] border-l border-border bg-background p-0 flex flex-col h-full shadow-2xl">
-                <div className="p-10 border-b border-border bg-card/50 backdrop-blur-xl">
+                <div className="p-6 md:p-10 border-b border-border bg-card/50 backdrop-blur-xl">
                     <SheetHeader>
-                        <SheetTitle className="text-4xl font-black italic uppercase tracking-tighter text-foreground">
+                        <SheetTitle className="text-2xl md:text-4xl font-black italic uppercase tracking-tighter text-foreground">
                             {profileToEdit ? t('edit_actif').split('l\'Actif')[0] : t('linker_actif').split('l\'Actif')[0]} <span className="text-primary">{t('linker_actif').includes('l\'Actif') ? "l'Actif." : 'Asset.'}</span>
                         </SheetTitle>
                         <SheetDescription className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.2em] mt-2">
@@ -234,7 +234,7 @@ export function NewNetworkSheet({ onSuccess, profileToEdit, trigger }: { onSucce
                     </SheetHeader>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-10 space-y-10 scrollbar-hide">
+                <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-10 scrollbar-hide">
                     <form id="social-form" onSubmit={handleSubmit} className="space-y-10">
 
                         {/* Choisir la Marque */}
@@ -406,7 +406,7 @@ export function NewNetworkSheet({ onSuccess, profileToEdit, trigger }: { onSucce
                     </form>
                 </div>
 
-                <div className="p-10 border-t border-border bg-card/80 backdrop-blur-2xl">
+                <div className="p-6 md:p-10 border-t border-border bg-card/80 backdrop-blur-2xl">
                     <button
                         form="social-form"
                         type="submit"

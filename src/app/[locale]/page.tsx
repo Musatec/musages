@@ -13,6 +13,7 @@ import {
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { SafeImage } from "@/components/ui/safe-image";
 
 export default function LandingPage() {
     const [scrolled, setScrolled] = useState(false);
@@ -41,10 +42,13 @@ export default function LandingPage() {
             )}>
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2 group">
-                        <img
+                        <SafeImage
                             src="/logo.svg?v=4"
                             alt="MINDOS Logo"
+                            width={120}
+                            height={32}
                             className="h-8 w-auto transition-transform group-hover:scale-105"
+                            priority
                         />
                     </Link>
 
@@ -89,20 +93,13 @@ export default function LandingPage() {
                         }}
                         className="relative z-10 max-w-5xl space-y-8"
                     >
-                        <motion.div
-                            variants={fadeInUp}
-                            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-900/50 border border-white/10 text-zinc-400 mb-4"
-                        >
-                            <Sparkles className="w-3.5 h-3.5 text-orange-500" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em]">Protocol LAVA v4.2</span>
-                        </motion.div>
 
                         <motion.h1
                             variants={fadeInUp}
-                            className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[1] sm:leading-[0.9] uppercase px-4"
+                            className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.9] uppercase px-2"
                         >
                             Transformez le <span className="text-orange-500 italic block sm:inline">Chaos</span> <br className="hidden sm:block" />
-                            en <span className="relative inline-block mt-2 sm:mt-0">
+                            en <span className="relative inline-block mt-1 sm:mt-0">
                                 Création
                                 <div className="absolute -inset-2 bg-orange-500/20 blur-2xl rounded-full -z-10" />
                             </span>.
@@ -112,7 +109,7 @@ export default function LandingPage() {
                             variants={fadeInUp}
                             className="max-w-2xl mx-auto text-lg md:text-xl text-zinc-400 font-medium leading-relaxed"
                         >
-                            Le système d'exploitation pour les créateurs qui ne s'arrêtent jamais.
+                            Le système d&apos;exploitation pour les créateurs qui ne s&apos;arrêtent jamais.
                             Structurez votre génie, maîtrisez votre temps.
                         </motion.p>
 
@@ -122,15 +119,9 @@ export default function LandingPage() {
                         >
                             <Link
                                 href="/login"
-                                className="group w-full sm:w-auto px-10 py-5 bg-orange-500 text-black rounded-2xl font-black text-lg hover:bg-orange-400 transition-all shadow-[0_20px_40px_rgba(249,115,22,0.2)] active:scale-95 flex items-center justify-center gap-3 uppercase"
+                                className="group w-full sm:w-auto px-8 py-4 md:px-10 md:py-5 bg-orange-500 text-black rounded-2xl font-black text-base md:text-lg hover:bg-orange-400 transition-all shadow-[0_20px_40px_rgba(249,115,22,0.2)] active:scale-95 flex items-center justify-center gap-3 uppercase"
                             >
                                 Lancer mon Workspace <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                            <Link
-                                href="/login"
-                                className="w-full sm:w-auto px-10 py-5 bg-zinc-900 border border-white/5 text-white rounded-2xl font-black text-lg hover:bg-zinc-800 transition-all flex items-center justify-center gap-3 uppercase"
-                            >
-                                <Play className="w-4 h-4 text-orange-500 fill-orange-500" /> Voir la démo
                             </Link>
                         </motion.div>
                     </motion.div>
@@ -153,7 +144,7 @@ export default function LandingPage() {
                             <div className="space-y-2">
                                 <h3 className="text-xl font-black uppercase tracking-tight text-white group-hover:text-orange-500 transition-colors">FOCUS</h3>
                                 <p className="text-zinc-400 text-sm leading-relaxed">
-                                    "Mode Immersif & Pomodoro". Une concentration chirurgicale pour vos sessions les plus critiques.
+                                    &quot;Mode Immersif &amp; Pomodoro&quot;. Une concentration chirurgicale pour vos sessions les plus critiques.
                                 </p>
                             </div>
                         </motion.div>
@@ -169,7 +160,7 @@ export default function LandingPage() {
                             <div className="space-y-2">
                                 <h3 className="text-xl font-black uppercase tracking-tight text-white group-hover:text-orange-500 transition-colors">FINANCES</h3>
                                 <p className="text-zinc-400 text-sm leading-relaxed">
-                                    "Suivi des revenus & Objectifs". Gardez un œil sur votre croissance financière en temps réel.
+                                    &quot;Suivi des revenus &amp; Objectifs&quot;. Gardez un œil sur votre croissance financière en temps réel.
                                 </p>
                             </div>
                         </motion.div>
@@ -185,7 +176,7 @@ export default function LandingPage() {
                             <div className="space-y-2">
                                 <h3 className="text-xl font-black uppercase tracking-tight text-white group-hover:text-orange-500 transition-colors">SYSTÈME</h3>
                                 <p className="text-zinc-400 text-sm leading-relaxed">
-                                    "Organisation par Projets & Tâches". Le centre de commandement pour piloter votre empire créatif.
+                                    &quot;Organisation par Projets &amp; Tâches&quot;. Le centre de commandement pour piloter votre empire créatif.
                                 </p>
                             </div>
                         </motion.div>
@@ -194,16 +185,16 @@ export default function LandingPage() {
 
                 {/* CALL TO ACTION FINAL */}
                 <section className="py-32 px-6">
-                    <div className="max-w-5xl mx-auto rounded-[3.5rem] bg-gradient-to-br from-zinc-900 to-black border border-white/5 p-12 md:p-20 text-center relative overflow-hidden group">
+                    <div className="max-w-5xl mx-auto rounded-[2.5rem] md:rounded-[3.5rem] bg-gradient-to-br from-zinc-900 to-black border border-white/5 p-8 md:p-20 text-center relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-orange-500/5 blur-[100px] rounded-full pointer-events-none" />
 
-                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-8 uppercase px-4">
+                        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-8 uppercase px-2">
                             Prêt à passer en <br />
                             <span className="text-orange-500 italic">Vitesse Supérieure ?</span>
                         </h2>
                         <Link
                             href="/login"
-                            className="inline-flex items-center gap-4 px-12 py-6 bg-orange-500 text-black rounded-2xl font-black text-xl hover:bg-orange-400 transition-all shadow-[0_20px_40px_rgba(249,115,22,0.3)] active:scale-95 uppercase"
+                            className="inline-flex w-full sm:w-auto items-center justify-center gap-4 px-8 py-4 md:px-12 md:py-6 bg-orange-500 text-black rounded-2xl font-black text-lg md:text-xl hover:bg-orange-400 transition-all shadow-[0_20px_40px_rgba(249,115,22,0.3)] active:scale-95 uppercase"
                         >
                             Prendre les Commandes <ChevronRight className="w-6 h-6" />
                         </Link>
@@ -215,18 +206,14 @@ export default function LandingPage() {
             <footer className="py-12 px-6 border-t border-white/5 bg-black">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex items-center gap-3 grayscale opacity-30 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer mb-6 md:mb-0">
-                        <img src="/logo.svg?v=4" alt="MINDOS Logo" className="h-5 w-auto" />
+                        <SafeImage src="/logo.svg?v=4" alt="MINDOS Logo" width={80} height={20} className="h-5 w-auto" />
                         <span className="text-[11px] font-black tracking-[0.3em] uppercase">MINDOS</span>
                     </div>
 
                     <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.3em] text-center mb-6 md:mb-0 px-4">
-                        © 2026 MINDOS SYNDICATE · TOUS DROITS RÉSERVÉS
+                        © 2026 MINDOS · TOUS DROITS RÉSERVÉS
                     </p>
 
-                    <div className="flex gap-6">
-                        <Link href="/login" className="text-zinc-600 hover:text-orange-500 text-[10px] font-black uppercase tracking-widest transition-colors">Politique</Link>
-                        <Link href="/login" className="text-zinc-600 hover:text-orange-500 text-[10px] font-black uppercase tracking-widest transition-colors">Termes</Link>
-                    </div>
                 </div>
             </footer>
 

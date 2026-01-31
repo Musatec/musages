@@ -95,8 +95,9 @@ export function NewTransactionSheet({ open, onOpenChange, onSuccess, transaction
                 setCategory(CATEGORIES[2]);
                 setDate(new Date().toISOString().split('T')[0]);
             }
-        } catch (error: any) {
-            toast.error("Erreur : " + error.message);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur inconnue";
+            toast.error("Erreur : " + message);
         } finally {
             setLoading(false);
         }
@@ -113,8 +114,9 @@ export function NewTransactionSheet({ open, onOpenChange, onSuccess, transaction
             toast.success("Transaction supprimée.");
             onSuccess?.();
             onOpenChange(false);
-        } catch (error: any) {
-            toast.error("Erreur suppression : " + error.message);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur inconnue";
+            toast.error("Erreur suppression : " + message);
         } finally {
             setLoading(false);
         }

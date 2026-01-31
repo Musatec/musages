@@ -22,9 +22,33 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "MINDOS | The Creator OS",
-  description: "Organize your brain, finance, and content.",
+  title: {
+    default: "MINDOS | The Creator OS",
+    template: "%s | MINDOS"
+  },
+  description: "Le système d'exploitation ultime pour les créateurs. Organisez votre esprit, vos finances et vos contenus au même endroit.",
+  metadataBase: new URL('https://musages.vercel.app'),
   manifest: "/manifest.json",
+  alternates: {
+    canonical: '/',
+    languages: {
+      'fr': '/fr',
+      'en': '/en',
+    },
+  },
+  openGraph: {
+    title: "MINDOS | The Creator OS",
+    description: "Organisez votre génie. Maîtrisez votre temps.",
+    url: 'https://musages.vercel.app',
+    siteName: 'MINDOS',
+    locale: 'fr_FR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'MINDOS | The Creator OS',
+    description: 'Le centre de commandement pour les créateurs modernes.',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

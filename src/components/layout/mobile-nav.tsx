@@ -21,7 +21,7 @@ export function MobileNav() {
                     return (
                         <Link
                             key={item.href}
-                            href={item.href as any}
+                            href={item.href as typeof item.href}
                             className={cn(
                                 "relative flex flex-col items-center justify-center p-2 transition-all duration-500",
                                 isActive ? "scale-110" : "text-muted-foreground"
@@ -40,7 +40,7 @@ export function MobileNav() {
                                 "text-[7px] font-black uppercase tracking-[0.1em] mt-1 transition-colors duration-300 truncate max-w-[55px] text-center",
                                 isActive ? "text-primary" : "text-muted-foreground"
                             )}>
-                                {t(item.key as any)}
+                                {t(item.key as Parameters<typeof t>[0])}
                             </span>
                         </Link>
                     );

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { supabase } from "@/lib/supabase";
-import { ArrowLeft, BookOpen, Clock, MoreVertical, Plus, Trash2, Edit3, GripVertical, FileText, Loader2, Upload, X, Download } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Edit3, FileText, Loader2, Download } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -29,10 +29,9 @@ export default function BookDetailPage() {
     const [editCoverUrl, setEditCoverUrl] = useState("");
     const [editStatus, setEditStatus] = useState("draft");
     const [isSavingBook, setIsSavingBook] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!id) return;
         setLoading(true);
         try {
@@ -59,37 +58,17 @@ export default function BookDetailPage() {
             if (chaptersError) throw chaptersError;
             setChapters(chaptersData || []);
 
-        } catch (error) {
-            console.error(error);
+        } catch {
             toast.error("Erreur de chargement du livre");
         } finally {
             setLoading(false);
         }
-    };
+    }, [id, user?.id]);
 
     useEffect(() => {
         if (id) fetchData();
-    }, [id]);
+    }, [id, fetchData]);
 
-    const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file || !user) return;
-        setIsUploading(true);
-        try {
-            const fileExt = file.name.split('.').pop();
-            const filePath = `${user.id}/${Date.now()}.${fileExt}`;
-            const { error: uploadError } = await supabase.storage.from('covers').upload(filePath, file);
-            if (uploadError) throw uploadError;
-            const { data } = supabase.storage.from('covers').getPublicUrl(filePath);
-            setEditCoverUrl(data.publicUrl);
-            toast.success("Couverture téléversée !");
-        } catch (error) {
-            console.error(error);
-            toast.error("Erreur lors du téléversement");
-        } finally {
-            setIsUploading(false);
-        }
-    };
 
     const handleUpdateBook = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -112,7 +91,7 @@ export default function BookDetailPage() {
             toast.success("Livre mis à jour !");
             setIsEditingBook(false);
             fetchData();
-        } catch (error) {
+        } catch {
             toast.error("Erreur lors de la mise à jour");
         } finally {
             setIsSavingBook(false);
@@ -126,7 +105,10 @@ export default function BookDetailPage() {
             await supabase.from('books').delete().eq('id', id).eq('user_id', user.id);
             router.push('/books');
             toast.success("Livre supprimé");
-        } catch (e) { toast.error("Erreur suppression"); }
+        } catch (error: unknown) {
+            console.error(error);
+            toast.error("Erreur suppression");
+        }
     };
 
     const handleAddChapter = async (e: React.FormEvent) => {
@@ -146,7 +128,7 @@ export default function BookDetailPage() {
             setNewChapterTitle("");
             setIsCreatingChapter(false);
             fetchData();
-        } catch (e) { toast.error("Erreur création chapitre"); }
+        } catch { toast.error("Erreur création chapitre"); }
     };
 
     const handleDeleteChapter = async (chapterId: string) => {
@@ -154,7 +136,10 @@ export default function BookDetailPage() {
         try {
             await supabase.from('chapters').delete().eq('id', chapterId);
             fetchData();
-        } catch (e) { toast.error("Erreur"); }
+        } catch (error: unknown) {
+            console.error(error);
+            toast.error("Erreur");
+        }
     };
 
     const handleExportPDF = async () => {
@@ -215,7 +200,7 @@ export default function BookDetailPage() {
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-            } as any;
+            } as Record<string, unknown>;
 
             await html2pdf().from(element).set(opt).save();
             toast.dismiss(tid);
@@ -285,7 +270,7 @@ export default function BookDetailPage() {
                                     </span>
                                 </div>
                                 <h1 className="text-6xl font-black tracking-tighter">{book.title}</h1>
-                                <p className="text-gray-400 text-lg leading-relaxed max-w-2xl italic">"{book.summary || "Aucun résumé pour le moment."}"</p>
+                                <p className="text-gray-400 text-lg leading-relaxed max-w-2xl italic">&quot;{book.summary || "Aucun résumé pour le moment."}&quot;</p>
                             </div>
                             <div className="flex items-center gap-3 pt-4">
                                 <button onClick={handleExportPDF} disabled={isExporting} className="flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-[#F97316] hover:text-white transition-all active:scale-95 disabled:opacity-50">

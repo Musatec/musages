@@ -3,32 +3,22 @@
 import { useEffect, useState } from "react";
 import {
     Loader2,
-    Zap,
-    BookOpen,
-    FlaskConical,
-    Clock3,
     Play,
     Pause,
-    RotateCcw,
     Award,
     Dumbbell,
     Rocket,
     CheckCircle2,
-    ArrowRight,
-    Plus,
     Flame,
     Calendar,
     Zap as ZapIcon,
     Wind,
-    ChevronDown,
     Target,
-    Music,
     CloudRain,
     Volume2,
     VolumeX,
     Waves
 } from "lucide-react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/types/supabase";
 import { cn } from "@/lib/utils";
@@ -139,7 +129,7 @@ export default function MaJourneePage() {
         return () => {
             if (audio) audio.pause();
         };
-    }, [audioMode, isFocusActive]);
+    }, [audioMode, isFocusActive, audio]);
 
 
 

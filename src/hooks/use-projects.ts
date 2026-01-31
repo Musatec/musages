@@ -56,7 +56,7 @@ export function useProjects() {
         .insert({
           title: `${project.title} (copie)`,
           description: project.description,
-          status: 'IDEA',
+          status: 'idee',
           progress: 0,
           tech_stack: project.tech_stack,
           due_date: project.due_date

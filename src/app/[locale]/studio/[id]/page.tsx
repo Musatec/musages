@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
     ArrowLeft,
-    Calendar,
-    MoreVertical,
-    Plus,
     Loader2,
     Trash2,
-    Settings,
-    Pencil,
-    Image as ImageIcon
+    Settings
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -50,11 +45,7 @@ export default function ProjectDetailPage() {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editFormData, setEditFormData] = useState({ title: "", description: "" });
 
-    useEffect(() => {
-        if (user) fetchData();
-    }, [projectId, user]);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         if (!user) return;
         try {
             // Fetch Project
@@ -80,12 +71,16 @@ export default function ProjectDetailPage() {
             if (tasksError) throw tasksError;
             setTasks(tasksData || []);
 
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
-    };
+    }, [projectId, user]);
+
+    useEffect(() => {
+        if (user) fetchData();
+    }, [fetchData, user]);
 
     const handleUpdateProject = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -104,8 +99,8 @@ export default function ProjectDetailPage() {
 
             setProject(prev => prev ? ({ ...prev, title: editFormData.title, description: editFormData.description }) : null);
             setIsEditOpen(false);
-        } catch (err) {
-            alert("Erreur update");
+        } catch {
+            toast.error("Erreur lors de la mise à jour");
         }
     };
 
@@ -152,7 +147,7 @@ export default function ProjectDetailPage() {
             setTasks([...tasks, data]);
             setNewTaskTitle("");
 
-        } catch (error) {
+        } catch {
             toast.error("Échec de l'ajout.");
         } finally {
             setAddingTask(false);
@@ -190,7 +185,7 @@ export default function ProjectDetailPage() {
             const { error } = await supabase.from('tasks').delete().eq('id', taskId).eq('user_id', user.id);
             if (error) throw error;
             toast.success("Tâche supprimée");
-        } catch (error) {
+        } catch {
             setTasks(oldTasks);
             toast.error("Erreur suppression");
         }
@@ -208,7 +203,13 @@ export default function ProjectDetailPage() {
             {/* Background Image Project (Flou) */}
             {project.image_url && (
                 <div className="fixed inset-0 z-[-1]">
-                    <img src={project.image_url} className="w-full h-full object-cover opacity-10 blur-3xl mix-blend-screen" />
+                    <Image
+                        src={project.image_url}
+                        alt="Background blur"
+                        fill
+                        className="object-cover opacity-10 blur-3xl mix-blend-screen"
+                        sizes="100vw"
+                    />
                     <div className="absolute inset-0 bg-background/80" />
                 </div>
             )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Book, MoreVertical, Clock, BookOpen, Search, X, Loader2 } from "lucide-react";
+import { Plus, Book, BookOpen, Search, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -49,7 +49,7 @@ export default function BooksPage() {
 
             if (error) throw error;
             setBooks(data as BookType[] || []);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Error fetching books:", error);
             toast.error("Erreur de chargement des livres");
         } finally {
@@ -80,7 +80,8 @@ export default function BooksPage() {
             setNewBookTitle("");
             setIsCreating(false);
             fetchBooks();
-        } catch (error) {
+        } catch (error: unknown) {
+            console.error(error);
             toast.error("Impossible de créer le livre.");
         } finally {
             setIsSubmitting(false);
@@ -319,7 +320,7 @@ export default function BooksPage() {
                             {sortedAndFilteredBooks.length === 0 && searchQuery && (
                                 <div className="col-span-full py-20 text-center space-y-4">
                                     <div className="text-gray-600 text-5xl">🔭</div>
-                                    <p className="text-gray-500">Aucun manuscrit trouvé pour "<span className="text-white font-medium">{searchQuery}</span>"</p>
+                                    <p className="text-gray-500">Aucun manuscrit trouvé pour &quot;<span className="text-white font-medium">{searchQuery}</span>&quot;</p>
                                     <button onClick={() => setSearchQuery("")} className="text-[#F97316] text-sm hover:underline">Effacer la recherche</button>
                                 </div>
                             )}

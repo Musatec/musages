@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Loader2, Lock, Mail, ArrowRight, User } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -19,7 +18,7 @@ export default function LoginPage() {
 
     useEffect(() => {
         // Écoute les événements d'auth pour capturer la récupération de mot de passe
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
             if (event === "PASSWORD_RECOVERY") {
                 router.push("/auth/reset-password");
             }
@@ -35,7 +34,7 @@ export default function LoginPage() {
 
         try {
             if (isSignUp) {
-                const { data, error: signUpError } = await supabase.auth.signUp({
+                const { error: signUpError } = await supabase.auth.signUp({
                     email,
                     password,
                     options: {
@@ -58,9 +57,10 @@ export default function LoginPage() {
                     window.location.href = "/dashboard";
                 }, 500);
             }
-        } catch (err: any) {
-            setError(err.message);
-            toast.error(err.message);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Erreur inconnue";
+            setError(message);
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -79,8 +79,9 @@ export default function LoginPage() {
             });
             if (error) throw error;
             toast.success("Lien de réinitialisation envoyé ! Vérifie tes emails.");
-        } catch (err: any) {
-            toast.error(err.message);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Erreur inconnue";
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -99,10 +100,13 @@ export default function LoginPage() {
                 <div className="text-center space-y-6">
                     <div className="inline-flex items-center justify-center p-4 bg-card rounded-3xl border border-border shadow-2xl relative group">
                         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-xl" />
-                        <img
+                        <SafeImage
                             src="/logo.svg?v=4"
                             alt="Logo MINDOS"
+                            width={120}
+                            height={48}
                             className="relative z-10 drop-shadow-[0_0_15px_hsla(var(--primary)/0.5)] h-12 w-auto"
+                            priority
                         />
                     </div>
                     <div>

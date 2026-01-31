@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
     Share2,
     Search,
@@ -36,6 +36,27 @@ export default function SocialPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeTab, setActiveTab] = useState<ActiveTab>("accounts");
 
+    const fetchData = useCallback(async () => {
+        if (!user) return;
+        try {
+            const { data: groupsData } = await supabase.from('social_groups')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('name');
+            setGroups((groupsData as SocialGroup[]) || []);
+
+            const { data: profilesData } = await supabase.from('social_profiles')
+                .select('*')
+                .eq('user_id', user.id);
+            setProfiles((profilesData as SocialProfile[]) || []);
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [user]);
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
@@ -44,28 +65,7 @@ export default function SocialPage() {
 
     useEffect(() => {
         if (user) fetchData();
-    }, [user]);
-
-    const fetchData = async () => {
-        if (!user) return;
-        try {
-            const { data: groupsData } = await supabase.from('social_groups')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('name');
-            setGroups((groupsData as any) || []);
-
-            const { data: profilesData } = await supabase.from('social_profiles')
-                .select('*')
-                .eq('user_id', user.id);
-            setProfiles((profilesData as any) || []);
-
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [user, fetchData]);
 
     const filteredGroups = groups.filter(group => {
         if (!searchQuery) return true;
@@ -88,58 +88,57 @@ export default function SocialPage() {
         <div className="p-4 md:p-10 min-h-screen space-y-8 md:space-y-12 bg-background selection:bg-primary/30">
 
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 md:gap-8 py-2 md:py-4 animate-in fade-in slide-in-from-top-4 duration-700">
-                <div className="space-y-4 md:space-y-6 w-full md:w-auto">
-                    <div className="flex items-center gap-3 md:gap-4">
-                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-card border border-border flex items-center justify-center shadow-xl shadow-black/20">
-                            <Share2 className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl md:text-4xl font-black italic tracking-tighter uppercase text-foreground leading-none">
-                                RÉSEAUX <span className="text-primary italic">SOCIAUX</span>
-                            </h1>
-                            <p className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1">{t('subtitle')}</p>
+            <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-1000">
+                <div className="flex flex-col gap-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center shadow-2xl shadow-black/40 shrink-0">
+                                <Share2 className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl md:text-4xl font-black italic tracking-tighter uppercase text-foreground leading-none">
+                                    RÉSEAUX <span className="text-primary italic">SOCIAUX</span>
+                                </h1>
+                                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 hidden xs:block">{t('subtitle')}</p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Custom Tabs Navigation */}
-                    <div className="flex items-center gap-1 md:gap-2 bg-card/50 p-1 md:p-1.5 rounded-2xl border border-border w-full md:w-fit backdrop-blur-xl shadow-2xl overflow-x-auto no-scrollbar">
-                        {[
-                            { id: "accounts", label: t('tab_accounts'), icon: Users },
-                            { id: "planner", label: t('tab_planner'), icon: Layout },
-                            { id: "goals", label: t('tab_goals'), icon: Target },
-                        ].map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id as ActiveTab)}
-                                className={cn(
-                                    "flex items-center gap-2.5 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                                    activeTab === tab.id
-                                        ? "bg-orange-500 text-white shadow-xl shadow-orange-500/20 scale-105"
-                                        : "text-zinc-400 bg-zinc-900/50 hover:bg-zinc-800 hover:text-white border border-transparent"
-                                )}
-                            >
-                                <tab.icon className={cn("w-4 h-4", activeTab === tab.id ? "text-primary" : "text-card-foreground/30")} />
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="flex flex-col items-end gap-5">
                     {activeTab === "accounts" && (
-                        <div className="relative max-w-sm group animate-in fade-in zoom-in duration-500">
-                            <Search className="absolute left-4 top-3.5 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <div className="relative group w-full max-w-[300px] mx-auto">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                             <input
                                 type="text"
                                 placeholder={t('filter_placeholder')}
-                                className="w-80 bg-card border border-border rounded-2xl pl-12 pr-4 py-3.5 text-sm text-foreground focus:border-primary/50 focus:bg-accent/20 outline-none transition-all placeholder:text-muted-foreground shadow-2xl shadow-black/20"
+                                className="w-full bg-secondary/30 border border-border/50 rounded-xl pl-10 pr-4 py-2 text-[10px] text-foreground focus:border-primary/50 outline-none transition-all placeholder:text-muted-foreground/50 font-bold"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
                     )}
-                    <NewNetworkSheet onSuccess={fetchData} />
+                </div>
+
+                {/* Custom Tabs Navigation */}
+                <div className="grid grid-cols-3 gap-1 bg-zinc-900/50 p-1 rounded-xl border border-border/50 backdrop-blur-xl">
+                    {[
+                        { id: "accounts", label: "COMPTES", icon: Users },
+                        { id: "planner", label: "PLANNING", icon: Layout },
+                        { id: "goals", label: "OBJECTIFS", icon: Target },
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as ActiveTab)}
+                            className={cn(
+                                "flex flex-col xs:flex-row items-center justify-center gap-1.5 py-2 md:py-3 rounded-lg text-[8px] md:text-[9px] font-black uppercase tracking-tighter xs:tracking-widest transition-all",
+                                activeTab === tab.id
+                                    ? "bg-orange-600 text-white shadow-lg shadow-orange-900/20"
+                                    : "text-zinc-500 hover:text-zinc-300"
+                            )}
+                        >
+                            <tab.icon className={cn("w-3 h-3 md:w-3.5 md:h-3.5", activeTab === tab.id ? "text-white" : "text-zinc-600")} />
+                            <span className="truncate">{tab.label}</span>
+                        </button>
+                    ))}
                 </div>
             </div>
 

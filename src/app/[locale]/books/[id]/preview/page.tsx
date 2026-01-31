@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useSupabase } from "@/components/providers/supabase-provider";
 import { supabase } from "@/lib/supabase";
-import { ArrowLeft, BookOpen, Clock, Printer } from "lucide-react";
+import { ArrowLeft, Printer } from "lucide-react";
 import Link from "next/link";
 import { Book, Chapter } from "@/types/books";
 import Image from "next/image";
@@ -12,7 +11,6 @@ import Image from "next/image";
 export default function BookPreviewPage() {
     const { id } = useParams();
     const router = useRouter();
-    const { user } = useSupabase();
 
     const [book, setBook] = useState<Book | null>(null);
     const [chapters, setChapters] = useState<Chapter[]>([]);
@@ -69,7 +67,7 @@ export default function BookPreviewPage() {
             <nav className="fixed top-0 left-0 right-0 p-4 flex justify-between items-center bg-white/80 backdrop-blur border-b border-gray-200 z-50 print:hidden">
                 <Link href={`/books/${id}`} className="flex items-center gap-2 text-gray-600 hover:text-black transition-colors">
                     <ArrowLeft className="w-5 h-5" />
-                    <span className="font-sans text-sm font-medium">Retour à l'éditeur</span>
+                    <span className="font-sans text-sm font-medium">Retour à l&apos;éditeur</span>
                 </Link>
                 <div className="flex gap-4">
                     <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-sans text-sm">

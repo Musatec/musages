@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Loader2, Lock, ArrowRight, ShieldCheck } from "lucide-react";
-import Image from "next/image";
+import { SafeImage } from "@/components/ui/safe-image";
 import { toast } from "sonner";
 
 export default function ResetPasswordPage() {
@@ -40,9 +40,10 @@ export default function ResetPasswordPage() {
             toast.success("Protocole de sécurité mis à jour ! ✨");
             // Rediriger vers le dashboard car l'utilisateur est techniquement connecté après un reset réussi
             router.push("/dashboard");
-        } catch (err: any) {
-            setError(err.message);
-            toast.error(err.message);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Erreur inconnue";
+            setError(message);
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -61,10 +62,13 @@ export default function ResetPasswordPage() {
                 <div className="text-center space-y-6">
                     <div className="inline-flex items-center justify-center p-4 bg-[#1C1C1E] rounded-3xl border border-white/5 shadow-2xl relative group">
                         <div className="absolute inset-0 bg-gradient-to-br from-[#F97316]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-xl" />
-                        <img
+                        <SafeImage
                             src="/logo.svg?v=4"
                             alt="Logo MINDOS"
+                            width={120}
+                            height={48}
                             className="relative z-10 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)] h-12 w-auto"
+                            priority
                         />
                     </div>
                     <div>

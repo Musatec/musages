@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Link, usePathname } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/config/nav";
@@ -8,6 +7,7 @@ import { Settings2, Zap, LogOut, ShieldCheck } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { useTranslations } from "next-intl";
+import { SafeImage } from "@/components/ui/safe-image";
 
 export function Sidebar() {
     const { isAdmin } = useSupabase();
@@ -38,10 +38,13 @@ export function Sidebar() {
             {/* Logo Area */}
             <div className="flex h-20 items-center px-6 border-b border-border/10 mb-4">
                 <Link href="/dashboard" className="transition-opacity hover:opacity-80">
-                    <img
+                    <SafeImage
                         src="/logo.svg?v=6"
                         alt="MINDOS Logo"
+                        width={120}
+                        height={32}
                         className="h-8 w-auto"
+                        priority
                     />
                 </Link>
             </div>
@@ -60,7 +63,7 @@ export function Sidebar() {
                                 return (
                                     <Link
                                         key={item.href}
-                                        href={item.href as any}
+                                        href={item.href as typeof item.href}
                                         className={cn(
                                             "flex items-center gap-3 px-4 py-2.5 mx-1 rounded-xl transition-all duration-300 group relative overflow-hidden",
                                             isActive ? "text-white shadow-md shadow-black/20" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
@@ -86,7 +89,7 @@ export function Sidebar() {
                                             "font-bold text-[13px] tracking-tight relative z-10 transition-all",
                                             isActive ? "text-white translate-x-1" : "group-hover:translate-x-1"
                                         )}>
-                                            {t(item.key as any)}
+                                            {t(item.key as Parameters<typeof t>[0])}
                                         </span>
 
                                         {isActive && (

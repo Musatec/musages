@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import {
     ArrowLeft, Save, Loader2,
     Bold, Italic, Underline as UnderlineIcon, Strikethrough,
-    Heading1, Heading2, Heading3, Type,
+    Heading1, Heading2,
     AlignLeft, AlignCenter, AlignRight, AlignJustify,
     List as ListIcon, Quote as QuoteIcon, Undo, Redo,
     Palette
@@ -15,7 +15,6 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { Chapter } from "@/types/books";
 
 // Tiptap Imports
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -31,7 +30,6 @@ export default function ChapterEditorPage() {
     const router = useRouter();
     const { user } = useSupabase();
 
-    const [chapter, setChapter] = useState<Chapter | null>(null);
     const [title, setTitle] = useState("");
     // const [content, setContent] = useState(""); // Content is now managed by Tiptap editor
     const [loading, setLoading] = useState(true);
@@ -105,7 +103,6 @@ export default function ChapterEditorPage() {
                     .single();
 
                 if (error) throw error;
-                setChapter(data);
                 setTitle(data.title);
 
                 // Set initial content
@@ -114,7 +111,7 @@ export default function ChapterEditorPage() {
                 }
 
                 setLastSaved(new Date(data.updated_at));
-            } catch (error) {
+            } catch (error: unknown) {
                 console.error(error);
                 toast.error("Impossible de charger le chapitre");
                 router.push(`/books/${bookId}`);
@@ -124,7 +121,7 @@ export default function ChapterEditorPage() {
         };
 
         if (chapterId && editor) fetchChapter(); // Depend on editor to be ready
-    }, [chapterId, bookId, router, editor]);
+    }, [chapterId, bookId, router, editor, user?.id]);
 
     // Word Count (No longer needed, handled by Tiptap onUpdate)
     // useEffect(() => {
@@ -140,7 +137,7 @@ export default function ChapterEditorPage() {
     //     }
     // }, [content]);
 
-    const handleSave = async () => {
+    const handleSave = useCallback(async () => {
         if (!chapterId || !editor) return;
         setSaving(true);
         try {
@@ -160,12 +157,12 @@ export default function ChapterEditorPage() {
             if (error) throw error;
             setLastSaved(now);
             toast.success("Chapitre sauvegardé !");
-        } catch (error) {
+        } catch (error: unknown) {
             toast.error("Erreur lors de la sauvegarde");
         } finally {
             setSaving(false);
         }
-    };
+    }, [chapterId, editor, title, user?.id]);
 
     // Keyboard shortcut for save (Ctrl+S)
     useEffect(() => {
@@ -177,7 +174,7 @@ export default function ChapterEditorPage() {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [title, editor]); // editor dependency needed for handleSave closure access if not using ref (but handleSave uses editor state directly from closure scope? actually better to use useCallback or deps)
+    }, [handleSave]); // editor and title dependencies now move to handleSave useCallback
 
 
     if (loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Chargement...</div>;
@@ -256,7 +253,7 @@ export default function ChapterEditorPage() {
                             <Palette className={cn("w-4 h-4", editor.getAttributes('textStyle').color ? "text-white" : "text-gray-400")} style={{ color: editor.getAttributes('textStyle').color }} />
                             <input
                                 type="color"
-                                onInput={(e: any) => editor.chain().focus().setColor(e.target.value).run()}
+                                onInput={(e: React.ChangeEvent<HTMLInputElement>) => editor.chain().focus().setColor(e.target.value).run()}
                                 value={editor.getAttributes('textStyle').color || '#ffffff'}
                                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                             />

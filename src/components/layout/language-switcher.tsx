@@ -1,9 +1,7 @@
 "use client";
 
 import { useLocale } from 'next-intl';
-import { routing, usePathname, useRouter } from '@/i18n/routing';
-import { cn } from '@/lib/utils';
-import { Globe } from 'lucide-react';
+import { usePathname, useRouter } from '@/i18n/routing';
 
 export function LanguageSwitcher() {
     const locale = useLocale();
