@@ -6,7 +6,8 @@ import {
     Camera,
     X,
     Loader2,
-    Wallet
+    Wallet,
+    ShoppingCart
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -209,6 +210,17 @@ export function MobileFab() {
                 setIsOpen(false);
             },
             delay: 0.05
+        },
+        {
+            id: "sales",
+            icon: ShoppingCart,
+            label: "Vendre 🧾",
+            color: "bg-primary",
+            onClick: () => {
+                router.push('/sales');
+                setIsOpen(false);
+            },
+            delay: 0.1
         }
     ];
 

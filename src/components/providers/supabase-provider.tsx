@@ -74,14 +74,9 @@ export default function SupabaseProvider({
         };
     }, [router]);
 
-    // Redirection automatique si non connecté (Fallback client-side au Middleware)
+    // Redirection automatique désactivée : Le Middleware de Next-Auth gère désormais la protection.
     useEffect(() => {
-        const isAuthPage = pathname.includes('/login') || pathname.includes('/auth');
-        const isHomePage = pathname === '/' || /^\/(en|fr)\/?$/.test(pathname);
-
-        if (!isLoading && !user && !isAuthPage && !isHomePage) {
-            router.push('/login');
-        }
+        // Logique de redirection locale supprimée pour éviter les conflits avec Next-Auth.
     }, [isLoading, user, pathname, router]);
 
     const signOut = async () => {

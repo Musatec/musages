@@ -7,6 +7,7 @@ import { SystemGuardian } from "@/components/providers/system-guardian";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "sonner";
 import { NextIntlClientProvider } from 'next-intl';
+import { SidebarProvider } from "@/components/providers/sidebar-provider";
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing, type Locale } from '@/i18n/routing';
@@ -66,6 +67,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { SessionProvider } from "next-auth/react";
+
 export default async function RootLayout({
   children,
   params
@@ -86,23 +89,27 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${font.className} bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <NextIntlClientProvider messages={messages}>
-            <AuthProvider>
-              <SystemGuardian>
-                <AppLayout>
-                  {children}
-                </AppLayout>
-              </SystemGuardian>
-              <Toaster richColors position="bottom-right" />
-            </AuthProvider>
-          </NextIntlClientProvider>
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <NextIntlClientProvider messages={messages}>
+              <AuthProvider>
+                <SystemGuardian>
+                  <SidebarProvider>
+                    <AppLayout>
+                      {children}
+                    </AppLayout>
+                  </SidebarProvider>
+                </SystemGuardian>
+                <Toaster richColors position="bottom-right" />
+              </AuthProvider>
+            </NextIntlClientProvider>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

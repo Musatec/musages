@@ -12,31 +12,18 @@ import { LanguageSwitcher } from "./language-switcher";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { useSession } from "next-auth/react";
+
 export function MobileHeader() {
-    const { isAdmin, user } = useSupabase();
+    const { data: session } = useSession();
     const pathname = usePathname();
     const router = useRouter();
     const t = useTranslations("Sidebar");
     const [isOpen, setIsOpen] = useState(false);
+    const isAdmin = session?.user?.role === "ADMIN";
 
-    const [prevPathname, setPrevPathname] = useState(pathname);
-
-    // Fermer le menu si la route change
-    if (pathname !== prevPathname) {
-        setPrevPathname(pathname);
-        if (isOpen) setIsOpen(false);
-    }
-
-    // Bloquer le scroll quand le menu est ouvert
-    useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-        }
-    }, [isOpen]);
-
-    if (pathname === "/login") return null;
+    // Masquer si pas de boutique
+    if (pathname === "/login" || !session?.user?.storeId) return null;
 
     return (
         <header>
@@ -100,8 +87,8 @@ export function MobileHeader() {
                         <div className="relative group">
                             <div className="absolute -inset-1 bg-gradient-to-tr from-primary to-orange-400 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
                             <div className="relative w-14 h-14 rounded-2xl bg-[#151516] border border-white/10 flex items-center justify-center overflow-hidden">
-                                {user?.user_metadata?.avatar_url ? (
-                                    <SafeImage src={user.user_metadata.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                                {session?.user?.image ? (
+                                    <SafeImage src={session.user.image} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
                                     <User className="w-6 h-6 text-primary" />
                                 )}
@@ -109,7 +96,7 @@ export function MobileHeader() {
                         </div>
                         <div className="flex flex-col">
                             <h3 className="text-white font-black tracking-tight text-lg leading-none">
-                                {user?.user_metadata?.full_name?.split(' ')[0] || "Explorateur"}
+                                {session?.user?.name?.split(' ')[0] || "Explorateur"}
                             </h3>
                             <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1 opacity-60">System Operator</p>
                         </div>
@@ -231,15 +218,7 @@ export function MobileHeader() {
                             <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-white uppercase">{t('settings')}</span>
                         </Link>
 
-                        <button
-                            onClick={() => {
-                                setIsOpen(false);
-                                router.push('/dashboard');
-                            }}
-                            className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/10 hover:bg-white/[0.05] transition-all group"
-                        >
-                            <LanguageSwitcher />
-                        </button>
+                        <LanguageSwitcher />
                     </div>
 
                     <button

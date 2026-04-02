@@ -1,166 +1,132 @@
 "use client";
 
-import { Link, usePathname } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
-import { NAV_ITEMS } from "@/config/nav";
-import { Settings2, Zap, LogOut, ShieldCheck } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import { useSupabase } from "@/components/providers/supabase-provider";
-import { useTranslations } from "next-intl";
-import { SafeImage } from "@/components/ui/safe-image";
+import { 
+    LayoutDashboard, 
+    ShoppingCart, 
+    Package, 
+    ArrowLeftRight, 
+    TrendingUp, 
+    Users, 
+    ChevronLeft, 
+    Settings,
+    LogOut,
+    PlusCircle,
+    FileText,
+    CreditCard
+} from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { useSidebar } from "@/components/providers/sidebar-provider";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+
+const NAV_ITEMS = [
+    { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { label: "Journal Ventes", icon: ArrowLeftRight, href: "/sales/journal" },
+    { label: "Studio Facture", icon: FileText, href: "/sales/invoices" },
+    { label: "Suivi des Dettes", icon: CreditCard, href: "/sales/debts", highlight: true },
+    { label: "Inventaire", icon: Package, href: "/inventory" },
+    { label: "Dépenses", icon: TrendingUp, href: "/expenses" },
+    { label: "Gestion Équipe", icon: Users, href: "/hr" },
+];
 
 export function Sidebar() {
-    const { isAdmin } = useSupabase();
     const pathname = usePathname();
-    const t = useTranslations("Sidebar");
-
-    // pathname doesn't include locale with usePathname from next-intl (usually)
-    if (pathname === "/login") return null;
-
-    // Redesigned Sections Structure
-    const SECTIONS = [
-        {
-            label: 'section_main', // Pilotage
-            items: ['dashboard', 'pilote', 'capital']
-        },
-        {
-            label: 'section_creative', // Ateliers
-            items: ['labo', 'studio', 'books']
-        },
-        {
-            label: 'section_growth', // Expansion
-            items: ['social']
-        }
-    ];
+    const { collapsed, setCollapsed } = useSidebar();
 
     return (
-        <div className="hidden md:flex h-screen w-64 flex-col fixed left-0 top-0 border-r border-border bg-background/80 backdrop-blur-2xl z-50">
-            {/* Logo Area */}
-            <div className="flex h-20 items-center px-6 border-b border-border/10 mb-4">
-                <Link href="/dashboard" className="transition-opacity hover:opacity-80">
-                    <SafeImage
-                        src="/logo.svg?v=6"
-                        alt="MINDOS Logo"
-                        width={120}
-                        height={32}
-                        className="h-8 w-auto"
-                        priority
-                    />
-                </Link>
-            </div>
-
-            <nav className="flex-1 px-3 space-y-8 pt-2 overflow-y-auto custom-scrollbar">
-                {SECTIONS.map((section) => (
-                    <div key={section.label} className="space-y-2">
-                        {/* Section Label Removed */}
-
-                        <div className="space-y-1">
-                            {NAV_ITEMS.filter(i => section.items.includes(i.key)).map((item) => {
-                                const Icon = item.icon;
-                                // Handle subpaths for active state compatibility
-                                const isActive = pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard');
-
-                                return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href as typeof item.href}
-                                        className={cn(
-                                            "flex items-center gap-3 px-4 py-2.5 mx-1 rounded-xl transition-all duration-300 group relative overflow-hidden",
-                                            isActive ? "text-white shadow-md shadow-black/20" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "absolute inset-0 rounded-xl transition-all duration-300 opacity-0",
-                                            isActive && "opacity-100 bg-gradient-to-r from-primary to-orange-600"
-                                        )} />
-
-                                        {/* Hover Glow Effect */}
-                                        <div className={cn(
-                                            "absolute inset-0 rounded-xl transition-all duration-500 opacity-0 group-hover:opacity-10 pointer-events-none",
-                                            !isActive && "bg-primary"
-                                        )} />
-
-                                        <Icon className={cn(
-                                            "h-4 w-4 relative z-10 transition-all duration-300",
-                                            isActive ? "text-white scale-110" : "group-hover:text-primary group-hover:scale-110"
-                                        )} />
-
-                                        <span className={cn(
-                                            "font-bold text-[13px] tracking-tight relative z-10 transition-all",
-                                            isActive ? "text-white translate-x-1" : "group-hover:translate-x-1"
-                                        )}>
-                                            {t(item.key as Parameters<typeof t>[0])}
-                                        </span>
-
-                                        {isActive && (
-                                            <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-white shadow shadow-white/50 animate-pulse z-10" />
-                                        )}
-                                    </Link>
-                                );
-                            })}
+        <aside 
+            className={cn(
+                "fixed left-0 top-0 h-screen transition-all duration-500 ease-in-out flex flex-col z-50 bg-background border-r border-border shadow-sm",
+                collapsed ? "w-20" : "w-64"
+            )}
+        >
+            {/* Logo Section */}
+            <div className="p-4 flex items-center justify-between overflow-hidden">
+                <Link href="/dashboard" className="flex items-center">
+                    <div className={cn("transition-all duration-500 flex items-center gap-3", collapsed ? "w-10 overflow-hidden" : "w-40")}>
+                        <div className={cn(
+                            "relative transition-all duration-500",
+                            collapsed ? "w-10 h-10 min-w-10" : "w-40 h-10 min-w-40"
+                        )}>
+                            <Image 
+                                src="/logo.svg" 
+                                alt="Mindos Logo" 
+                                fill
+                                className={cn(
+                                    "object-contain transition-all duration-500",
+                                    collapsed ? "scale-[2.5] translate-x-[-12px]" : "scale-100"
+                                )} 
+                                priority
+                            />
                         </div>
                     </div>
-                ))}
-
-                {/* LIEN ADMIN EXCLUSIF */}
-                {isAdmin && (
-                    <div className="space-y-2 pt-4 border-t border-border/20">
-                        <Link
-                            href="/admin"
-                            className={cn(
-                                "flex items-center gap-3 px-4 py-3 mx-1 rounded-xl transition-all duration-300 group relative border border-dashed border-border/50 hover:border-primary/50",
-                                pathname === "/admin" ? "bg-accent/50 text-foreground" : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            <ShieldCheck className={cn(
-                                "h-4 w-4 relative z-10 transition-all",
-                                pathname === "/admin" ? "text-primary" : "group-hover:text-primary"
-                            )} />
-                            <span className="font-bold text-[12px] tracking-tight relative z-10 uppercase">{t('admin')}</span>
-                        </Link>
-                    </div>
-                )}
-            </nav>
-
-            {/* Footer / Settings */}
-            <div className="p-4 border-t border-border bg-muted/5 backdrop-blur-sm flex flex-col gap-3 pb-6 mt-auto">
-                <div className="grid grid-cols-2 gap-2">
-                    <Link
-                        href="/settings"
-                        className={cn(
-                            "flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all border border-border/50 bg-background/50 hover:bg-accent hover:border-border hover:shadow-lg group",
-                            pathname === "/settings" ? "bg-accent border-primary/20" : ""
-                        )}
-                        title={t('settings')}
-                    >
-                        <Settings2 className={cn("h-4 w-4 transition-colors", pathname === "/settings" ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground scale-90">{t('settings')}</span>
-                    </Link>
-
-                    <Link
-                        href="/pricing"
-                        className={cn(
-                            "flex flex-col items-center justify-center gap-1.5 p-3 rounded-2xl transition-all border border-border/50 bg-background/50 hover:bg-primary/5 hover:border-primary/20 group hover:shadow-lg",
-                            pathname === "/pricing" ? "bg-primary/10 border-primary/40" : ""
-                        )}
-                        title={t('pricing')}
-                    >
-                        <Zap className={cn("h-4 w-4 transition-colors", pathname === "/pricing" ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary scale-90">{t('pricing')}</span>
-                    </Link>
-                </div>
-
-                <button
-                    onClick={async () => {
-                        await supabase.auth.signOut();
-                        window.location.href = "/";
-                    }}
-                    className="flex items-center justify-center gap-3 w-full p-4 rounded-2xl transition-all border border-red-500/10 bg-red-500/5 hover:bg-red-500/10 hover:border-red-500/20 group shadow-sm hover:shadow-red-500/5 mt-1"
+                </Link>
+                {/* Collapse Control */}
+                <button 
+                  onClick={() => setCollapsed(!collapsed)}
+                  className="p-1.5 bg-muted/10 border border-border/30 rounded-lg hover:bg-primary hover:text-black transition-all shadow-sm active:scale-90"
                 >
-                    <LogOut className="h-4 w-4 text-red-500/60 group-hover:text-red-500 transition-colors" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500/60 group-hover:text-red-500 transition-all">{t('logout')}</span>
+                    <ChevronLeft className={cn("w-3.5 h-3.5 transition-transform duration-500 text-muted-foreground", collapsed ? "rotate-180" : "rotate-0")} />
                 </button>
             </div>
-        </div>
+
+            {/* Navigation */}
+            <nav className="flex-1 px-4 space-y-1.5 py-4 overflow-y-auto no-scrollbar">
+                {NAV_ITEMS.map((item) => {
+                    const isActive = pathname.includes(item.href);
+                    return (
+                        <Link 
+                            key={item.href} 
+                            href={item.href}
+                            className={cn(
+                                "flex items-center gap-4 p-3.5 rounded-2xl transition-all group relative overflow-hidden",
+                                isActive 
+                                    ? "bg-primary text-black shadow-lg shadow-primary/20 translate-x-1" 
+                                    : item.highlight 
+                                        ? "bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
+                                        : "text-muted-foreground hover:bg-muted/40 hover:text-foreground hover:translate-x-1"
+                            )}
+                        >
+                            <item.icon className={cn("w-5 h-5 transition-all", isActive ? "scale-110" : "group-hover:scale-110")} />
+                            {!collapsed && (
+                                <span className={cn(
+                                    "text-[9px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap",
+                                    isActive ? "opacity-100 italic" : "opacity-60"
+                                )}>
+                                    {item.label}
+                                </span>
+                            )}
+                        </Link>
+                    );
+                })}
+            </nav>
+
+            {/* Footer Actions */}
+            <div className="p-4 border-t border-border/50 space-y-4">
+                <div className="flex items-center justify-center">
+                    <ThemeToggle />
+                </div>
+
+                <button 
+                    onClick={() => window.location.href = '/login'}
+                    className={cn(
+                        "w-full flex items-center gap-4 p-3 rounded-xl text-red-500/40 hover:text-red-500 hover:bg-red-500/10 transition-all group border border-transparent hover:border-red-500/20 active:scale-95",
+                        collapsed && "justify-center px-0"
+                    )}
+                >
+                    <div className="w-8 h-8 rounded-lg bg-red-500/5 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-all shadow-sm">
+                        <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+                    </div>
+                    {!collapsed && (
+                        <div className="text-left">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] block leading-none">Déconnexion</span>
+                            <span className="text-[7px] font-bold text-red-500/30 uppercase tracking-widest mt-0.5 group-hover:text-red-500/50 transition-colors">Terminer Session</span>
+                        </div>
+                    )}
+                </button>
+            </div>
+        </aside>
     );
 }

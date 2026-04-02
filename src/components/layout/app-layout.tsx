@@ -5,36 +5,42 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { MobileFab } from "@/components/layout/mobile-fab";
+import { useSidebar } from "@/components/providers/sidebar-provider";
+
+import { TopLoader } from "@/components/ui/top-loader";
+import { Suspense } from "react";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const { collapsed } = useSidebar();
+    
     const isLoginPage = pathname?.includes("/login");
     const isLandingPage = pathname === "/";
     const showLayout = !isLoginPage && !isLandingPage;
 
     return (
-        <div className="flex min-h-screen relative overflow-hidden bg-background">
+        <div className="flex min-h-screen relative overflow-hidden bg-background selection:bg-primary/20">
+            <Suspense fallback={null}>
+                <TopLoader />
+            </Suspense>
+
             {/* Premium Atmosphere Elements */}
-            <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
-                {/* Primary Nebula */}
-                <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse-soft opacity-30" />
-
-                {/* Secondary Nebula */}
-                <div className="absolute top-[20%] -right-[5%] w-[30%] h-[30%] bg-orange-500/10 rounded-full blur-[100px] opacity-20" />
-
-                {/* Bottom Accent */}
-                <div className="absolute -bottom-[5%] left-[20%] w-[50%] h-[30%] bg-red-600/10 rounded-full blur-[120px] opacity-20" />
-
-                {/* Grain/Noise Overlay for Texture */}
-                <div className="absolute inset-0 opacity-[0.02] pointer-events-none mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+            <div className="fixed inset-0 z-[-1] pointer-events-none">
+                <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[100px] opacity-20" />
+                <div className="absolute top-[20%] -right-[5%] w-[30%] h-[30%] bg-orange-500/5 rounded-full blur-[100px] opacity-10" />
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]" />
             </div>
 
             {/* Navigation - Sidebar (Desktop) */}
             {showLayout && <Sidebar />}
             {showLayout && <MobileHeader />}
 
-            {/* Main Content Area */}
-            <main className={`flex-1 ${showLayout ? 'md:ml-64' : ''} min-h-screen relative transition-all duration-300`}>
+            {/* Main Content Area - Synchronized Margin */}
+            <main className={`flex-1 min-h-screen relative transition-all ease-in-out duration-500 ${
+                showLayout 
+                    ? (collapsed ? 'md:ml-20' : 'md:ml-64') 
+                    : ''
+            }`}>
                 {/* Spacer pour le header mobile */}
                 {showLayout && <div className="h-16 md:hidden" />}
 
@@ -44,7 +50,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {showLayout && <div className="h-32 md:hidden" />}
             </main>
 
-            {/* Navigation - Floating Bar (Mobile) */}
+            {/* Navigation - Mobile Elements */}
             {showLayout && <MobileNav />}
             {showLayout && <MobileFab />}
         </div>

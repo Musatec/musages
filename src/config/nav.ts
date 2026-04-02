@@ -1,56 +1,73 @@
+"use client";
+
 import {
-    LayoutDashboard, Share2, ListTodo, Wallet, LayoutGrid, Book, Briefcase
+    LayoutDashboard, 
+    Package, 
+    Wallet, 
+    Users, 
+    FileText,
+    AlertCircle,
+    CalendarDays,
+    ArrowDownCircle,
+    Banknote,
+    PieChart
 } from "lucide-react";
 
 export const NAV_ITEMS = [
     {
-        title: "Accueil",
+        title: "Tableau de Bord",
         key: "dashboard",
         href: "/dashboard",
         icon: LayoutDashboard,
     },
     {
-        title: "Mes Tâches",
-        key: "pilote",
-        href: "/pilote",
-        icon: ListTodo,
+        title: "Journal de Vente",
+        key: "journal",
+        href: "/sales/journal",
+        icon: CalendarDays,
     },
     {
-        title: "Finances",
+        title: "Facturation Studio",
+        key: "invoices",
+        href: "/sales/invoices",
+        icon: FileText,
+    },
+    {
+        title: "Gestion Dépenses",
+        key: "expenses",
+        href: "/expenses",
+        icon: ArrowDownCircle,
+    },
+    {
+        title: "Suivi des Dettes",
+        key: "debts",
+        href: "/sales/debts",
+        icon: AlertCircle,
+    },
+    {
+        title: "Stocks & Inventaire",
+        key: "inventory",
+        href: "/inventory",
+        icon: Package,
+    },
+    {
+        title: "Trésorerie & Capital",
         key: "capital",
         href: "/capital",
-        icon: Wallet,
+        icon: Banknote,
     },
     {
-        title: "Projets",
-        key: "labo",
-        href: "/labo",
-        icon: Briefcase,
-    },
-    {
-        title: "Galerie",
-        key: "studio",
-        href: "/studio",
-        icon: LayoutGrid,
-    },
-    {
-        title: "Livres",
-        key: "books",
-        href: "/books",
-        icon: Book,
-    },
-    {
-        title: "Réseaux Sociaux",
-        key: "social",
-        href: "/social",
-        icon: Share2,
-    },
+        title: "Ressources Humaines",
+        key: "hr",
+        href: "/hr",
+        icon: Users,
+    }
 ];
 
 export const BOTTOM_NAV_ITEMS = [
-    NAV_ITEMS[0], // Dashboard
-    NAV_ITEMS[1], // Pilote
-    NAV_ITEMS[2], // Labo
-    NAV_ITEMS[5], // Studio (Index adjusted due to insertion)
-    NAV_ITEMS[3], // Capital
+    NAV_ITEMS.find(i => i.key === 'dashboard')!,
+    NAV_ITEMS.find(i => i.key === 'journal')!,
+    NAV_ITEMS.find(i => i.key === 'invoices')!,
+    NAV_ITEMS.find(i => i.key === 'expenses')!,
+    NAV_ITEMS.find(i => i.key === 'inventory')!,
 ];

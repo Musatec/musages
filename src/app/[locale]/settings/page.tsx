@@ -196,24 +196,24 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="min-h-screen w-full bg-background text-foreground p-6 md:p-12 selection:bg-primary/30 relative overflow-hidden">
+        <div className="min-h-screen w-full bg-background text-foreground p-4 md:p-8 selection:bg-primary/30 relative overflow-hidden">
 
             {/* Ambient background */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
 
-            <div className="relative z-10 max-w-5xl mx-auto space-y-12">
+            <div className="relative z-10 max-w-5xl mx-auto space-y-8">
 
-                {/* Header */}
-                <div className="space-y-1 animate-in fade-in slide-in-from-top-4 duration-500 text-center md:text-left">
-                    <p className="text-primary text-[10px] font-bold uppercase tracking-[0.2em]">Configuration</p>
-                    <h1 className="text-3xl sm:text-5xl font-light tracking-tight">Paramètres</h1>
+                {/* Header Compact */}
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500 text-center md:text-left border-b border-border pb-6">
+                    <p className="text-primary text-[9px] font-black uppercase tracking-[0.3em]">System Configuration</p>
+                    <h1 className="text-2xl sm:text-3xl font-black tracking-tighter uppercase italic">Console <span className="text-muted-foreground opacity-20">Paramètres</span></h1>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
 
-                    {/* Sidebar Tabs */}
+                    {/* Sidebar Tabs Compact */}
                     <div className="lg:col-span-1 animate-in fade-in slide-in-from-left-4 duration-700">
-                        <div className="flex lg:flex-col gap-2 overflow-x-auto no-scrollbar pb-2 md:pb-0">
+                        <div className="flex lg:flex-col gap-1 overflow-x-auto no-scrollbar pb-2 md:pb-0">
                             {[
                                 { id: 'profile', label: 'Profil', icon: User },
                                 { id: 'appearance', label: 'Apparence', icon: Palette },
@@ -225,87 +225,87 @@ export default function SettingsPage() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as typeof activeTab)}
                                     className={cn(
-                                        "flex items-center gap-3 px-4 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0",
+                                        "flex items-center gap-2.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shrink-0",
                                         activeTab === tab.id
-                                            ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20"
+                                            ? "bg-primary text-black"
                                             : "text-muted-foreground hover:text-foreground hover:bg-card"
                                     )}
                                 >
-                                    <tab.icon className={cn("w-4 h-4", activeTab === tab.id ? "text-white" : "text-muted-foreground/50")} />
+                                    <tab.icon className={cn("w-3.5 h-3.5", activeTab === tab.id ? "text-black" : "text-muted-foreground/50")} />
                                     {tab.label}
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Content Area */}
-                    <div className="lg:col-span-3 space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
+                    {/* Content Area Compact */}
+                    <div className="lg:col-span-3 space-y-6 animate-in fade-in slide-in-from-right-4 duration-700">
 
                         {activeTab === 'profile' && (
-                            <div className="space-y-8">
-                                <div className="bg-card border border-border p-6 md:p-8 rounded-[2rem] relative overflow-hidden shadow-xl">
-                                    <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+                            <div className="space-y-6">
+                                <div className="bg-card border border-border p-5 md:p-6 rounded-2xl relative overflow-hidden shadow-sm">
+                                    <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
                                         <div className="relative group cursor-pointer">
-                                            <div className="w-32 h-32 rounded-3xl bg-background border border-border overflow-hidden relative shadow-2xl">
+                                            <div className="w-20 h-20 rounded-2xl bg-background border border-border overflow-hidden relative shadow-md">
                                                 {avatarUrl ? (
                                                     <Image src={avatarUrl} alt="Avatar" fill className="object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center bg-accent/50">
-                                                        <User className="w-12 h-12 text-muted-foreground" />
+                                                        <User className="w-8 h-8 text-muted-foreground" />
                                                     </div>
                                                 )}
                                                 {uploading && (
                                                     <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-                                                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                                                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
                                                     </div>
                                                 )}
                                             </div>
-                                            <label className="absolute -bottom-2 -right-2 p-2.5 bg-primary text-primary-foreground rounded-xl shadow-lg border-4 border-card cursor-pointer hover:scale-110 transition-all">
-                                                <Camera className="w-4 h-4" />
+                                            <label className="absolute -bottom-1 -right-1 p-1.5 bg-primary text-black rounded-lg shadow-lg border-2 border-card cursor-pointer hover:scale-110 transition-all">
+                                                <Camera className="w-3.5 h-3.5" />
                                                 <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploading} />
                                             </label>
                                         </div>
 
-                                        <div className="text-center md:text-left space-y-2">
-                                            <h2 className="text-2xl font-bold text-foreground capitalize">{fullName || "Créateur Anonyme"}</h2>
-                                            <p className="text-muted-foreground font-mono text-sm italic">@{username || "username"}</p>
+                                        <div className="text-center md:text-left space-y-0.5">
+                                            <h2 className="text-xl font-black text-foreground uppercase italic tracking-tighter">{fullName || "Créateur Alpha"}</h2>
+                                            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-30">Identity Matrix: {username || "unset"}</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <form onSubmit={handleUpdateProfile} className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">Nom Complet</label>
+                                <form onSubmit={handleUpdateProfile} className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Nom Complet</label>
                                             <input
                                                 type="text"
                                                 value={fullName}
                                                 onChange={e => setFullName(e.target.value)}
-                                                className="w-full bg-card border border-border rounded-2xl px-5 py-4 text-foreground focus:border-primary/50 outline-none transition-all"
+                                                className="w-full bg-card border border-border rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-widest text-foreground focus:border-primary/50 outline-none transition-all"
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">Username</label>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Username</label>
                                             <input
                                                 type="text"
                                                 value={username}
                                                 onChange={e => setUsername(e.target.value)}
-                                                className="w-full bg-card border border-border rounded-2xl px-5 py-4 text-foreground focus:border-primary/50 outline-none transition-all"
+                                                className="w-full bg-card border border-border rounded-xl px-4 py-3 text-[11px] font-black uppercase tracking-widest text-foreground focus:border-primary/50 outline-none transition-all"
                                             />
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">Bio</label>
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Bio / Protocol Info</label>
                                         <textarea
                                             value={bio}
                                             onChange={e => setBio(e.target.value)}
-                                            rows={4}
-                                            className="w-full bg-card border border-border rounded-2xl px-5 py-4 text-foreground focus:border-primary/50 outline-none transition-all resize-none"
+                                            rows={2}
+                                            className="w-full bg-card border border-border rounded-xl px-4 py-3 text-[11px] font-medium text-foreground focus:border-primary/50 outline-none transition-all resize-none"
                                         />
                                     </div>
                                     <div className="flex justify-end">
-                                        <button type="submit" disabled={saving} className="btn-primary px-8 py-4 flex items-center gap-3">
-                                            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                        <button type="submit" disabled={saving} className="px-6 py-3 bg-primary text-black font-black uppercase text-[10px] tracking-widest rounded-xl flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-primary/10">
+                                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                             Sauvegarder
                                         </button>
                                     </div>
@@ -314,198 +314,134 @@ export default function SettingsPage() {
                         )}
 
                         {activeTab === 'appearance' && (
-                            <div className="space-y-8 animate-in fade-in duration-500">
-                                <div className="space-y-6">
-                                    <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
-                                        <Palette className="w-5 h-5 text-primary" />
-                                        Thème de l&apos;interface
-                                    </h3>
+                            <div className="space-y-6 animate-in fade-in duration-500">
+                                <h3 className="text-sm font-black uppercase tracking-widest text-foreground flex items-center gap-3">
+                                    <Palette className="w-4 h-4 text-primary" />
+                                    Thème Interface
+                                </h3>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                        {[
-                                            { id: 'light', label: 'Clarté ☀️', icon: Sun, desc: 'Mode jour épuré' },
-                                            { id: 'dark', label: 'Sombre 🌑', icon: Moon, desc: 'Expérience Musa' },
-                                            { id: 'navy', label: 'Midnight 🌌', icon: Waves, desc: 'Océan de créativité' }
-                                        ].map((t) => (
-                                            <button
-                                                key={t.id}
-                                                onClick={() => setTheme(t.id)}
-                                                className={cn(
-                                                    "p-6 rounded-[2rem] border-2 text-left transition-all relative overflow-hidden group",
-                                                    theme === t.id
-                                                        ? "bg-zinc-900 text-white border-orange-500 shadow-xl shadow-orange-500/10"
-                                                        : "bg-card border-border hover:border-primary/30"
-                                                )}
-                                            >
-                                                <t.icon className={cn("w-8 h-8 mb-4", theme === t.id ? "text-primary" : "text-muted-foreground")} />
-                                                <p className="font-black uppercase text-xs tracking-widest">{t.label}</p>
-                                                <p className={cn("text-[10px] mt-1 font-bold", theme === t.id ? "text-background/60" : "text-muted-foreground")}>{t.desc}</p>
-
-                                                {theme === t.id && (
-                                                    <div className="absolute top-2 right-2">
-                                                        <ShieldCheck className="w-5 h-5 text-primary" />
-                                                    </div>
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    {[
+                                        { id: 'light', label: 'Light', icon: Sun, desc: 'Mode épuré' },
+                                        { id: 'dark', label: 'Mindos Dark', icon: Moon, desc: 'Optimisé Musa' },
+                                        { id: 'navy', label: 'Midnight', icon: Waves, desc: 'Océan Alpha' }
+                                    ].map((t) => (
+                                        <button
+                                            key={t.id}
+                                            onClick={() => setTheme(t.id)}
+                                            className={cn(
+                                                "p-5 rounded-2xl border-2 text-left transition-all relative overflow-hidden group",
+                                                theme === t.id
+                                                    ? "bg-zinc-900 text-white border-primary shadow-lg shadow-primary/10"
+                                                    : "bg-card border-border hover:border-primary/30"
+                                            )}
+                                        >
+                                            <t.icon className={cn("w-6 h-6 mb-3", theme === t.id ? "text-primary" : "text-muted-foreground")} />
+                                            <p className="font-black uppercase text-[10px] tracking-widest leading-none">{t.label}</p>
+                                            <p className={cn("text-[9px] mt-1 font-bold", theme === t.id ? "opacity-40" : "text-muted-foreground")}>{t.desc}</p>
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         )}
 
                         {activeTab === 'language' && (
-                            <div className="space-y-8 animate-in fade-in duration-500">
-                                <div className="space-y-6">
-                                    <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
-                                        <Globe className="w-5 h-5 text-primary" />
-                                        Langue du Sanctuaire
-                                    </h3>
+                            <div className="space-y-6 animate-in fade-in duration-500">
+                                <h3 className="text-sm font-black uppercase tracking-widest text-foreground flex items-center gap-3">
+                                    <Globe className="w-4 h-4 text-primary" />
+                                    Langue Système
+                                </h3>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                        {[
-                                            {
-                                                id: 'fr',
-                                                label: 'Français',
-                                                flag: (
-                                                    <svg viewBox="0 0 3 2" className="w-12 h-8 rounded-lg shadow-xl border border-border/10">
-                                                        <path fill="#EC1920" d="M0 0h3v2H0z" />
-                                                        <path fill="#fff" d="M0 0h2v2H0z" />
-                                                        <path fill="#051440" d="M0 0h1v2H0z" />
-                                                    </svg>
-                                                )
-                                            },
-                                            {
-                                                id: 'en',
-                                                label: 'English',
-                                                flag: (
-                                                    <svg viewBox="0 0 60 30" className="w-12 h-8 rounded-lg shadow-xl border border-border/10">
-                                                        <clipPath id="uk-flag-settings">
-                                                            <path d="M0,0 v30 h60 v-30 z" />
-                                                        </clipPath>
-                                                        <path d="M0,0 v30 h60 v-30 z" fill="#012169" />
-                                                        <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6" clipPath="url(#uk-flag-settings)" />
-                                                        <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="4" clipPath="url(#uk-flag-settings)" />
-                                                        <path d="M30,0 v30 M0,15 h60" stroke="#fff" strokeWidth="10" />
-                                                        <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" strokeWidth="6" />
-                                                    </svg>
-                                                )
-                                            }
-                                        ].map((lang) => (
-                                            <button
-                                                key={lang.id}
-                                                onClick={() => router.replace(pathname, { locale: lang.id })}
-                                                className={cn(
-                                                    "p-8 rounded-[2.5rem] border-2 text-left transition-all relative overflow-hidden group flex items-center gap-6",
-                                                    locale === lang.id
-                                                        ? "bg-zinc-900 text-white border-orange-500 shadow-xl shadow-orange-500/10"
-                                                        : "bg-card border-border hover:border-primary/30"
-                                                )}
-                                            >
-                                                <div className="shrink-0 group-hover:scale-110 transition-transform duration-500">{lang.flag}</div>
-                                                <div className="space-y-1">
-                                                    <p className="font-black uppercase text-sm tracking-widest">{lang.label}</p>
-                                                    <p className={cn("text-[10px] font-bold opacity-60", locale === lang.id ? "text-background" : "text-muted-foreground")}>
-                                                        {lang.id === 'fr' ? 'Interface en Français' : 'English Interface'}
-                                                    </p>
-                                                </div>
-
-                                                {locale === lang.id && (
-                                                    <div className="absolute top-4 right-4 animate-in zoom-in duration-300">
-                                                        <ShieldCheck className="w-6 h-6 text-orange-500" />
-                                                    </div>
-                                                )}
-                                            </button>
-                                        ))}
-                                    </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {[
+                                        {
+                                            id: 'fr',
+                                            label: 'Français',
+                                            flag: (
+                                                <svg viewBox="0 0 3 2" className="w-8 h-5 rounded shadow">
+                                                    <path fill="#EC1920" d="M0 0h3v2H0z" />
+                                                    <path fill="#fff" d="M0 0h2v2H0z" />
+                                                    <path fill="#051440" d="M0 0h1v2H0z" />
+                                                </svg>
+                                            )
+                                        },
+                                        {
+                                            id: 'en',
+                                            label: 'English',
+                                            flag: (
+                                                <svg viewBox="0 0 60 30" className="w-8 h-5 rounded shadow">
+                                                    <clipPath id="uk-flag-compact">
+                                                        <path d="M0,0 v30 h60 v-30 z" />
+                                                    </clipPath>
+                                                    <path d="M0,0 v30 h60 v-30 z" fill="#012169" />
+                                                    <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6" clipPath="url(#uk-flag-compact)" />
+                                                    <path d="M30,0 v30 M0,15 h60" stroke="#fff" strokeWidth="10" />
+                                                    <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" strokeWidth="6" />
+                                                </svg>
+                                            )
+                                        }
+                                    ].map((lang) => (
+                                        <button
+                                            key={lang.id}
+                                            onClick={() => router.replace(pathname, { locale: lang.id })}
+                                            className={cn(
+                                                "p-5 rounded-2xl border-2 text-left transition-all relative overflow-hidden group flex items-center gap-4",
+                                                locale === lang.id
+                                                    ? "bg-zinc-900 text-white border-primary shadow-lg shadow-primary/10"
+                                                    : "bg-card border-border hover:border-primary/30"
+                                            )}
+                                        >
+                                            <div className="shrink-0 group-hover:scale-110 transition-transform">{lang.flag}</div>
+                                            <div className="space-y-0.5">
+                                                <p className="font-black uppercase text-[10px] tracking-widest leading-none">{lang.label}</p>
+                                                <p className={cn("text-[9px] font-bold opacity-40", locale === lang.id ? "text-white" : "text-muted-foreground")}>
+                                                    {lang.id === 'fr' ? 'Version FR' : 'English Ver'}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         )}
 
                         {activeTab === 'account' && (
-                            <div className="space-y-8 animate-in fade-in duration-500">
-                                <div className="bg-card border border-border rounded-[2rem] p-8 space-y-6">
+                            <div className="space-y-4 animate-in fade-in duration-500">
+                                <div className="bg-card border border-border rounded-2xl p-6 space-y-4 shadow-sm">
                                     {/* Email Update */}
                                     <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <Mail className="w-5 h-5 text-muted-foreground" />
+                                        <div className="flex items-center gap-3">
+                                            <Mail className="w-4 h-4 text-muted-foreground/50" />
                                             <div>
-                                                <p className="text-sm font-bold">Email Principal</p>
-                                                <p className="text-xs text-muted-foreground">{user?.email}</p>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Email Principal</p>
+                                                <p className="text-xs font-black italic">{user?.email}</p>
                                             </div>
                                         </div>
                                         <Sheet>
                                             <SheetTrigger asChild>
-                                                <button className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 bg-accent rounded-xl hover:text-orange-500 hover:border-orange-500 hover:bg-orange-500/10 border border-transparent transition-all">
+                                                <button className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 bg-muted rounded-lg hover:bg-primary hover:text-black transition-all">
                                                     Modifier
                                                 </button>
                                             </SheetTrigger>
-                                            <SheetContent className="bg-card border-l border-border p-8">
-                                                <SheetHeader className="mb-8">
-                                                    <SheetTitle className="text-2xl font-light">Modifier l&apos;Email</SheetTitle>
-                                                    <SheetDescription>
-                                                        Vous recevrez un lien de confirmation à votre nouvelle adresse.
-                                                    </SheetDescription>
+                                            <SheetContent className="bg-card border-l border-border p-6">
+                                                <SheetHeader className="mb-6">
+                                                    <SheetTitle className="text-xl font-black uppercase italic tracking-tighter">Modifier l&apos;Email</SheetTitle>
                                                 </SheetHeader>
-                                                <div className="space-y-6">
-                                                    <div className="space-y-2">
-                                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">Nouvel Email</label>
+                                                <div className="space-y-4">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Nouvel Email</label>
                                                         <input
                                                             type="email"
                                                             value={newEmail}
                                                             onChange={(e) => setNewEmail(e.target.value)}
-                                                            className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:border-orange-500 outline-none transition-all"
+                                                            className="w-full bg-background border border-border rounded-xl px-4 py-3 text-[11px] font-black focus:border-primary outline-none transition-all"
                                                             placeholder="exemple@email.com"
                                                         />
                                                     </div>
                                                     <button
                                                         onClick={() => handleUpdateEmail(newEmail)}
-                                                        className="w-full bg-foreground text-background font-bold uppercase text-xs p-4 rounded-xl hover:bg-orange-500 hover:text-white transition-all"
+                                                        className="w-full bg-primary text-black font-black uppercase text-[10px] tracking-widest p-4 rounded-xl hover:opacity-90 transition-all"
                                                     >
-                                                        Mettre à jour
-                                                    </button>
-                                                </div>
-                                            </SheetContent>
-                                        </Sheet>
-                                    </div>
-
-                                    {/* Password Update */}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <Lock className="w-5 h-5 text-muted-foreground" />
-                                            <div>
-                                                <p className="text-sm font-bold">Mot de passe</p>
-                                                <p className="text-xs text-muted-foreground">••••••••••••</p>
-                                            </div>
-                                        </div>
-                                        <Sheet>
-                                            <SheetTrigger asChild>
-                                                <button className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 bg-accent rounded-xl hover:text-orange-500 hover:border-orange-500 hover:bg-orange-500/10 border border-transparent transition-all">
-                                                    Changer
-                                                </button>
-                                            </SheetTrigger>
-                                            <SheetContent className="bg-card border-l border-border p-8">
-                                                <SheetHeader className="mb-8">
-                                                    <SheetTitle className="text-2xl font-light">Sécurité</SheetTitle>
-                                                    <SheetDescription>
-                                                        Choisissez un mot de passe robuste pour protéger votre sanctuaire.
-                                                    </SheetDescription>
-                                                </SheetHeader>
-                                                <div className="space-y-6">
-                                                    <div className="space-y-2">
-                                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] ml-1">Nouveau mot de passe</label>
-                                                        <input
-                                                            type="password"
-                                                            value={newPassword}
-                                                            onChange={(e) => setNewPassword(e.target.value)}
-                                                            className="w-full bg-background border border-border rounded-xl px-4 py-3 text-foreground focus:border-orange-500 outline-none transition-all"
-                                                            placeholder="••••••••"
-                                                        />
-                                                    </div>
-                                                    <button
-                                                        onClick={() => handleUpdatePassword(newPassword)}
-                                                        className="w-full bg-foreground text-background font-bold uppercase text-xs p-4 rounded-xl hover:bg-orange-500 hover:text-white transition-all"
-                                                    >
-                                                        Définir le mot de passe
+                                                        Confirmer
                                                     </button>
                                                 </div>
                                             </SheetContent>
@@ -516,21 +452,21 @@ export default function SettingsPage() {
                         )}
 
                         {activeTab === 'notifications' && (
-                            <div className="bg-card border border-border rounded-[2rem] p-8 space-y-8">
+                            <div className="bg-card border border-border rounded-2xl p-6 space-y-6 shadow-sm">
                                 {[
-                                    { id: 'email_digests', title: 'Résumé hebdomadaire', desc: 'Newsletter de votre labo' },
-                                    { id: 'project_updates', title: 'Mises à jour Projets', desc: 'Alertes sur les deadlines' },
+                                    { id: 'email_digests', title: 'Résumé Hebdo', desc: 'Rapports automatisés' },
+                                    { id: 'project_updates', title: 'Smart Alerts', desc: 'Alertes systèmes' },
                                 ].map((item) => (
-                                    <div key={item.id} className="flex items-center justify-between">
+                                    <div key={item.id} className="flex items-center justify-between border-b border-border/10 pb-4 last:border-0 last:pb-0">
                                         <div>
-                                            <p className="text-sm font-bold">{item.title}</p>
-                                            <p className="text-xs text-muted-foreground">{item.desc}</p>
+                                            <p className="text-[11px] font-black uppercase tracking-tight">{item.title}</p>
+                                            <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest">{item.desc}</p>
                                         </div>
                                         <button
                                             onClick={() => handleToggleNotification(item.id as keyof typeof notifSettings)}
                                             className={cn("w-10 h-5 rounded-full relative transition-all", notifSettings[item.id as keyof typeof notifSettings] ? "bg-primary" : "bg-muted")}
                                         >
-                                            <div className={cn("absolute top-1 w-3 h-3 bg-white rounded-full transition-all", notifSettings[item.id as keyof typeof notifSettings] ? "left-6" : "left-1")} />
+                                            <div className={cn("absolute top-1 w-3 h-3 bg-white rounded-full transition-all shadow-sm", notifSettings[item.id as keyof typeof notifSettings] ? "left-6" : "left-1")} />
                                         </button>
                                     </div>
                                 ))}
@@ -539,11 +475,7 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </div>
-            <style jsx>{`
-                .btn-primary {
-                    @apply bg-primary text-primary-foreground font-black uppercase text-xs tracking-widest rounded-2xl hover:opacity-90 transition-all shadow-xl shadow-primary/20 active:scale-95 px-8 py-4;
-                }
-            `}</style>
         </div>
     );
 }
+

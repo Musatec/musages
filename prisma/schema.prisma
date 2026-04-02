@@ -1,0 +1,232 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// --- ENUMS ---
+enum Role {
+  ADMIN
+  MANAGER
+  SELLER
+}
+
+enum ProductType {
+  PHYSICAL
+  SERVICE
+}
+
+enum SaleStatus {
+  COMPLETED
+  CANCELLED
+  REFUNDED
+  UNPAID
+  PARTIAL
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum StorePlan {
+  STARTER
+  GROWTH
+  BUSINESS
+}
+
+// --- AUTH & MULTI-TENANCY ---
+model Store {
+  id          String   @id @default(cuid())
+  name        String
+  address     String?
+  plan        StorePlan @default(STARTER)
+  config      Json?    // For custom settings (logo, taxes, etc.)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  users       User[]
+  products    Product[]
+  stocks      Stock[]
+  sales       Sale[]
+  transactions Transaction[]
+  employees   Employee[]
+  auditLogs   AuditLog[]
+  stockMovements StockMovement[]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(SELLER)
+  storeId       String?
+  store         Store?    @relation(fields: [storeId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  accounts      Account[]
+  sessions      Session[]
+  sales         Sale[]
+  transactions  Transaction[]
+}
+
+// Next-Auth Models (Auth.js v5)
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// --- INVENTORY ---
+model Product {
+  id          String      @id @default(cuid())
+  storeId     String
+  store       Store       @relation(fields: [storeId], references: [id])
+  name        String
+  sku         String?     @unique
+  type        ProductType @default(PHYSICAL)
+  price       Float
+  costPrice   Float?      // To calculate margins
+  minAlert    Int         @default(5)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+
+  stocks      Stock[]
+  saleItems   SaleItem[]
+  movements   StockMovement[]
+}
+
+model Stock {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([storeId, productId])
+}
+
+model StockMovement {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      // Can be negative
+  reason    String   // (e.g., "Sale", "Reception", "Adjustment")
+  userId    String   // Who did it?
+  createdAt DateTime @default(now())
+}
+
+// --- SALES (POS) ---
+model Sale {
+  id            String     @id @default(cuid())
+  storeId       String
+  store         Store      @relation(fields: [storeId], references: [id])
+  totalAmount   Float
+  amountPaid    Float      @default(0)
+  status        SaleStatus @default(COMPLETED)
+  paymentMethod String     @default("CASH") // CASH, MOBILE_MONEY, WAVE, FLOUZ
+  customerName  String?
+  customerPhone String?    // For WhatsApp recovery protocol
+  sellerId      String
+  seller        User       @relation(fields: [sellerId], references: [id])
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deletedAt     DateTime?
+
+  items       SaleItem[]
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  saleId    String
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float   // Price at the moment of sale
+}
+
+// --- CASHFLOW ---
+model Transaction {
+  id          String          @id @default(cuid())
+  storeId     String
+  store       Store           @relation(fields: [storeId], references: [id])
+  amount      Float
+  type        TransactionType
+  category    String          // (e.g., "Salary", "Rent", "Sale Income")
+  description String?
+  userId      String?         // The person who made this movement
+  user        User?           @relation(fields: [userId], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+// --- HR ---
+model Employee {
+  id         String   @id @default(cuid())
+  storeId    String
+  store      Store    @relation(fields: [storeId], references: [id])
+  firstName  String
+  lastName   String
+  email      String?
+  phone      String?
+  salary     Float
+  advances   Float    @default(0) // Acomptes
+  startDate  DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
+}
+
+// --- AUDIT LOGS ---
+model AuditLog {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  userId    String
+  action    String   // (e.g., "DELETE_SALE", "UPDATE_STOCK")
+  details   Json?
+  createdAt DateTime @default(now())
+}

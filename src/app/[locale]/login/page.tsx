@@ -1,31 +1,43 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { Loader2, Lock, Mail, ArrowRight, User } from "lucide-react";
-import { SafeImage } from "@/components/ui/safe-image";
+import { useState } from "react";
+import { useRouter } from "@/i18n/routing";
+import { signIn } from "next-auth/react";
+import { 
+  Loader2, 
+  Lock, 
+  Mail, 
+  ArrowRight, 
+  User,
+  ShieldCheck,
+  Zap,
+  LayoutDashboard
+} from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+import { register } from "@/lib/actions/auth";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import NextImage from "next/image";
 
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const planParam = searchParams?.get("plan")?.toUpperCase();
+    
+    // Memory: Save plan to cookie if present
+    useEffect(() => {
+        if (planParam) {
+            document.cookie = `mindos_plan=${planParam}; path=/; max-age=3600`;
+        }
+    }, [planParam]);
+
     const [loading, setLoading] = useState(false);
-    const [isSignUp, setIsSignUp] = useState(false);
+    const [isSignUp, setIsSignUp] = useState(planParam ? true : false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
     const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        // Écoute les événements d'auth pour capturer la récupération de mot de passe
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-            if (event === "PASSWORD_RECOVERY") {
-                router.push("/auth/reset-password");
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, [router]);
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,31 +46,36 @@ export default function LoginPage() {
 
         try {
             if (isSignUp) {
-                const { error: signUpError } = await supabase.auth.signUp({
+                // Register flow
+                const result = await register({
                     email,
                     password,
-                    options: {
-                        data: {
-                            full_name: fullName,
-                        }
-                    }
+                    name: fullName
                 });
-                if (signUpError) throw signUpError;
-                toast.success("Demande transmise ! Vérifie ton email.");
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                toast.success("Compte créé avec succès ! Connectez-vous.");
                 setIsSignUp(false);
             } else {
-                const { error: signInError } = await supabase.auth.signInWithPassword({
+                // Login flow
+                const result = await signIn("credentials", {
                     email,
                     password,
+                    redirect: false,
                 });
-                if (signInError) throw signInError;
-                toast.success(`Content de vous revoir, Mentor ! ✨`);
-                setTimeout(() => {
-                    window.location.href = "/dashboard";
-                }, 500);
+
+                if (result?.error) {
+                    throw new Error("Identifiants invalides");
+                }
+
+                toast.success(`Content de vous revoir ! ✨`);
+                router.push("/dashboard");
             }
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "Erreur inconnue";
+        } catch (err: any) {
+            const message = err.message || "Une erreur est survenue";
             setError(message);
             toast.error(message);
         } finally {
@@ -66,172 +83,196 @@ export default function LoginPage() {
         }
     };
 
-    const handleForgotPassword = async () => {
-        if (!email) {
-            toast.error("Veuillez entrer votre email d'abord.");
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/auth/reset-password`,
-            });
-            if (error) throw error;
-            toast.success("Lien de réinitialisation envoyé ! Vérifie tes emails.");
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "Erreur inconnue";
-            toast.error(message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-6 font-sans selection:bg-primary/30 selection:text-foreground relative overflow-hidden">
-            {/* Ambient Background */}
-            <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
+        <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 font-sans relative overflow-hidden">
+            {/* Background Effects */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
+                <div className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-primary/5 blur-[120px] rounded-full" />
             </div>
 
-            <div className="w-full max-w-md relative z-10 space-y-8 animate-in fade-in zoom-in duration-700">
-                {/* Header Branding */}
-                <div className="text-center space-y-6">
-                    <div className="inline-flex items-center justify-center p-4 bg-card rounded-3xl border border-border shadow-2xl relative group">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-xl" />
-                        <SafeImage
-                            src="/logo.svg?v=4"
-                            alt="Logo MINDOS"
-                            width={120}
-                            height={48}
-                            className="relative z-10 drop-shadow-[0_0_15px_hsla(var(--primary)/0.5)] h-12 w-auto"
-                            priority
-                        />
+            <div className="w-full max-w-md relative z-10 space-y-8">
+                {/* Logo & Welcome */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center space-y-4"
+                >
+                    <div className="flex justify-center mb-6">
+                        <div className="relative w-48 h-12">
+                            <NextImage 
+                                src="/logo.svg" 
+                                alt="Mindos Logo" 
+                                fill
+                                className="object-contain"
+                                priority
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight mb-2">
-                            {isSignUp ? "Nous rejoindre" : "MINDOS Workspace"}
-                        </h1>
-                        <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
-                            {isSignUp ? "Commencez votre voyage créatif" : "Votre sanctuaire de productivité"}
-                        </p>
-                    </div>
-                </div>
 
-                <div className="bg-card/50 backdrop-blur-3xl p-6 sm:p-8 rounded-[2rem] border border-border shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative">
-                    <form onSubmit={handleAuth} className="space-y-6">
-                        <div className="space-y-4">
+                    <AnimatePresence mode="wait">
+                        {isSignUp && planParam && (
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className={cn(
+                                    "p-6 rounded-[2rem] border-2 mb-8 relative overflow-hidden",
+                                    planParam === "BUSINESS" ? "bg-blue-500/10 border-blue-500/30" : 
+                                    planParam === "GROWTH" ? "bg-orange-500/10 border-orange-500/30" :
+                                    "bg-white/5 border-white/10"
+                                )}
+                            >
+                                <div className="relative z-10 text-center space-y-1">
+                                    <h2 className={cn(
+                                        "text-2xl font-black uppercase tracking-tighter italic",
+                                        planParam === "BUSINESS" ? "text-blue-500" : 
+                                        planParam === "GROWTH" ? "text-orange-500" : "text-white"
+                                    )}>
+                                        Plan {planParam}.
+                                    </h2>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">
+                                        Configuration de votre accès privilégié
+                                    </p>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <h1 className="text-4xl font-black text-white tracking-tighter">
+                        {isSignUp ? "Créez votre accès" : "Bienvenue Mentor"}
+                    </h1>
+                    <p className="text-muted-foreground text-sm font-medium">
+                        {isSignUp ? "Rejoignez l'écosystème de gestion intelligente" : "Accédez à votre centre de commandement"}
+                    </p>
+                </motion.div>
+
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-card border border-border shadow-2xl rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden"
+                >
+                    {/* Glassmorphism Effect */}
+                    <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-3xl" />
+                    
+                    <form onSubmit={handleAuth} className="relative z-10 space-y-6">
+                        <AnimatePresence mode="wait">
                             {isSignUp && (
-                                <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
-                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Nom Complet</label>
+                                <motion.div 
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="space-y-2"
+                                >
+                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Nom Complet</label>
                                     <div className="relative group">
                                         <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                         <input
                                             type="text"
-                                            required={isSignUp}
-                                            placeholder="Musa Tech"
-                                            className="w-full bg-background/40 border border-border rounded-2xl pl-12 pr-4 py-3.5 text-foreground placeholder:text-muted-foreground/30 focus:border-primary/50 focus:bg-background/60 outline-none transition-all font-medium"
+                                            required
+                                            placeholder="Ex: Musa Technology"
+                                            className="w-full bg-white/5 border border-border rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-muted-foreground/30 focus:border-primary/50 focus:bg-white/10 outline-none transition-all font-bold text-sm"
                                             value={fullName}
                                             onChange={(e) => setFullName(e.target.value)}
                                         />
                                     </div>
-                                </div>
+                                </motion.div>
                             )}
+                        </AnimatePresence>
 
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Adresse Email</label>
-                                <div className="relative group">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                                    <input
-                                        type="email"
-                                        required
-                                        placeholder="nom@exemple.com"
-                                        className="w-full bg-background/40 border border-border rounded-2xl pl-12 pr-4 py-3.5 text-foreground placeholder:text-muted-foreground/30 focus:border-primary/50 focus:bg-background/60 outline-none transition-all font-medium"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                    />
-                                </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Email Professionnel</label>
+                            <div className="relative group">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                <input
+                                    type="email"
+                                    required
+                                    placeholder="nom@entreprise.com"
+                                    className="w-full bg-white/5 border border-border rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-muted-foreground/30 focus:border-primary/50 focus:bg-white/10 outline-none transition-all font-bold text-sm"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
                             </div>
+                        </div>
 
-                            <div className="space-y-1.5">
-                                <div className="flex justify-between items-center px-1">
-                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Mot de passe</label>
-                                    {!isSignUp && (
-                                        <button
-                                            type="button"
-                                            onClick={handleForgotPassword}
-                                            className="text-[10px] font-bold text-primary/60 hover:text-primary uppercase tracking-widest transition-colors"
-                                        >
-                                            Oublié ?
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="relative group">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                                    <input
-                                        type="password"
-                                        required
-                                        placeholder="••••••••"
-                                        className="w-full bg-background/40 border border-border rounded-2xl pl-12 pr-4 py-3.5 text-foreground placeholder:text-muted-foreground/30 focus:border-primary/50 focus:bg-background/60 outline-none transition-all font-medium"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                    />
-                                </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Mot de Passe</label>
+                            <div className="relative group">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                <input
+                                    type="password"
+                                    required
+                                    placeholder="••••••••••••"
+                                    className="w-full bg-white/5 border border-border rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-muted-foreground/30 focus:border-primary/50 focus:bg-white/10 outline-none transition-all font-bold text-sm"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
                             </div>
                         </div>
 
                         {error && (
-                            <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl text-red-500 text-[11px] text-center font-medium animate-in shake duration-300">
+                            <motion.div 
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[11px] font-black uppercase tracking-widest text-center"
+                            >
                                 {error}
-                            </div>
+                            </motion.div>
                         )}
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-primary hover:opacity-90 text-primary-foreground font-bold text-sm h-14 rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 shadow-xl shadow-primary/20 disabled:opacity-50"
+                            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs uppercase tracking-[0.2em] h-14 rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 shadow-xl shadow-primary/20 disabled:opacity-50"
                         >
                             {loading ? (
                                 <Loader2 className="h-5 w-5 animate-spin" />
                             ) : (
                                 <>
-                                    <span>{isSignUp ? "Créer mon compte" : "Se connecter"}</span>
+                                    <span>{isSignUp ? "Créer l'Accès" : "Entrer dans l'ERP"}</span>
                                     <ArrowRight className="h-4 w-4" />
                                 </>
                             )}
                         </button>
                     </form>
 
-                    {/* Footer Toggle */}
-                    <div className="mt-8 text-center">
+                    <div className="mt-8 relative z-10 text-center">
                         <button
                             onClick={() => {
                                 setIsSignUp(!isSignUp);
                                 setError(null);
                             }}
-                            className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
                         >
                             {isSignUp ? (
-                                <span className="flex items-center justify-center gap-2 font-medium">
-                                    Déjà membre ? <b className="text-foreground">Se connecter</b>
-                                </span>
+                                <span>Déjà membre ? <b className="text-white underline underline-offset-4">Se connecter</b></span>
                             ) : (
-                                <span className="flex items-center justify-center gap-2 font-medium">
-                                    Nouveau ici ? <b className="text-foreground">Créer un compte</b>
-                                </span>
+                                <span>Nouveau ici ? <b className="text-white underline underline-offset-4">Créer un compte</b></span>
                             )}
                         </button>
                     </div>
-                </div>
+                </motion.div>
 
-                {/* Additional Links */}
-                {!isSignUp && (
-                    <div className="mt-8 text-center text-[10px] text-muted-foreground uppercase tracking-[0.2em] space-y-2">
-                        <p>© 2026 MINDOS</p>
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex items-center justify-center gap-6 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40"
+                >
+                    <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-3 h-3" />
+                        SSL Secure
                     </div>
-                )}
+                    <div className="flex items-center gap-2">
+                        <LayoutDashboard className="w-3 h-3" />
+                        ERP Mode
+                    </div>
+                </motion.div>
             </div>
         </div>
     );
+}
+
+function cn(...inputs: any) {
+    return inputs.filter(Boolean).join(" ");
 }

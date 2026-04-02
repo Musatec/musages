@@ -1,10 +1,10 @@
 export type Transaction = {
     id: string;
-    created_at: string;
+    storeId: string;
     amount: number;
     type: 'INCOME' | 'EXPENSE';
     category: string;
-    description: string;
-    date: string;
-    user_id?: string;
+    description: string | null;
+    createdAt: string; // ISO date string from JSON serialization
+    updatedAt: string;
 };

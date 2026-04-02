@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useSupabase } from "@/components/providers/supabase-provider";
-import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Loader2, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-
+import { createTransaction, updateTransaction, deleteTransaction } from "@/lib/actions/capital";
 import { Transaction } from "@/types/capital";
 
 const CATEGORIES = [
@@ -22,7 +20,6 @@ interface NewTransactionSheetProps {
 }
 
 export function NewTransactionSheet({ open, onOpenChange, onSuccess, transactionToEdit }: NewTransactionSheetProps) {
-    const { user } = useSupabase();
     const [loading, setLoading] = useState(false);
 
     // Form State
@@ -38,10 +35,9 @@ export function NewTransactionSheet({ open, onOpenChange, onSuccess, transaction
             setType(transactionToEdit.type);
             setAmount(transactionToEdit.amount.toString());
             setCategory(transactionToEdit.category);
-            setDescription(transactionToEdit.description);
-            setDate(transactionToEdit.date);
+            setDescription(transactionToEdit.description || "");
+            setDate(new Date(transactionToEdit.createdAt).toISOString().split('T')[0]);
         } else if (open && !transactionToEdit) {
-            // Reset for creation mode
             setAmount("");
             setDescription("");
             setCategory(CATEGORIES[2]);
@@ -52,49 +48,27 @@ export function NewTransactionSheet({ open, onOpenChange, onSuccess, transaction
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user || !amount || !description) return;
+        if (!amount || !description) return;
 
         setLoading(true);
         try {
-            if (transactionToEdit) {
-                // UPDATE
-                const { error } = await supabase.from('transactions')
-                    .update({
-                        amount: Math.abs(parseFloat(amount)),
-                        type,
-                        category,
-                        description,
-                        date
-                    })
-                    .eq('id', transactionToEdit.id);
+            const txData = {
+                amount: Math.abs(parseFloat(amount)),
+                type,
+                category,
+                description,
+                date
+            };
 
-                if (error) throw error;
-                toast.success("Transaction modifiée !");
-            } else {
-                // CREATE
-                const { error } = await supabase.from('transactions').insert({
-                    user_id: user.id,
-                    amount: Math.abs(parseFloat(amount)),
-                    type,
-                    category,
-                    description,
-                    date
-                });
+            const result = transactionToEdit 
+                ? await updateTransaction(transactionToEdit.id, txData)
+                : await createTransaction(txData);
 
-                if (error) throw error;
-                toast.success(type === 'INCOME' ? "Revenu enregistré ! 🤑" : "Dépense enregistrée 💸");
-            }
-
+            if (result.error) throw new Error(result.error);
+            
+            toast.success(transactionToEdit ? "Transaction modifiée !" : (type === 'INCOME' ? "Revenu enregistré ! 🤑" : "Dépense enregistrée 💸"));
             onSuccess?.();
             onOpenChange(false);
-
-            // Reset form
-            if (!transactionToEdit) {
-                setAmount("");
-                setDescription("");
-                setCategory(CATEGORIES[2]);
-                setDate(new Date().toISOString().split('T')[0]);
-            }
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Erreur inconnue";
             toast.error("Erreur : " + message);
@@ -109,8 +83,9 @@ export function NewTransactionSheet({ open, onOpenChange, onSuccess, transaction
 
         setLoading(true);
         try {
-            const { error } = await supabase.from('transactions').delete().eq('id', transactionToEdit.id);
-            if (error) throw error;
+            const result = await deleteTransaction(transactionToEdit.id);
+            if (result.error) throw new Error(result.error);
+            
             toast.success("Transaction supprimée.");
             onSuccess?.();
             onOpenChange(false);
