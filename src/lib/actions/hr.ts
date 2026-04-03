@@ -150,5 +150,6 @@ export async function payRestSalary(employeeId: string) {
     }
 }
 
-// Compatibilité avec les anciens composants
-export { giveAdvance as addEmployeeAdvance, payRestSalary as resetEmployeeAdvances };
+// Les alias renvoient maintenant vers les fonctions exportées directement
+export const addEmployeeAdvance = giveAdvance;
+export const resetEmployeeAdvances = payRestSalary;
