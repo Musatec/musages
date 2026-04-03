@@ -37,6 +37,16 @@ interface CartItem extends Product {
     quantity: number;
 }
 
+interface SaleReceipt {
+    items: CartItem[];
+    total: number;
+    subtotal: number;
+    tax: number;
+    method: "CASH" | "CARD";
+    id: string;
+    date: string;
+}
+
 export function PosTerminal({ initialProducts }: { initialProducts: Product[] }) {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [search, setSearch] = useState("");
@@ -44,7 +54,7 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CARD">("CASH");
     const [showReceipt, setShowReceipt] = useState(false);
-    const [lastSale, setLastSale] = useState<any>(null);
+    const [lastSale, setLastSale] = useState<SaleReceipt | null>(null);
     const [showMobileCart, setShowMobileCart] = useState(false);
 
     const handlePrintReceipt = () => {
@@ -104,13 +114,14 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
         });
 
         if (result.success) {
-            const saleData = {
+            const saleId = `MDS-${crypto.randomUUID().split("-")[0].toUpperCase()}`;
+            const saleData: SaleReceipt = {
                 items: [...cart],
                 total,
                 subtotal,
                 tax,
                 method: paymentMethod,
-                id: Math.random().toString(36).substring(2, 9).toUpperCase(),
+                id: saleId,
                 date: new Date().toLocaleString()
             };
             setLastSale(saleData);
@@ -126,7 +137,6 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
 
     return (
         <div className="flex flex-col md:flex-row h-full bg-[#050505] text-white">
-            {/* --- MOBILE CART BUTTON (Visible only on small screens) --- */}
             <div className="md:hidden fixed bottom-24 right-6 z-[60]">
                 <button 
                     onClick={() => setShowMobileCart(true)}
@@ -141,7 +151,6 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                 </button>
             </div>
 
-            {/* --- LEFT: PRODUCTS --- */}
             <div className="flex-1 flex flex-col p-4 md:p-6 overflow-hidden">
                 <header className="mb-8 space-y-6">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -166,7 +175,6 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                         </div>
                     </div>
 
-                    {/* Categories UI */}
                     <div className="flex gap-2 p-1 bg-white/5 rounded-xl overflow-x-auto no-scrollbar">
                         {categories.map((cat) => (
                             <button
@@ -183,7 +191,6 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                     </div>
                 </header>
 
-                {/* Grid Products */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar pb-10">
                     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                         <AnimatePresence>
@@ -230,55 +237,23 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                 </div>
             </div>
 
-            {/* --- RIGHT: CART SIDEBAR (Drawer logic on Mobile) --- */}
             <div className={cn(
                 "fixed md:static inset-0 md:inset-auto z-[70] md:z-10 w-full md:w-[450px] bg-[#0A0A0B] border-l border-white/10 flex flex-col p-6 md:p-8 relative shadow-[-50px_0_100px_rgba(0,0,0,0.5)] transition-transform duration-500",
                 showMobileCart ? "translate-x-0" : "translate-x-full md:translate-x-0"
             )}>
-                {/* Header Cart (Mobile Close Button) */}
                 <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/5">
-                    <button 
-                        onClick={() => setShowMobileCart(false)}
-                        className="md:hidden p-2 rounded-xl bg-white/5 text-gray-500 mr-2"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
-                    <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                        <ShoppingCart className="w-4 h-4 text-primary" />
-                    </div>
-                    <div className="flex flex-col">
-                        <h2 className="text-sm font-black uppercase italic tracking-tighter">Votre Panier</h2>
-                        <span className="text-[8px] font-black tracking-[0.2em] uppercase text-white/10">{cart.length} Articles</span>
-                    </div>
-                    <button 
-                        onClick={() => setCart([])}
-                        className="ml-auto p-2 rounded-xl text-gray-600 hover:text-red-500 hover:bg-red-500/10 transition-all"
-                        title="Vider le panier"
-                    >
-                        <Trash2 className="w-5 h-5" />
-                    </button>
+                    <button onClick={() => setShowMobileCart(false)} className="md:hidden p-2 rounded-xl bg-white/5 text-gray-500 mr-2"><X className="w-4 h-4" /></button>
+                    <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center"><ShoppingCart className="w-4 h-4 text-primary" /></div>
+                    <div className="flex flex-col"><h2 className="text-sm font-black uppercase italic tracking-tighter">Votre Panier</h2><span className="text-[8px] font-black tracking-[0.2em] uppercase text-white/10">{cart.length} Articles</span></div>
+                    <button onClick={() => setCart([])} className="ml-auto p-2 rounded-xl text-gray-600 hover:text-red-500 hover:bg-red-500/10 transition-all"><Trash2 className="w-5 h-5" /></button>
                 </div>
 
-                {/* Cart Items List */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
                     <AnimatePresence mode="popLayout">
                         {cart.map((item) => (
-                            <motion.div
-                                key={item.id}
-                                layout
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5"
-                            >
+                            <motion.div key={item.id} layout initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5">
                                 <div className="w-12 h-12 rounded-lg bg-black/40 overflow-hidden shrink-0 border border-white/5">
-                                    {item.image ? (
-                                        <SafeImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <Package className="w-4 h-4 text-white/10" />
-                                        </div>
-                                    )}
+                                    {item.image ? <SafeImage src={item.image} alt={item.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Package className="w-4 h-4 text-white/10" /></div>}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className="text-[10px] font-black uppercase text-white/80 truncate">{item.name}</h4>
@@ -291,169 +266,40 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                         </div>
                                     </div>
                                 </div>
-                                <button 
-                                    onClick={() => removeFromCart(item.id)}
-                                    className="p-3 self-center rounded-2xl bg-red-500/5 hover:bg-red-500/10 text-red-500/40 hover:text-red-500 transition-all border border-red-500/0 hover:border-red-500/20"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
+                                <button onClick={() => removeFromCart(item.id)} className="p-3 self-center rounded-2xl bg-red-500/5 hover:bg-red-500/10 text-red-500/40 hover:text-red-500 transition-all border border-red-500/0 hover:border-red-500/20"><X className="w-4 h-4" /></button>
                             </motion.div>
                         ))}
                     </AnimatePresence>
-
-                    {cart.length === 0 && (
-                        <div className="flex flex-col items-center justify-center h-full py-40 text-center opacity-30 grayscale pointer-events-none">
-                            <div className="relative">
-                                <ShoppingCart className="w-16 h-16 text-gray-600" />
-                                <div className="absolute top-0 right-0 w-4 h-4 bg-primary rounded-full animate-ping" />
-                            </div>
-                            <p className="mt-4 text-xs font-black tracking-[0.3em] uppercase">Espace Vide</p>
-                        </div>
-                    )}
+                    {cart.length === 0 && <div className="flex flex-col items-center justify-center h-full py-40 text-center opacity-30 grayscale pointer-events-none"><div className="relative"><ShoppingCart className="w-16 h-16 text-gray-600" /><div className="absolute top-0 right-0 w-4 h-4 bg-primary rounded-full animate-ping" /></div><p className="mt-4 text-xs font-black tracking-[0.3em] uppercase">Espace Vide</p></div>}
                 </div>
 
-                {/* Summary / Pay Area */}
                 <div className="mt-8 space-y-6">
                     <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-3">
-                        <div className="flex justify-between items-center text-[10px]">
-                            <span className="text-gray-500 font-black uppercase tracking-widest leading-none">Sous-total</span>
-                            <span className="font-black text-white/40">{subtotal.toLocaleString()} F</span>
-                        </div>
-                        <div className="flex justify-between items-center text-[10px]">
-                            <span className="text-gray-500 font-black uppercase tracking-widest leading-none">TVA (20%)</span>
-                            <span className="font-black text-white/40">{tax.toLocaleString()} F</span>
-                        </div>
-                        <div className="h-px bg-white/5 w-full" />
-                        <div className="flex justify-between items-end pt-1">
-                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Total Terminal</span>
-                            <span className="text-2xl font-black italic tracking-tighter text-white">{total.toLocaleString()} <span className="text-[10px] opacity-20">F</span></span>
-                        </div>
+                        <div className="flex justify-between items-center text-[10px]"><span className="text-gray-500 font-black uppercase tracking-widest leading-none">Sous-total</span><span className="font-black text-white/40">{subtotal.toLocaleString()} F</span></div>
+                        <div className="flex justify-between items-center text-[10px]"><span className="text-gray-500 font-black uppercase tracking-widest leading-none">TVA (20%)</span><span className="font-black text-white/40">{tax.toLocaleString()} F</span></div>
+                        <div className="h-px bg-white/5 w-full" /><div className="flex justify-between items-end pt-1"><span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Total Terminal</span><span className="text-2xl font-black italic tracking-tighter text-white">{total.toLocaleString()} <span className="text-[10px] opacity-20">F</span></span></div>
                     </div>
-
-                    {/* Payment Mode */}
                     <div className="grid grid-cols-2 gap-3">
-                        <button 
-                            onClick={() => setPaymentMethod("CASH")}
-                            className={cn(
-                                "flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all",
-                                paymentMethod === "CASH" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-white/5 border-white/5 text-gray-500 hover:text-white"
-                            )}
-                        >
-                            <Banknote className="w-5 h-5" />
-                            <span className="text-[9px] font-black uppercase tracking-widest">Espèces</span>
-                        </button>
-                        <button 
-                            onClick={() => setPaymentMethod("CARD")}
-                            className={cn(
-                                "flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all",
-                                paymentMethod === "CARD" ? "bg-primary/10 border-primary/30 text-primary" : "bg-white/5 border-white/5 text-gray-500 hover:text-white"
-                            )}
-                        >
-                            <CreditCard className="w-5 h-5" />
-                            <span className="text-[9px] font-black uppercase tracking-widest">TPE / Carte</span>
-                        </button>
+                        <button onClick={() => setPaymentMethod("CASH")} className={cn("flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all", paymentMethod === "CASH" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" : "bg-white/5 border-white/5 text-gray-500 hover:text-white")}><Banknote className="w-5 h-5" /><span className="text-[9px] font-black uppercase tracking-widest">Espèces</span></button>
+                        <button onClick={() => setPaymentMethod("CARD")} className={cn("flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all", paymentMethod === "CARD" ? "bg-primary/10 border-primary/30 text-primary" : "bg-white/5 border-white/5 text-gray-500 hover:text-white")}><CreditCard className="w-5 h-5" /><span className="text-[9px] font-black uppercase tracking-widest">TPE / Carte</span></button>
                     </div>
-
-                    <button
-                        onClick={handleProcessSale}
-                        disabled={cart.length === 0 || isCheckingOut}
-                        className="w-full py-6 rounded-3xl bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:grayscale transition-all text-black font-black uppercase tracking-[0.3em] text-sm flex items-center justify-center gap-3 shadow-[0_20px_50px_rgba(249,115,22,0.3)] active:scale-[0.98]"
-                    >
-                        {isCheckingOut ? (
-                            <Loader2 className="w-6 h-6 animate-spin" />
-                        ) : (
-                            <>
-                                <Receipt className="w-5 h-5" />
-                                Finaliser & Encaisser
-                                <ChevronRight className="w-4 h-4" />
-                            </>
-                        )}
-                    </button>
+                    <button onClick={handleProcessSale} disabled={cart.length === 0 || isCheckingOut} className="w-full py-6 rounded-3xl bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:grayscale transition-all text-black font-black uppercase tracking-[0.3em] text-sm flex items-center justify-center gap-3 shadow-[0_20px_50px_rgba(249,115,22,0.3)] active:scale-[0.98]">{isCheckingOut ? <Loader2 className="w-6 h-6 animate-spin" /> : <><Receipt className="w-5 h-5" />Finaliser & Encaisser<ChevronRight className="w-4 h-4" /></>}</button>
                 </div>
             </div>
-            {/* --- RECEIPT MODAL --- */}
-            <AnimatePresence>
-                {showReceipt && lastSale && (
-                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm print:bg-white print:p-0">
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white text-black p-8 rounded-[2rem] w-full max-w-sm shadow-2xl relative print:shadow-none print:rounded-none print:w-full print:p-0"
-                        >
-                            <button 
-                                onClick={() => setShowReceipt(false)}
-                                className="absolute top-6 right-6 p-2 rounded-full hover:bg-gray-100 print:hidden"
-                            >
-                                <X className="w-5 h-5 text-gray-400" />
-                            </button>
 
-                            {/* LOGO / HEADER */}
-                            <div className="text-center mb-8 border-b border-dashed border-gray-200 pb-6">
-                                <div className="text-2xl font-black tracking-tighter uppercase mb-1">MINDOS</div>
-                                <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Le Système d&apos;Exploitation Créateur</div>
-                                <div className="mt-4 text-[9px] text-gray-400">
-                                    <p>N° Ticket: {lastSale.id}</p>
-                                    <p>{lastSale.date}</p>
-                                </div>
-                            </div>
-
-                            {/* ITEMS */}
-                            <div className="space-y-3 mb-8">
-                                {lastSale.items.map((item: any) => (
-                                    <div key={item.id} className="flex justify-between text-xs">
-                                        <div className="flex-1">
-                                            <p className="font-bold uppercase tracking-tight">{item.name}</p>
-                                            <p className="text-[10px] text-gray-500">{item.quantity} x {item.price.toLocaleString()}</p>
-                                        </div>
-                                        <div className="font-bold">{(item.price * item.quantity).toLocaleString()}</div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* TOTALS */}
-                            <div className="border-t border-dashed border-gray-200 pt-6 space-y-2">
-                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                                    <span>Sous-total</span>
-                                    <span>{lastSale.subtotal.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                                    <span>TVA (20%)</span>
-                                    <span>{lastSale.tax.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between text-xl font-black pt-2 border-t border-gray-100">
-                                    <span>TOTAL</span>
-                                    <span className="text-primary italic">{lastSale.total.toLocaleString()} FCFA</span>
-                                </div>
-                                <div className="text-[9px] font-bold text-gray-400 uppercase text-center mt-6">
-                                    Paiement par {lastSale.method === "CASH" ? "Espèces" : "Carte"}
-                                </div>
-                            </div>
-
-                            <div className="mt-10 space-y-3 print:hidden">
-                                <button 
-                                    onClick={handlePrintReceipt}
-                                    className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-gray-800 transition-all active:scale-95 flex items-center justify-center gap-2"
-                                >
-                                    <Printer className="w-4 h-4" />
-                                    Imprimer Ticket
-                                </button>
-                                <button 
-                                    onClick={() => setShowReceipt(false)}
-                                    className="w-full py-4 border border-gray-200 text-gray-500 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-gray-50 transition-all"
-                                >
-                                    Nouvelle Vente
-                                </button>
-                            </div>
-
-                            <div className="hidden print:block text-center mt-10 text-[9px] text-gray-400 italic">
-                                Merci de votre confiance avec MINDOS.<br />
-                                À bientôt !
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+            <AnimatePresence>{showReceipt && lastSale && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm print:bg-white print:p-0">
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white text-black p-8 rounded-[2rem] w-full max-w-sm shadow-2xl relative print:shadow-none print:rounded-none print:w-full print:p-0">
+                        <button onClick={() => setShowReceipt(false)} className="absolute top-6 right-6 p-2 rounded-full hover:bg-gray-100 print:hidden"><X className="w-5 h-5 text-gray-400" /></button>
+                        <div className="text-center mb-8 border-b border-dashed border-gray-200 pb-6"><div className="text-2xl font-black tracking-tighter uppercase mb-1">MINDOS</div><div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Le Système d&apos;Exploitation Créateur</div><div className="mt-4 text-[9px] text-gray-400"><p>N° Ticket: {lastSale.id}</p><p>{lastSale.date}</p></div></div>
+                        <div className="space-y-3 mb-8">{lastSale.items.map((item: CartItem) => (
+                            <div key={item.id} className="flex justify-between text-xs"><div className="flex-1"><p className="font-bold uppercase tracking-tight">{item.name}</p><p className="text-[10px] text-gray-500">{item.quantity} x {item.price.toLocaleString()}</p></div><div className="font-bold">{(item.price * item.quantity).toLocaleString()}</div></div>
+                        ))}</div>
+                        <div className="border-t border-dashed border-gray-200 pt-6 space-y-2"><div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500"><span>Sous-total</span><span>{lastSale.subtotal.toLocaleString()}</span></div><div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500"><span>TVA (20%)</span><span>{lastSale.tax.toLocaleString()}</span></div><div className="flex justify-between text-xl font-black pt-2 border-t border-gray-100"><span>TOTAL</span><span className="text-primary italic">{lastSale.total.toLocaleString()} FCFA</span></div><div className="text-[9px] font-bold text-gray-400 uppercase text-center mt-6">Paiement par {lastSale.method === "CASH" ? "Espèces" : "Carte"}</div></div>
+                        <div className="mt-10 space-y-3 print:hidden"><button onClick={handlePrintReceipt} className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-gray-800 transition-all active:scale-95 flex items-center justify-center gap-2"><Printer className="w-4 h-4" />Imprimer Ticket</button><button onClick={() => setShowReceipt(false)} className="w-full py-4 border border-gray-200 text-gray-500 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-gray-50 transition-all">Nouvelle Vente</button></div>
+                    </motion.div>
+                </div>
+            )}</AnimatePresence>
         </div>
     );
 }

@@ -3,12 +3,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { 
     Search, ShoppingCart, Plus, Minus, X, 
-    Banknote, Smartphone, CreditCard, ChevronRight,
-    Loader2, User as UserIcon, Wallet, Clock, Package, Monitor,
+    Banknote, Smartphone, CreditCard,
+    Loader2, User as UserIcon, Clock, Package,
     Phone
 } from "lucide-react";
 import { 
-    Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
+    Sheet, SheetContent, SheetTrigger 
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { getProducts } from "@/lib/actions/inventory";

@@ -22,33 +22,39 @@ export async function getCapitalSummary(month?: string) {
   const startOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
   const endOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0, 23, 59, 59);
 
-  const [totalIncome, totalExpense, monthlyIncome, monthlyExpense, recentTransactions] = await Promise.all([
-    // Total Balance Calculations
-    prisma.transaction.aggregate({ where: { storeId, type: "INCOME" }, _sum: { amount: true } }),
-    prisma.transaction.aggregate({ where: { storeId, type: "EXPENSE" }, _sum: { amount: true } }),
-    // Monthly View
-    prisma.transaction.aggregate({ 
-      where: { storeId, type: "INCOME", createdAt: { gte: startOfMonth, lte: endOfMonth } }, 
-      _sum: { amount: true } 
-    }),
-    prisma.transaction.aggregate({ 
-      where: { storeId, type: "EXPENSE", createdAt: { gte: startOfMonth, lte: endOfMonth } }, 
-      _sum: { amount: true } 
-    }),
-    // Paginated / Recent Transactions
-    prisma.transaction.findMany({
-      where: { storeId, createdAt: { gte: startOfMonth, lte: endOfMonth } },
-      orderBy: { createdAt: "desc" },
-      take: 50
-    })
-  ]);
+  try {
+      const [totalIncome, totalExpense, monthlyIncome, monthlyExpense, recentTransactions] = await Promise.all([
+        // Total Balance Calculations
+        prisma.transaction.aggregate({ where: { storeId, type: "INCOME" }, _sum: { amount: true } }),
+        prisma.transaction.aggregate({ where: { storeId, type: "EXPENSE" }, _sum: { amount: true } }),
+        // Monthly View
+        prisma.transaction.aggregate({ 
+          where: { storeId, type: "INCOME", createdAt: { gte: startOfMonth, lte: endOfMonth } }, 
+          _sum: { amount: true } 
+        }),
+        prisma.transaction.aggregate({ 
+          where: { storeId, type: "EXPENSE", createdAt: { gte: startOfMonth, lte: endOfMonth } }, 
+          _sum: { amount: true } 
+        }),
+        // Paginated / Recent Transactions
+        prisma.transaction.findMany({
+          where: { storeId, createdAt: { gte: startOfMonth, lte: endOfMonth } },
+          orderBy: { createdAt: "desc" },
+          take: 50
+        })
+      ]);
 
-  return {
-    balance: (totalIncome._sum.amount || 0) - (totalExpense._sum.amount || 0),
-    monthlyIncome: monthlyIncome._sum.amount || 0,
-    monthlyExpense: monthlyExpense._sum.amount || 0,
-    transactions: recentTransactions
-  };
+      return {
+        balance: (totalIncome._sum.amount || 0) - (totalExpense._sum.amount || 0),
+        monthlyIncome: monthlyIncome._sum.amount || 0,
+        monthlyExpense: monthlyExpense._sum.amount || 0,
+        transactions: recentTransactions
+      };
+  } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Erreur inconnue";
+      console.error("[CAPITAL] getCapitalSummary Error:", message);
+      return null;
+  }
 }
 
 export async function getTransactions(month?: string) {
@@ -71,14 +77,20 @@ export async function getTransactions(month?: string) {
     };
   }
 
-  return await prisma.transaction.findMany({
-    where: {
-      storeId,
-      ...dateFilter,
-    },
-    orderBy: { createdAt: "desc" },
-    take: 100 // Protection against large fetches
-  });
+  try {
+      return await prisma.transaction.findMany({
+        where: {
+          storeId,
+          ...dateFilter,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 100 // Protection against large fetches
+      });
+  } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Erreur inconnue";
+      console.error("[CAPITAL] getTransactions Error:", message);
+      return [];
+  }
 }
 
 export async function createTransaction(data: z.infer<typeof TransactionSchema>) {
@@ -108,8 +120,9 @@ export async function createTransaction(data: z.infer<typeof TransactionSchema>)
 
     revalidatePath("/capital");
     return { success: true, id: transaction.id };
-  } catch (error) {
-    console.error("[CAPITAL] Error creating transaction:", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Erreur inconnue";
+    console.error("[CAPITAL] Error creating transaction:", message);
     return { error: "Erreur lors de l'enregistrement" };
   }
 }
@@ -132,8 +145,9 @@ export async function updateTransaction(id: string, data: z.infer<typeof Transac
         });
         revalidatePath("/capital");
         return { success: true };
-    } catch (error) {
-        console.error("[CAPITAL] Update Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[CAPITAL] Update Error:", message);
         return { error: "Erreur lors de la modification" };
     }
 }
@@ -148,7 +162,9 @@ export async function deleteTransaction(id: string) {
     });
     revalidatePath("/capital");
     return { success: true };
-  } catch (error) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Erreur inconnue";
+    console.error("[CAPITAL] Delete Error:", message);
     return { error: "Erreur lors de la suppression" };
   }
 }

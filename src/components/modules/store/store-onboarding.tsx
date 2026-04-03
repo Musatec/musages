@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { 
     Building2, ArrowRight, Loader2, CheckCircle2, 
     Globe, ShieldCheck, Zap, Sparkles, Package, 
-    Plus, Trash2 
+    Trash2 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -28,12 +28,12 @@ export function StoreOnboarding() {
       { name: "Produit Alpha", price: "1000" }
   ]);
   
-  const getInitialPlan = () => {
+  const getInitialPlan = (): "STARTER" | "GROWTH" | "BUSINESS" => {
     if (typeof document !== 'undefined') {
       const match = document.cookie.match(/mindos_plan=([^;]+)/);
       const cookiePlan = match ? match[1] : null;
       if (cookiePlan === "STARTER" || cookiePlan === "GROWTH" || cookiePlan === "BUSINESS") {
-        return cookiePlan as any;
+        return cookiePlan;
       }
     }
     return "STARTER";
@@ -236,7 +236,15 @@ export function StoreOnboarding() {
   );
 }
 
-function PlanOption({ title, price, active, onClick, details, popular, icon: Icon }: any) {
+function PlanOption({ title, price, active, onClick, details, popular, icon: Icon }: {
+    title: string;
+    price: string;
+    active: boolean;
+    onClick: () => void;
+    details: string;
+    popular?: boolean;
+    icon: React.ElementType;
+}) {
     return (
         <div onClick={onClick} className={cn( "p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center justify-between group relative overflow-hidden", active ? "bg-primary/5 border-primary shadow-lg shadow-primary/10 scale-[1.01]" : "bg-white/[0.02] border-white/5 hover:border-white/10" )} >
             <div className="flex items-center gap-3 relative z-10">

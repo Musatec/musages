@@ -98,8 +98,9 @@ export async function processSale(data: {
         revalidatePath("/sales/debts"); // New for recovery protocol
         
         return { success: true };
-    } catch (error) {
-        console.error("[SALES] Error processing sale:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[SALES] Error processing sale:", message);
         return { error: "Erreur technique lors de la validation." };
     }
 }
@@ -158,8 +159,9 @@ export async function deleteSale(saleId: string) {
         revalidatePath("/inventory");
         revalidatePath("/sales/debts");
         return { success: true };
-    } catch (error) {
-        console.error("[SALES_DELETE] Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[SALES_DELETE] Error:", message);
         return { error: "Impossible de supprimer cette vente." };
     }
 }
@@ -209,8 +211,9 @@ export async function getDailyMetrics() {
             productCount,
             stockAlerts
         };
-    } catch (error) {
-        console.error("[SALES_METRICS] Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[SALES_METRICS] Error:", message);
         return { totalSales: 0, salesCount: 0, totalExpenses: 0, productCount: 0, stockAlerts: 0 };
     }
 }

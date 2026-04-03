@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { 
-    ArrowLeftRight, Search, TrendingUp, 
-    Calendar, Package, DollarSign, 
-    ArrowUpRight, ArrowDownRight, MoreVertical,
-    FileText, Trash2, Printer, Filter, ChevronRight
+    Search, TrendingUp, 
+    Calendar, Package, 
+    ArrowUpRight,
+    Trash2, Printer, Filter
 } from "lucide-react";
 import { deleteSale } from "@/lib/actions/sales";
 import { toast } from "sonner";
@@ -28,9 +28,8 @@ interface Sale {
     items?: SaleItem[];
 }
 
-export default function SalesJournalClient({ initialSales = [], dailyMetrics }: { initialSales: Sale[], dailyMetrics: any }) {
+export default function SalesJournalClient({ initialSales = [], dailyMetrics }: { initialSales: Sale[], dailyMetrics: { totalSales: number } }) {
     const [sales, setSales] = useState<Sale[]>(initialSales || []);
-    const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
 
     const formatMoney = (amount: number) => {
@@ -40,7 +39,6 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
     const handleDelete = async (id: string) => {
         if (!confirm("⚠️ Annuler cette vente ? Les stocks seront remis à jour et l'argent retiré du journal.")) return;
         
-        setLoading(true);
         try {
             const res = await deleteSale(id);
             if (res.success) {
@@ -49,8 +47,9 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
             } else {
                 toast.error(res.error);
             }
-        } finally {
-            setLoading(false);
+        } catch (error) {
+            console.error(error);
+            toast.error("Erreur lors de la suppression");
         }
     };
 
@@ -81,7 +80,7 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
                     <div className="flex items-center gap-3 p-1.5 bg-muted/20 border border-border/50 rounded-xl">
                          <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg shadow-sm">
                             <Calendar className="w-3.5 h-3.5 text-primary" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Aujourd'hui</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Aujourd&apos;hui</span>
                          </div>
                          <button className="p-2.5 bg-muted/30 hover:bg-primary hover:text-white rounded-lg transition-all active:scale-95 text-muted-foreground">
                             <Filter className="w-4 h-4" />
@@ -94,13 +93,13 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
                     <div className="bg-card border border-border rounded-2xl p-6 shadow-sm relative overflow-hidden group">
                         <div className="space-y-4 relative z-10">
                             <div className="flex justify-between items-center text-primary">
-                                <p className="text-[9px] font-black uppercase tracking-[0.3em]">Chiffre d'Affaire</p>
+                                <p className="text-[9px] font-black uppercase tracking-[0.3em]">Chiffre d&apos;Affaire</p>
                                 <TrendingUp className="w-4 h-4" />
                             </div>
                             <h2 className="text-3xl font-black text-foreground italic tracking-tighter leading-none">
                                 {formatMoney(dailyMetrics?.totalSales || 0)} <span className="text-sm opacity-20 italic ml-1">F</span>
                             </h2>
-                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Encaissé Aujourd'hui</p>
+                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Encaissé Aujourd&apos;hui</p>
                         </div>
                     </div>
 
@@ -125,7 +124,7 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
                              </div>
                          </div>
                          <div className="flex items-end justify-between mt-2">
-                            <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest leading-none">65% de l'objectif</span>
+                            <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest leading-none">65% de l&apos;objectif</span>
                             <ArrowUpRight className="w-4 h-4 text-emerald-500" />
                          </div>
                     </div>
@@ -142,7 +141,7 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="RECHERCHER CLIENT OU #INV..."
-                            className="w-full bg-card border border-border rounded-xl py-3.5 pl-12 pr-6 text-[10px] font-black uppercase tracking-widest focus:ring-1 focus:ring-primary/40 outline-none transition-all placeholder:text-muted-foreground/20"
+                            className="w-full bg-card border border-border rounded-xl py-3.5 l-12 pr-6 text-[10px] font-black uppercase tracking-widest focus:ring-1 focus:ring-primary/40 outline-none transition-all placeholder:text-muted-foreground/20"
                         />
                     </div>
                 </div>

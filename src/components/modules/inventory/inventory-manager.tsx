@@ -23,7 +23,7 @@ interface Product {
     sku?: string | null;
 }
 
-export function InventoryManager({ initialProducts, storeId }: { initialProducts: Product[], storeId: string }) {
+export function InventoryManager({ initialProducts }: { initialProducts: Product[] }) {
     const [products, setProducts] = useState(initialProducts);
     const [search, setSearch] = useState("");
     const [showAddModal, setShowAddModal] = useState(false);
@@ -74,7 +74,7 @@ export function InventoryManager({ initialProducts, storeId }: { initialProducts
         const result = await createProduct({ ...formData, price: Number(formData.price), costPrice: Number(formData.costPrice), stock: Number(formData.stock), minStock: Number(formData.minStock) });
         if (result.success) {
             toast.success("Produit ajouté ! 📦");
-            // @ts-ignore
+            // @ts-expect-error type expected to be checked
             setProducts([result.product, ...products]);
             setShowAddModal(false);
             setFormData({ name: "", price: "", costPrice: "", stock: "0", minStock: "5", category: "", sku: "", image: "" });
@@ -136,7 +136,7 @@ export function InventoryManager({ initialProducts, storeId }: { initialProducts
                             <div>
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="w-8 h-8 rounded-lg bg-muted/30 border border-border/50 flex items-center justify-center overflow-hidden">
-                                        {p.image ? <SafeImage src={p.image} className="w-full h-full object-cover" /> : <Package className="w-3.5 h-3.5 opacity-10" />}
+                                        {p.image ? <SafeImage src={p.image} alt={p.name} className="w-full h-full object-cover" /> : <Package className="w-3.5 h-3.5 opacity-10" />}
                                     </div>
                                     <div className={cn("px-1.5 py-0.5 rounded text-[6px] font-black uppercase tracking-widest border", isOut ? "bg-red-500/10 border-red-500/20 text-red-500" : isLow ? "bg-amber-500/10 border-amber-500/20 text-amber-500" : "bg-emerald-500/10 border-emerald-500/20 text-emerald-500")}>
                                         {isOut ? "OUT" : isLow ? "LOW" : "OK"}

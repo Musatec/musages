@@ -53,8 +53,9 @@ export async function getInvoices(filters?: {
                 invoiceCount: allSales.length
             }
         };
-    } catch (error) {
-        console.error("[INVOICES] Fetch Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[INVOICES] Fetch Error:", message);
         return { invoices: [], metrics: null };
     }
 }

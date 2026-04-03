@@ -10,15 +10,18 @@ export function TopLoader() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // On commence le chargement quand le chemin change
-    setLoading(true);
+    // On commence le chargement quand le chemin change (différé pour éviter les rendus en cascade)
+    const startTimer = setTimeout(() => setLoading(true), 0);
     
     // On simule une fin de chargement rapide (ou on attend que le rendu soit fait)
     const timer = setTimeout(() => {
       setLoading(false);
     }, 500);
 
-    return () => clearTimeout(timer);
+    return () => {
+        clearTimeout(startTimer);
+        clearTimeout(timer);
+    };
   }, [pathname, searchParams]);
 
   return (

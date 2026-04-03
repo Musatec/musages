@@ -42,8 +42,9 @@ export async function getDailyExpenses(dateStr: string) {
         });
 
         return { expenses, total, dateLabel };
-    } catch (error) {
-        console.error("[EXPENSES] Sync Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[EXPENSES] Sync Error:", message);
         return { expenses: [], total: 0, dateLabel: "" };
     }
 }
@@ -80,8 +81,9 @@ export async function createExpense(data: {
         revalidatePath("/expenses");
         revalidatePath("/capital");
         return { success: true };
-    } catch (error) {
-        console.error("[EXPENSES] Create Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[EXPENSES] Create Error:", message);
         return { error: "Impossible d'enregistrer la dépense." };
     }
 }

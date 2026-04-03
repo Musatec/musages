@@ -31,8 +31,9 @@ export async function getEmployees() {
                 count: employees.length
             }
         };
-    } catch (error) {
-        console.error("[HR] Fetch Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[HR] Fetch Error:", message);
         return { employees: [], metrics: null };
     }
 }
@@ -60,8 +61,9 @@ export async function createEmployee(data: {
 
         revalidatePath("/hr");
         return { success: true, employee };
-    } catch (error) {
-        console.error("[HR] Create Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[HR] Create Error:", message);
         return { error: "Impossible de créer l'employé" };
     }
 }
@@ -97,8 +99,9 @@ export async function giveAdvance(employeeId: string, amount: number) {
         revalidatePath("/hr");
         revalidatePath("/capital");
         return { success: true };
-    } catch (error) {
-        console.error("[HR] Advance Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[HR] Advance Error:", message);
         return { error: "Erreur lors du versement de l'acompte" };
     }
 }
@@ -140,10 +143,10 @@ export async function payRestSalary(employeeId: string) {
         revalidatePath("/hr");
         revalidatePath("/capital");
         return { success: true };
-    } catch (error) {
-        console.error("[HR] Pay Error:", error);
-        const errorMessage = error instanceof Error ? error.message : "Erreur de paiement";
-        return { error: errorMessage };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[HR] Pay Error:", message);
+        return { error: message };
     }
 }
 

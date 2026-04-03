@@ -76,12 +76,14 @@ export async function GET() {
 
         return NextResponse.json({ success: true, message: "Journal du jour alimenté par SQL brut !" });
 
-    } catch (error: any) {
-        console.error("Seed Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        const stack = error instanceof Error ? error.stack : undefined;
+        console.error("Seed Error:", message);
         return NextResponse.json({ 
             error: "Erreur lors du seeding", 
-            details: error.message,
-            stack: error.stack 
+            details: message,
+            stack: stack 
         }, { status: 500 });
     }
 }

@@ -37,8 +37,9 @@ export async function getDebts() {
                 invoiceCount: debts.length
             }
         };
-    } catch (error) {
-        console.error("[DEBTS] Fetch Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[DEBTS] Fetch Error:", message);
         return { debts: [], metrics: null };
     }
 }
@@ -82,8 +83,9 @@ export async function registerDebtPayment(saleId: string, amount: number) {
         revalidatePath("/dashboard");
         revalidatePath("/capital");
         return { success: true };
-    } catch (error) {
-        console.error("[DEBTS] Payment Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[DEBTS] Payment Error:", message);
         return { error: "Impossible d'enregistrer le versement" };
     }
 }

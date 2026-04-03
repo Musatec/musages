@@ -54,15 +54,17 @@ export async function createStore(data: z.infer<typeof CreateStoreSchema>) {
           details: { storeName: name },
         },
       });
-    } catch (auditError) {
-      console.warn("Audit Log failed, but store was created:", auditError);
+    } catch (auditError: unknown) {
+      const message = auditError instanceof Error ? auditError.message : "Erreur inconnue";
+      console.warn("Audit Log failed, but store was created:", message);
     }
 
     console.log("[STORE] Creation success:", store.id);
     revalidatePath("/dashboard");
     return { success: true, storeId: store.id };
-  } catch (error) {
-    console.error("[STORE] Error creating store:", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Erreur inconnue";
+    console.error("[STORE] Error creating store:", message);
     return { error: "Erreur lors de la création de la boutique." };
   }
 }
@@ -74,7 +76,13 @@ export async function getStore() {
     return null;
   }
 
-  return await prisma.store.findUnique({
-    where: { id: session.user.storeId },
-  });
+  try {
+      return await prisma.store.findUnique({
+        where: { id: session.user.storeId },
+      });
+  } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Erreur inconnue";
+      console.error("[STORE] getStore Error:", message);
+      return null;
+  }
 }

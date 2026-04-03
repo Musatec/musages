@@ -3,14 +3,12 @@
 import {
     LayoutDashboard, 
     Package, 
-    Wallet, 
     Users, 
     FileText,
     AlertCircle,
     CalendarDays,
     ArrowDownCircle,
-    Banknote,
-    PieChart
+    Banknote
 } from "lucide-react";
 
 export const NAV_ITEMS = [

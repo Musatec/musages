@@ -112,7 +112,8 @@ export default function ChapterEditorPage() {
 
                 setLastSaved(new Date(data.updated_at));
             } catch (error: unknown) {
-                console.error(error);
+                const message = error instanceof Error ? error.message : "Erreur inconnue";
+                console.error(message);
                 toast.error("Impossible de charger le chapitre");
                 router.push(`/books/${bookId}`);
             } finally {
@@ -248,12 +249,11 @@ export default function ChapterEditorPage() {
                         <button onClick={() => editor.chain().focus().toggleUnderline().run()} className={cn("p-1.5 rounded transition-colors", editor.isActive('underline') ? "bg-white/20 text-white" : "text-gray-400 hover:text-white")}><UnderlineIcon className="w-4 h-4" /></button>
                         <button onClick={() => editor.chain().focus().toggleStrike().run()} className={cn("p-1.5 rounded transition-colors", editor.isActive('strike') ? "bg-white/20 text-white" : "text-gray-400 hover:text-white")}><Strikethrough className="w-4 h-4" /></button>
 
-                        {/* Color Picker */}
                         <div className="relative p-1.5 rounded hover:bg-white/10 cursor-pointer group">
                             <Palette className={cn("w-4 h-4", editor.getAttributes('textStyle').color ? "text-white" : "text-gray-400")} style={{ color: editor.getAttributes('textStyle').color }} />
                             <input
                                 type="color"
-                                onInput={(e: React.ChangeEvent<HTMLInputElement>) => editor.chain().focus().setColor(e.target.value).run()}
+                                onInput={(e: React.FormEvent<HTMLInputElement>) => { editor.chain().focus().setColor((e.target as HTMLInputElement).value).run() }}
                                 value={editor.getAttributes('textStyle').color || '#ffffff'}
                                 className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                             />

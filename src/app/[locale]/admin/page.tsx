@@ -107,15 +107,16 @@ export default function UnifiedAdminPage() {
                 setBroadcast(settings.broadcast_message || "");
             }
 
-        } catch (error: any) {
-            toast.error("Échec de connexion au noyau : " + error.message);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur inconnue";
+            toast.error("Échec de connexion au noyau : " + message);
         } finally {
             setLoading(false);
         }
     };
 
-    const updateSystemSettings = async (updates: any) => {
-        const { user } = supabase.auth.getUser() as any; // Simple check
+    const updateSystemSettings = async (updates: Partial<any>) => {
+        const { data: userData } = await supabase.auth.getUser(); // Simple check
         setIsUpdatingSystem(true);
         try {
             const { data: currentAuth } = await supabase.auth.getUser();
@@ -140,8 +141,9 @@ export default function UnifiedAdminPage() {
 
             if (error) throw error;
             toast.success("Système mis à jour ! ✨");
-        } catch (err: any) {
-            toast.error("Erreur système : " + err.message);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Erreur inconnue";
+            toast.error("Erreur système : " + message);
         } finally {
             setIsUpdatingSystem(false);
         }
@@ -156,39 +158,39 @@ export default function UnifiedAdminPage() {
             toast.loading("Génération de l'univers démo...");
 
             // 1. Create a Demo Book
-            const { data: book } = await supabase.from('books').insert({
+            const { data: book } = await supabase.from("books").insert({
                 user_id: user.id,
                 title: "L'Empire des Sables Verres",
                 summary: "Une épopée fantastique dans un monde où le temps est une monnaie physique.",
-                status: 'WRITING',
-                color: '#F97316'
+                status: "WRITING",
+                color: "#F97316"
             }).select().single();
 
             if (book) {
-                await supabase.from('chapters').insert([
-                    { book_id: book.id, user_id: user.id, title: "Prologue : L'Inversion", order_index: 0, status: 'COMPLETED', content: "Le ciel était d'un bleu cobalt quand la première horloge s'est arrêtée..." },
-                    { book_id: book.id, user_id: user.id, title: "Chapitre 1 : Le Marchand de Secondes", order_index: 1, status: 'DRAFT', content: "Dans les ruelles de la basse-bulle, le temps ne s'achète pas, il se vole." }
+                await supabase.from("chapters").insert([
+                    { book_id: book.id, user_id: user.id, title: "Prologue : L'Inversion", order_index: 0, status: "COMPLETED", content: "Le ciel était d'un bleu cobalt quand la première horloge s'est arrêtée..." },
+                    { book_id: book.id, user_id: user.id, title: "Chapitre 1 : Le Marchand de Secondes", order_index: 1, status: "DRAFT", content: "Dans les ruelles de la basse-bulle, le temps ne s'achète pas, il se vole." }
                 ]);
             }
 
             // 2. Create a Labo Project
-            await supabase.from('projects').insert({
+            await supabase.from("projects").insert({
                 user_id: user.id,
                 title: "Infrastructures de l'OS",
                 description: "Refonte de l'interface de navigation et optimisation des protocoles.",
-                status: 'en_cours',
-                category: 'TECH',
+                status: "en_cours",
+                category: "TECH",
                 progress: 65
             });
 
             // 3. Create some Notes
-            const { data: folder } = await supabase.from('folders').insert({
+            const { data: folder } = await supabase.from("folders").insert({
                 user_id: user.id,
                 name: "Archives Médievales"
             }).select().single();
 
             if (folder) {
-                await supabase.from('notes').insert([
+                await supabase.from("notes").insert([
                     { user_id: user.id, folder_id: folder.id, title: "Physique du Mana", content: "L'énergie est proportionnelle à la volonté du batisseur.", folder: folder.name },
                     { user_id: user.id, folder_id: folder.id, title: "Bestiaire : Wyvernes", content: "Peau écailleuse, souffle froid.", folder: folder.name }
                 ]);
@@ -197,8 +199,9 @@ export default function UnifiedAdminPage() {
             toast.dismiss();
             toast.success("Univers peuplé avec succès ! 🚀");
             fetchAllData();
-        } catch (err: any) {
-            toast.error("Échec du seeding : " + err.message);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Erreur inconnue";
+            toast.error("Échec du seeding : " + message);
         } finally {
             setIsUpdatingSystem(false);
         }
@@ -207,15 +210,16 @@ export default function UnifiedAdminPage() {
     const handleUpdateRole = async (userId: string, newRole: string) => {
         try {
             const { error } = await supabase
-                .from('profiles')
+                .from("profiles")
                 .update({ role: newRole })
-                .eq('id', userId);
+                .eq("id", userId);
 
             if (error) throw error;
             toast.success(`Rang mis à jour : ${newRole}`);
             fetchAllData();
-        } catch (error: any) {
-            toast.error("Erreur de privilège : " + error.message);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur inconnue";
+            toast.error("Erreur de privilège : " + message);
         }
     };
 
@@ -339,14 +343,14 @@ export default function UnifiedAdminPage() {
                                         <div>
                                             <p className="font-bold text-sm tracking-tight flex items-center gap-2">
                                                 {p.full_name || "Bâtisseur Anonyme"}
-                                                {p.role === 'admin' && <ShieldCheck className="w-3.5 h-3.5 text-[#F97316]" />}
+                                                {p.role === "admin" && <ShieldCheck className="w-3.5 h-3.5 text-[#F97316]" />}
                                             </p>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">@{p.username || "unknown"}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                         <div className="px-2 py-0.5 bg-white/5 rounded-full text-[8px] font-black uppercase tracking-widest text-[#F97316]/60">
-                                            {p.role || 'user'}
+                                            {p.role || "user"}
                                         </div>
                                     </div>
                                 </div>
@@ -373,11 +377,11 @@ export default function UnifiedAdminPage() {
 
                                     <div className="grid grid-cols-1 gap-2">
                                         <button
-                                            onClick={() => handleUpdateRole(selectedUser.id, selectedUser.role === 'admin' ? 'user' : 'admin')}
+                                            onClick={() => handleUpdateRole(selectedUser.id, selectedUser.role === "admin" ? "user" : "admin")}
                                             className="w-full py-4 bg-[#F97316]/10 border border-[#F97316]/20 rounded-2xl flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest hover:bg-[#F97316] hover:text-white transition-all shadow-lg"
                                         >
                                             <ShieldAlert className="w-4 h-4" />
-                                            {selectedUser.role === 'admin' ? "Révoquer Admin" : "Accorder Privilèges"}
+                                            {selectedUser.role === "admin" ? "Révoquer Admin" : "Accorder Privilèges"}
                                         </button>
 
                                         <div className="grid grid-cols-2 gap-2">
@@ -417,7 +421,7 @@ export default function UnifiedAdminPage() {
                                     </div>
                                     <div className="space-y-1">
                                         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">Sélecteur Tactique</p>
-                                        <p className="text-[11px] text-gray-600 px-8">Choisissez une cible pour charger les protocoles d'administration.</p>
+                                        <p className="text-[11px] text-gray-600 px-8">Choisissez une cible pour charger les protocoles d&apos;administration.</p>
                                     </div>
                                 </div>
                             )}
@@ -427,7 +431,7 @@ export default function UnifiedAdminPage() {
                         <div className="bg-gradient-to-br from-red-600 to-red-800 rounded-[2.5rem] p-8 space-y-6 shadow-2xl shadow-red-600/30">
                             <div className="flex items-center gap-2 text-white/60">
                                 <Zap className="w-4 h-4" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em]">Protocoles d'Urgence</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em]">Protocoles d&apos;Urgence</span>
                             </div>
 
                             <div className="space-y-4">
@@ -469,7 +473,7 @@ export default function UnifiedAdminPage() {
                                             <TrendingUp className="w-3 h-3" />
                                         </button>
                                     </div>
-                                    <p className="text-[8px] text-white/30 italic">S'affichera sur tous les terminaux actifs.</p>
+                                    <p className="text-[8px] text-white/30 italic">S&apos;affichera sur tous les terminaux actifs.</p>
                                 </div>
                                 <div className="pt-2">
                                     <button
@@ -507,7 +511,7 @@ export default function UnifiedAdminPage() {
                                 ].map((log, i) => (
                                     <div key={i} className="flex items-center justify-between text-[10px] font-medium border-b border-white/[0.02] pb-2">
                                         <div className="flex items-center gap-2">
-                                            <div className={cn("w-1 h-1 rounded-full", log.color.replace('text', 'bg'))} />
+                                            <div className={cn("w-1 h-1 rounded-full", log.color.replace("text", "bg"))} />
                                             <span className="text-gray-400">{log.msg}</span>
                                         </div>
                                         <span className="text-gray-700 font-mono italic">{log.time}</span>

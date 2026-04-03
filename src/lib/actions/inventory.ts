@@ -28,7 +28,7 @@ export async function createProduct(data: CreateProductData) {
             return { error: "Session non valide ou établissement non configuré." };
         }
 
-        console.log("[INVENTORY] Attempting to create product for store:", session.user.storeId);
+        console.log("[INVENTORY] Attempting to create product for store:", storeId);
         
         // 1. Création du Produit
         const product = await prisma.product.create({
@@ -67,8 +67,9 @@ export async function createProduct(data: CreateProductData) {
         
         return { success: true, product };
     } catch (error: unknown) {
-        console.error("[INVENTORY] CREATE EXCEPTION:", error);
-        return { error: `Erreur Système : ${error instanceof Error ? error.message : "Inconnue"}` };
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[INVENTORY] CREATE EXCEPTION:", message);
+        return { error: `Erreur Système : ${message}` };
     }
 }
 
@@ -114,8 +115,9 @@ export async function updateStock(data: {
         revalidatePath("/inventory");
         revalidatePath("/sales");
         return { success: true };
-    } catch (error) {
-        console.error("[INVENTORY] UPDATE STOCK ERROR:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[INVENTORY] UPDATE STOCK ERROR:", message);
         return { error: "Impossible de mettre à jour le stock" };
     }
 }
@@ -132,8 +134,9 @@ export async function deleteProduct(productId: string) {
         revalidatePath("/inventory");
         revalidatePath("/sales");
         return { success: true };
-    } catch (error) {
-        console.error("[INVENTORY] Delete Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[INVENTORY] Delete Error:", message);
         return { error: "Erreur lors de la suppression" };
     }
 }
@@ -163,8 +166,9 @@ export async function getProducts() {
             stock: p.stocks[0]?.quantity || 0,
             image: null,
         }));
-    } catch (error) {
-        console.error("[INVENTORY] getProducts Error:", error);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[INVENTORY] getProducts Error:", message);
         return [];
     }
 }

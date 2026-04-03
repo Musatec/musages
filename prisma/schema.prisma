@@ -120,7 +120,7 @@ model Product {
   storeId     String
   store       Store       @relation(fields: [storeId], references: [id])
   name        String
-  sku         String?     @unique
+  sku         String?
   type        ProductType @default(PHYSICAL)
   price       Float
   costPrice   Float?      // To calculate margins
@@ -132,6 +132,8 @@ model Product {
   stocks      Stock[]
   saleItems   SaleItem[]
   movements   StockMovement[]
+
+  @@unique([storeId, sku])
 }
 
 model Stock {
