@@ -9,17 +9,25 @@ export default async function SalesPage() {
         redirect("/login");
     }
 
-    // Récupération des produits pour le terminal
+    // Récupération des produits pour le terminal avec leurs stocks
     const products = await prisma.product.findMany({
         where: { storeId: session.user.storeId },
+        include: {
+            stocks: {
+                where: { storeId: session.user.storeId }
+            }
+        },
         orderBy: { name: 'asc' }
     });
 
-    // Conversion des prix en nombres simples pour éviter les erreurs de sérialisation
+    // Conversion pour le terminal (Calcul du stock réel et sérialisation)
     const serializedProducts = products.map(p => ({
-        ...p,
+        id: p.id,
+        name: p.name,
         price: Number(p.price),
-        costPrice: p.costPrice ? Number(p.costPrice) : 0,
+        image: null,
+        stock: p.stocks[0]?.quantity || 0,
+        sku: p.sku || null,
         createdAt: p.createdAt.toISOString(),
         updatedAt: p.updatedAt.toISOString(),
     }));

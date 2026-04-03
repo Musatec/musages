@@ -21,7 +21,10 @@ export default function InvoicesPage() {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await getInvoices({ search, status: statusFilter });
+            const res = await getInvoices({ 
+                search, 
+                status: statusFilter as any // Cast for build compatibility
+            });
             setData(res);
         } finally {
             setLoading(false);
