@@ -18,7 +18,7 @@
     "supabase:stop": "supabase stop",
     "supabase:login": "npx supabase login",
     "supabase:link": "npx supabase link --project-ref ephsigjminwavcymicxa",
-    "postinstall": "if [ -n \"$DATABASE_URL\" ]; then prisma generate; else echo 'Skipping prisma generate: DATABASE_URL not set'; fi"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
