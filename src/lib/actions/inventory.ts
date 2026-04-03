@@ -133,6 +133,7 @@ export async function deleteProduct(productId: string) {
         revalidatePath("/sales");
         return { success: true };
     } catch (error) {
+        console.error("[INVENTORY] Delete Error:", error);
         return { error: "Erreur lors de la suppression" };
     }
 }

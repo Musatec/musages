@@ -133,6 +133,7 @@ export async function updateTransaction(id: string, data: z.infer<typeof Transac
         revalidatePath("/capital");
         return { success: true };
     } catch (error) {
+        console.error("[CAPITAL] Update Error:", error);
         return { error: "Erreur lors de la modification" };
     }
 }

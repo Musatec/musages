@@ -10,7 +10,7 @@ const RegisterSchema = z.object({
   name: z.string().min(2),
 });
 
-export async function register(data: any) {
+export async function register(data: z.infer<typeof RegisterSchema>) {
   try {
     const validated = RegisterSchema.parse(data);
     const { email, password, name } = validated;
