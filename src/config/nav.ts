@@ -8,7 +8,8 @@ import {
     AlertCircle,
     CalendarDays,
     ArrowDownCircle,
-    Banknote
+    Banknote,
+    ChartLine
 } from "lucide-react";
 
 export const NAV_ITEMS = [
@@ -59,6 +60,12 @@ export const NAV_ITEMS = [
         key: "hr",
         href: "/hr",
         icon: Users,
+    },
+    {
+        title: "Analyses & Rapports",
+        key: "reports",
+        href: "/reports",
+        icon: ChartLine,
     }
 ];
 
