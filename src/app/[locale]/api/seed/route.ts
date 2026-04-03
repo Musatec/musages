@@ -4,13 +4,13 @@ import { auth } from "@/auth";
 
 export async function GET() {
     try {
-        /* const session = await auth();
+        const session = await auth();
         if (!session?.user?.storeId) {
             return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
         }
 
         const storeId = session.user.storeId;
-        const sellerId = session.user.id; */
+        const sellerId = session.user.id;
 
         // Ensure IDs exist from the database
         let store = await prisma.store.findFirst();
@@ -41,8 +41,8 @@ export async function GET() {
             });
         }
 
-        const storeId = store.id;
-        const sellerId = user.id;
+        // const storeId = store.id;
+        // const sellerId = user.id;
         const today = new Date();
 
         // Nettoyage optionnel pour repartir à zéro pour aujourd'hui
