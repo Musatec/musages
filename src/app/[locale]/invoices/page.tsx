@@ -12,17 +12,37 @@ import { getInvoices } from "@/lib/actions/invoices";
 import { TopLoader } from "@/components/ui/top-loader";
 import { toast } from "sonner";
 
+import { SaleStatus } from "@prisma/client";
+
+interface InvoiceItem {
+    id: string;
+    product: { name: string };
+    quantity: number;
+    price: number;
+}
+
+interface Invoice {
+    id: string;
+    customerName?: string;
+    totalAmount: number;
+    amountPaid: number;
+    status: SaleStatus;
+    paymentMethod: string;
+    createdAt: string;
+    items?: InvoiceItem[];
+}
+
 export default function InvoicesPage() {
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<{ invoices: Invoice[], metrics: any } | null>(null);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
 
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await getInvoices({ search, status: statusFilter });
-            setData(res);
+            const res = await getInvoices({ search, status: statusFilter as any });
+            setData(res as any);
         } finally {
             setLoading(false);
         }
@@ -168,7 +188,7 @@ export default function InvoicesPage() {
                                     ))
                                 ) : data?.invoices?.length === 0 ? (
                                     <tr><td colSpan={7} className="py-32 text-center text-[11px] font-black uppercase tracking-[0.4em] opacity-20 italic">No Billing Records Detected</td></tr>
-                                ) : data?.invoices?.map((inv: any) => {
+                                ) : data?.invoices?.map((inv: Invoice) => {
                                     const debt = inv.totalAmount - inv.amountPaid;
                                     const progress = Math.round((inv.amountPaid / inv.totalAmount) * 100);
 

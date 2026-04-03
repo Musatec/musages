@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
 export async function processSale(data: { 
-    items: any[], 
+    items: { id: string, quantity: number, price: number }[], 
     total: number, 
     paymentMethod: string,
     amountPaid?: number,
@@ -32,7 +32,7 @@ export async function processSale(data: {
                     customerName: data.customerName || "CLIENT COMPTOIR",
                     customerPhone: data.customerPhone,
                     sellerId: userId,
-                    status: (isUnpaid ? "PARTIAL" : "COMPLETED") as any,
+                    status: isUnpaid ? "PARTIAL" : "COMPLETED",
                     items: {
                         create: data.items.map(item => ({
                             productId: item.id,

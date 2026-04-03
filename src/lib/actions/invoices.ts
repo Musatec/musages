@@ -2,13 +2,14 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { SaleStatus } from "@prisma/client";
 
 /**
  * Récupère toutes les factures (Sales) avec options de filtrage
  */
 export async function getInvoices(filters?: { 
     search?: string, 
-    status?: string,
+    status?: SaleStatus | 'ALL',
     limit?: number 
 }) {
     const session = await auth();
@@ -21,7 +22,7 @@ export async function getInvoices(filters?: {
         const invoices = await prisma.sale.findMany({
             where: {
                 storeId,
-                ...(filters?.status && filters.status !== 'ALL' ? { status: filters.status as any } : {}),
+                ...(filters?.status && filters.status !== 'ALL' ? { status: filters.status } : {}),
                 ...(filters?.search ? {
                     OR: [
                         { customerName: { contains: filters.search, mode: 'insensitive' } },

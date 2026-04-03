@@ -140,9 +140,10 @@ export async function payRestSalary(employeeId: string) {
         revalidatePath("/hr");
         revalidatePath("/capital");
         return { success: true };
-    } catch (error: any) {
+    } catch (error) {
         console.error("[HR] Pay Error:", error);
-        return { error: error.message || "Erreur de paiement" };
+        const errorMessage = error instanceof Error ? error.message : "Erreur de paiement";
+        return { error: errorMessage };
     }
 }
 

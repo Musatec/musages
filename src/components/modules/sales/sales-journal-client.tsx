@@ -11,8 +11,25 @@ import { deleteSale } from "@/lib/actions/sales";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export default function SalesJournalClient({ initialSales = [], dailyMetrics }: { initialSales: any[], dailyMetrics: any }) {
-    const [sales, setSales] = useState(initialSales || []);
+interface SaleItem {
+    id: string;
+    product: { name: string };
+    quantity: number;
+    price: number;
+}
+
+interface Sale {
+    id: string;
+    customerName?: string;
+    totalAmount: number;
+    amountPaid: number;
+    status: string;
+    paymentMethod: string;
+    items?: SaleItem[];
+}
+
+export default function SalesJournalClient({ initialSales = [], dailyMetrics }: { initialSales: Sale[], dailyMetrics: any }) {
+    const [sales, setSales] = useState<Sale[]>(initialSales || []);
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
 
@@ -28,7 +45,7 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
             const res = await deleteSale(id);
             if (res.success) {
                 toast.success("Vente annulée avec succès ! ✨");
-                setSales(prev => prev.filter(s => s.id !== id));
+                setSales(prev => (prev || []).filter(s => s.id !== id));
             } else {
                 toast.error(res.error);
             }
@@ -39,7 +56,7 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
 
     const filteredSales = (sales || []).filter(s => 
         (s.customerName || "").toLowerCase().includes(search.toLowerCase()) ||
-        s.id.toLowerCase().includes(search.toLowerCase())
+        (s.id || "").toLowerCase().includes(search.toLowerCase())
     );
 
     return (
@@ -145,7 +162,7 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
                             <tbody>
                                 {filteredSales.length === 0 ? (
                                     <tr><td colSpan={5} className="py-20 text-center font-black text-muted-foreground opacity-20 italic uppercase tracking-[0.4em]">Journal vierge ✨🛒</td></tr>
-                                ) : filteredSales.map((sale: any) => (
+                                ) : filteredSales.map((sale: Sale) => (
                                     <tr key={sale.id} className="group hover:bg-muted/5 transition-all border-b border-muted/5 last:border-0 relative">
                                         <td className="px-6 py-3">
                                             <div className="flex flex-col gap-0.5">
@@ -159,7 +176,7 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
                                                     {sale.items?.length || 0}
                                                 </div>
                                                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest italic truncate max-w-[120px]">
-                                                    {sale.items?.map((i: any) => i.product.name).join(", ") || "Détails indisponibles"}
+                                                    {sale.items?.map((i: SaleItem) => i.product.name).join(", ") || "Détails indisponibles"}
                                                 </span>
                                             </div>
                                         </td>
