@@ -146,8 +146,10 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
                     </div>
                 </div>
 
+                {/* --- RESPONSIVE SALES LIST --- */}
                 <div className="bg-card rounded-xl border border-border/50 overflow-hidden shadow-xl">
-                    <div className="overflow-x-auto">
+                    {/* View Table (Hidden on Mobile) */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left text-[11px]">
                             <thead>
                                 <tr className="border-b border-muted/10 text-muted-foreground uppercase opacity-40 bg-muted/5">
@@ -205,6 +207,47 @@ export default function SalesJournalClient({ initialSales = [], dailyMetrics }: 
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* View Cards (Visible only on Mobile) */}
+                    <div className="md:hidden divide-y divide-border/50">
+                        {filteredSales.length === 0 ? (
+                            <div className="py-20 text-center font-black text-muted-foreground opacity-20 italic uppercase tracking-[0.4em]">Journal vierge ✨🛒</div>
+                        ) : filteredSales.map((sale: Sale) => (
+                            <div key={sale.id} className="p-5 space-y-4 active:bg-muted/10 transition-colors">
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black uppercase text-foreground italic leading-none">{sale.customerName || "CLIENT PASSANT"}</p>
+                                        <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest opacity-30">#MDS-{sale.id.slice(-6).toUpperCase()}</p>
+                                    </div>
+                                    <span className={cn(
+                                        "px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border",
+                                        sale.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                                    )}>
+                                        {sale.status === 'COMPLETED' ? 'SOLDE' : 'PARTIEL'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded bg-muted/20 border border-border flex items-center justify-center text-[9px] font-black text-muted-foreground">
+                                            {sale.items?.length || 0}
+                                        </div>
+                                        <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight truncate max-w-[150px]">
+                                            {sale.items?.[0]?.product.name} { (sale.items?.length || 0) > 1 ? `+ ${sale.items!.length - 1}` : ''}
+                                        </p>
+                                    </div>
+                                    <p className="text-sm font-black italic text-foreground tracking-tighter">{formatMoney(sale.totalAmount)} F</p>
+                                </div>
+                                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/10">
+                                    <button className="flex-1 py-2 bg-muted/20 rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                                        <Printer className="w-3 h-3" /> Ticket
+                                    </button>
+                                    <button onClick={() => handleDelete(sale.id)} className="p-2 text-red-500 bg-red-500/10 rounded-lg">
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

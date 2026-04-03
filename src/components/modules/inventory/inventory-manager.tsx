@@ -165,9 +165,16 @@ export function InventoryManager({ initialProducts }: { initialProducts: Product
 
             <AnimatePresence>
                 {showAddModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-end p-4 md:p-6 lg:p-8">
+                    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center md:justify-end p-0 md:p-6 lg:p-8">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddModal(false)} className="absolute inset-0 bg-background/60 backdrop-blur-md" />
-                        <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} className="relative w-full max-w-md h-[90vh] bg-card border border-border shadow-2xl rounded-2xl p-6 flex flex-col overflow-hidden">
+                        <motion.div 
+                            initial={{ y: "100%", x: 0 }} 
+                            animate={{ y: 0, x: 0 }} 
+                            exit={{ y: "100%", x: 0 }} 
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            className="relative w-full md:max-w-md h-[85vh] md:h-[90vh] bg-card border-t md:border border-border shadow-2xl rounded-t-[2.5rem] md:rounded-2xl p-6 md:p-8 flex flex-col overflow-hidden"
+                        >
+                            <div className="w-12 h-1.5 bg-muted/20 rounded-full mx-auto mb-6 md:hidden" />
                             <header className="flex justify-between items-center mb-6">
                                 <div className="space-y-0.5 text-left w-full">
                                     <h2 className="text-lg font-black italic tracking-tighter uppercase text-foreground leading-none">Nouveau <span className="text-primary italic">Article.</span></h2>
@@ -175,33 +182,33 @@ export function InventoryManager({ initialProducts }: { initialProducts: Product
                                 </div>
                                 <button onClick={() => setShowAddModal(false)} className="p-2 rounded-lg bg-muted/20 border border-border text-foreground hover:bg-primary transition-all"><X className="w-4 h-4" /></button>
                             </header>
-                            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar">
-                                <div className="space-y-1">
-                                    <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 ml-1 italic">Désignation</label>
-                                    <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-muted/5 border border-border/50 focus:border-primary rounded-lg px-4 py-3 text-xs font-black text-foreground outline-none uppercase italic" placeholder="EX: IPHONE 15 PRO..." />
+                            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-5 pr-1 custom-scrollbar pb-10">
+                                <div className="space-y-1.5">
+                                    <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 ml-1 italic">Désignation Produit</label>
+                                    <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-muted/5 border border-border/50 focus:border-primary rounded-xl px-5 py-4 text-xs font-black text-foreground outline-none uppercase italic" placeholder="EX: IPHONE 15 PRO..." />
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                     <div className="space-y-1">
+                                <div className="grid grid-cols-2 gap-4">
+                                     <div className="space-y-1.5">
                                         <label className="text-[8px] font-black uppercase tracking-widest text-primary/60 ml-1 italic">P.A (Achat)</label>
-                                        <input required type="number" value={formData.costPrice} onChange={e => setFormData({...formData, costPrice: e.target.value})} className="w-full bg-muted/5 border border-border/50 focus:border-primary rounded-lg px-4 py-3 text-xs font-black text-white outline-none" />
+                                        <input required type="number" value={formData.costPrice} onChange={e => setFormData({...formData, costPrice: e.target.value})} className="w-full bg-muted/5 border border-border/50 focus:border-primary rounded-xl px-5 py-4 text-xs font-black text-white outline-none" placeholder="0" />
                                     </div>
-                                    <div className="space-y-1">
+                                    <div className="space-y-1.5">
                                         <label className="text-[8px] font-black uppercase tracking-widest text-primary ml-1 italic">P.V (Vente)</label>
-                                        <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full bg-muted/5 border border-border/50 focus:border-primary rounded-lg px-4 py-3 text-xs font-black text-white outline-none" />
+                                        <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full bg-muted/5 border border-border/50 focus:border-primary rounded-xl px-5 py-4 text-xs font-black text-white outline-none" placeholder="0" />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
-                                     <div className="space-y-1">
+                                <div className="grid grid-cols-2 gap-4">
+                                     <div className="space-y-1.5">
                                         <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 ml-1 italic">Stock Initial</label>
-                                        <input required type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full bg-muted/5 border border-border/50 rounded-lg px-4 py-3 text-xs font-black text-white outline-none" />
+                                        <input required type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full bg-muted/5 border border-border/50 rounded-xl px-5 py-4 text-xs font-black text-white outline-none" />
                                     </div>
-                                    <div className="space-y-1">
+                                    <div className="space-y-1.5">
                                         <label className="text-[8px] font-black uppercase tracking-widest text-red-500/60 ml-1 italic">Seuil Alerte</label>
-                                        <input required type="number" value={formData.minStock} onChange={e => setFormData({...formData, minStock: e.target.value})} className="w-full bg-red-500/5 border border-red-500/10 rounded-lg px-4 py-3 text-xs font-black text-red-500 outline-none" />
+                                        <input required type="number" value={formData.minStock} onChange={e => setFormData({...formData, minStock: e.target.value})} className="w-full bg-red-500/5 border border-red-500/10 rounded-xl px-5 py-4 text-xs font-black text-red-500 outline-none" />
                                     </div>
                                 </div>
-                                <button type="submit" disabled={loading} className="w-full py-4 bg-primary text-black font-black uppercase tracking-[0.2em] text-[9px] rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3 italic mt-6">
-                                    {loading ? <Loader2 className="animate-spin w-4 h-4" /> : [<Sparkles key="s" className="w-3.5 h-3.5" />, "Déployer le Produit"]}
+                                <button type="submit" disabled={loading} className="w-full py-5 bg-primary text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-xl shadow-primary/10 active:scale-95 transition-all flex items-center justify-center gap-3 italic mt-8">
+                                    {loading ? <Loader2 className="animate-spin w-5 h-5" /> : [<Sparkles key="s" className="w-4 h-4" />, "Enregistrer l'Article"]}
                                 </button>
                             </form>
                         </motion.div>
