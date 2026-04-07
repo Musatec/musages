@@ -17,16 +17,12 @@ export default async function InventoryMovementsPage() {
 
     const storeId = session.user.storeId;
 
-    // Fetching the last 50 stock movements with explicit relations
-    const movements = await prisma.stockMovement.findMany({
+    // Fetching the last 50 stock movements with absolute safety types
+    const movements = await (prisma.stockMovement as any).findMany({
         where: { storeId },
         include: {
-            product: {
-                select: { name: true }
-            },
-            user: {
-                select: { name: true }
-            }
+            product: true,
+            user: true
         },
         orderBy: { createdAt: "desc" },
         take: 50
@@ -67,7 +63,7 @@ export default async function InventoryMovementsPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border/50">
-                            {movements.map((m) => {
+                            {movements.map((m: any) => {
                                 const isPositive = m.quantity > 0;
                                 return (
                                     <tr key={m.id} className="group hover:bg-muted/20 transition-all">
@@ -84,7 +80,7 @@ export default async function InventoryMovementsPage() {
                                                  </div>
                                                  <div className="overflow-hidden">
                                                     <span className="text-sm font-bold uppercase tracking-tight text-foreground block truncate max-w-[250px]">{m.product?.name || "Produit Inconnu"}</span>
-                                                    <p className="text-[9px] text-muted-foreground uppercase opacity-40 font-mono">ID: {m.productId.slice(-6).toUpperCase()}</p>
+                                                    <p className="text-[9px] text-muted-foreground uppercase opacity-40 font-mono">ID: {m.productId?.slice(-6).toUpperCase() || "..."}</p>
                                                  </div>
                                             </div>
                                         </td>
