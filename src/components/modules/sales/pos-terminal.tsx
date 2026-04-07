@@ -245,12 +245,12 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                             </div>
                             <input
                                 type="text"
-                                placeholder="SCANNER CODE BARRE OU RECHERCHER..."
+                                placeholder="SCANNER OU RECHERCHER..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 onKeyDown={handleSearchKeyDown}
                                 autoFocus
-                                className="block w-full pl-18 pr-12 py-7 bg-card border border-border/50 rounded-[2.5rem] text-[11px] font-black uppercase tracking-[0.2em] focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all shadow-2xl placeholder:text-muted-foreground/10 italic"
+                                className="block w-full pl-14 md:pl-18 pr-6 md:pr-12 py-5 md:py-7 bg-card border border-border/50 rounded-[2rem] md:rounded-[2.5rem] text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all shadow-2xl placeholder:text-muted-foreground/10 italic"
                             />
                             <div className="absolute right-8 top-1/2 -translate-y-1/2 flex items-center gap-3">
                                 <div className="p-2.5 rounded-xl bg-muted/20 border border-border/10">
@@ -297,10 +297,10 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                 <div
                                     key={product.id}
                                     onClick={() => addToCart(product)}
-                                    className="grid grid-cols-12 items-center px-8 py-10 hover:bg-primary/[0.02] cursor-pointer group/row transition-all duration-300 active:bg-primary/5 relative border-l-[6px] border-l-transparent hover:border-l-primary"
+                                    className="flex flex-col md:grid md:grid-cols-12 items-center px-6 md:px-8 py-6 md:py-10 hover:bg-primary/[0.02] cursor-pointer group/row transition-all duration-300 active:bg-primary/5 relative border-l-[4px] md:border-l-[6px] border-l-transparent hover:border-l-primary gap-4 md:gap-0"
                                 >
-                                    {/* STATUS INDICATOR */}
-                                    <div className="col-span-1 flex justify-center flex-col items-center gap-2">
+                                    {/* STATUS INDICATOR (Desktop Only) */}
+                                    <div className="hidden md:flex col-span-1 flex justify-center flex-col items-center gap-2">
                                         <div className={cn(
                                             "w-2 h-10 rounded-full transition-all duration-500",
                                             product.stock < 10 ? "bg-amber-500/20 group-hover/row:bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.2)]" : "bg-primary/20 group-hover/row:bg-primary"
@@ -308,61 +308,67 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                         <span className="text-[8px] font-black opacity-10 group-hover/row:opacity-100 transition-opacity uppercase tracking-widest">{product.id.slice(-4).toUpperCase()}</span>
                                     </div>
 
-                                    {/* PRODUCT IDENTIFICATION */}
-                                    <div className="col-span-5 px-6 flex items-center gap-8 overflow-hidden">
-                                        <div className="w-16 h-16 rounded-[1.5rem] bg-muted/40 border border-border/50 overflow-hidden flex items-center justify-center shrink-0 group-hover/row:bg-primary group-hover/row:text-black transition-all shadow-inner relative group/img">
+                                    {/* PRODUCT IDENTIFICATION & PRICE (Mobile Layout) */}
+                                    <div className="md:col-span-5 w-full md:px-6 flex items-center gap-4 md:gap-8 overflow-hidden">
+                                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-[1.5rem] bg-muted/40 border border-border/50 overflow-hidden flex items-center justify-center shrink-0 group-hover/row:bg-primary group-hover/row:text-black transition-all shadow-inner relative">
                                             {product.image ? (
                                                 <SafeImage src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/row:scale-110 transition-transform duration-700" />
                                             ) : (
-                                                <Package className="h-6 w-6 opacity-10" />
+                                                <Package className="h-4 w-4 md:h-6 md:w-6 opacity-10" />
                                             )}
                                         </div>
-                                        <div className="flex flex-col gap-2 min-w-0">
-                                            <h3 className="text-lg font-black text-foreground uppercase tracking-tight italic group-hover/row:text-primary transition-colors truncate">
-                                                {product.name}
-                                            </h3>
+                                        <div className="flex-1 min-w-0 space-y-1">
+                                            <div className="flex items-center justify-between md:block">
+                                                <h3 className="text-sm md:text-lg font-black text-foreground uppercase tracking-tight italic group-hover/row:text-primary transition-colors truncate">
+                                                    {product.name}
+                                                </h3>
+                                                <span className="md:hidden text-lg font-black text-primary italic tracking-tighter font-mono">
+                                                    {product.price.toLocaleString()} F
+                                                </span>
+                                            </div>
                                             <div className="flex items-center gap-3">
                                                 <div className="h-[1px] w-4 bg-muted/20" />
-                                                <p className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-[0.3em] font-mono leading-none">{product.sku || 'N/A'}</p>
+                                                <p className="text-[8px] md:text-[10px] font-black text-muted-foreground/30 uppercase tracking-[0.3em] font-mono">{product.sku || product.id.slice(-6).toUpperCase()}</p>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* CATEGORY PROTOCOL */}
-                                    <div className="col-span-2 text-center">
+                                    {/* CATEGORY (Desktop Only) */}
+                                    <div className="hidden md:block md:col-span-2 text-center">
                                         <span className="text-[10px] font-black text-muted-foreground/20 uppercase tracking-[0.3em] italic px-4 py-2 bg-muted/10 border border-border/10 rounded-xl group-hover/row:border-primary/20 transition-all">
                                             {product.category || 'GENERAL'}
                                         </span>
                                     </div>
 
                                     {/* FLOW / STOCK INDICATOR */}
-                                    <div className="col-span-2 text-center">
-                                        <div className="inline-flex flex-col items-center gap-3">
+                                    <div className="md:col-span-2 w-full flex items-center justify-between md:justify-center px-2 md:px-0">
+                                        <div className="md:hidden text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">Disponibilité</div>
+                                        <div className="inline-flex flex-col items-center md:items-center gap-1.5 md:gap-3">
                                             <span className={cn(
-                                                "text-[12px] font-black italic tracking-tighter font-mono",
+                                                "text-[10px] md:text-[12px] font-black italic tracking-tighter font-mono",
                                                 product.stock < 10 ? "text-amber-500" : "text-emerald-500/60 group-hover/row:text-emerald-500"
                                             )}>
-                                                {product.stock.toString().padStart(3, '0')} UNITS
+                                                {product.stock} UNITS
                                             </span>
-                                            <div className="w-24 h-[3px] bg-muted/20 rounded-full overflow-hidden p-[0.5px]">
+                                            <div className="w-16 md:w-24 h-[2px] md:h-[3px] bg-muted/20 rounded-full overflow-hidden">
                                                 <div 
-                                                    className={cn("h-full transition-all duration-1000", product.stock < 10 ? "bg-amber-500" : "bg-emerald-500")} 
+                                                    className={cn("h-full", product.stock < 10 ? "bg-amber-500" : "bg-emerald-500")} 
                                                     style={{ width: `${Math.min(100, (product.stock / 100) * 100)}%` }} 
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* PRICE VALUATION */}
-                                    <div className="col-span-2 text-right flex items-center justify-end gap-10 pr-8">
+                                    {/* PRICE VALUATION (Desktop Only) */}
+                                    <div className="hidden md:flex md:col-span-2 text-right items-center justify-end gap-10 pr-8">
                                         <div className="text-right">
-                                            <span className="text-2xl font-black text-foreground italic tracking-tighter font-mono leading-none">
+                                            <span className="text-2xl font-black text-foreground italic tracking-tighter font-mono">
                                                 {product.price.toLocaleString()}
                                             </span>
-                                            <p className="text-[9px] font-black opacity-20 uppercase tracking-widest mt-1">VALEUR UNIT. FCFA</p>
+                                            <p className="text-[8px] font-black opacity-20 uppercase tracking-widest mt-1">FCFA</p>
                                         </div>
-                                        <div className="w-12 h-12 rounded-2xl bg-card border border-border/50 flex items-center justify-center group-hover/row:bg-primary group-hover/row:text-black transition-all shadow-xl hover:scale-110 active:scale-95 group-hover/row:border-primary">
-                                            <Plus className="w-5 h-5 pointer-events-none" />
+                                        <div className="w-10 h-10 rounded-xl bg-card border border-border/50 flex items-center justify-center group-hover/row:bg-primary group-hover/row:text-black transition-all">
+                                            <Plus className="w-4 h-4" />
                                         </div>
                                     </div>
                                 </div>

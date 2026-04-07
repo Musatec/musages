@@ -16,7 +16,20 @@ interface DashboardMetric {
     isPositive: boolean;
 }
 
-export function DashboardClient({ metrics, recentSales, metadata }: { metrics: any, recentSales: any[], metadata?: { userName: string, enterpriseName: string } }) {
+export function DashboardClient({ 
+    metrics, 
+    recentSales, 
+    metadata,
+    userRole,
+    userSubscription
+}: { 
+    metrics: any, 
+    recentSales: any[], 
+    metadata?: { userName: string, enterpriseName: string },
+    userRole: string,
+    userSubscription?: { status: string, daysRemaining: number, isTrialOver: boolean }
+}) {
+    const isManager = userRole === "MANAGER";
     
     const cards: DashboardMetric[] = [
         { 
@@ -56,13 +69,60 @@ export function DashboardClient({ metrics, recentSales, metadata }: { metrics: a
     return (
         <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8">
             
+            {userSubscription && !isManager && (userSubscription.isTrialOver || userSubscription.daysRemaining <= 3) && (
+                <div className={cn(
+                    "p-4 rounded-xl border flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2",
+                    userSubscription.isTrialOver ? "bg-red-500/10 border-red-500/20" : "bg-primary/5 border-primary/20"
+                )}>
+                    <div className="flex items-center gap-4">
+                        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", userSubscription.isTrialOver ? "bg-red-500 text-white" : "bg-primary text-black")}>
+                            <Zap className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold uppercase tracking-tight">
+                                {userSubscription.isTrialOver 
+                                    ? "Votre période d'essai a expiré." 
+                                    : `Il vous reste ${userSubscription.daysRemaining} jour(s) d'essai gratuit.`
+                                }
+                            </p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest leading-none mt-1">
+                                {userSubscription.isTrialOver 
+                                    ? "Activez votre licence pour débloquer toutes les fonctionnalités." 
+                                    : "MINDOS Alpha : Transition vers le plan de production d'ici peu."
+                                }
+                            </p>
+                        </div>
+                    </div>
+                    <Link 
+                        href="/settings"
+                        className={cn(
+                            "px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all italic",
+                            userSubscription.isTrialOver ? "bg-red-600 text-white hover:bg-red-700" : "bg-primary text-black hover:bg-primary/90"
+                        )}
+                    >
+                        {userSubscription.isTrialOver ? "Activer l'Empire" : "Gérer mon abonnement"}
+                    </Link>
+                </div>
+            )}
+
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                        {metadata?.enterpriseName || "Tableau de Bord"}
-                    </h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Bienvenue, {metadata?.userName || "Directeur"}. Voici l'aperçu de vos activités de gestion.
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                            {metadata?.enterpriseName || "Tableau de Bord"}
+                        </h1>
+                        {isManager && (
+                            <div className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-full flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                                <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Boutique Opérationnelle</span>
+                            </div>
+                        )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                        {isManager 
+                            ? `Bonjour ${metadata?.userName}, voici la performance en temps réel de votre point de vente.`
+                            : `Bienvenue, ${metadata?.userName}. Supervision globale de votre réseau commercial.`
+                        }
                     </p>
                 </div>
             </header>
@@ -122,7 +182,8 @@ export function DashboardClient({ metrics, recentSales, metadata }: { metrics: a
                             </div>
                         </div>
                     </div>
-                    <div className="overflow-x-auto">
+                    {/* Desktop View */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-muted/10 text-muted-foreground text-xs font-medium border-b border-border/50">
                                 <tr>
@@ -135,24 +196,18 @@ export function DashboardClient({ metrics, recentSales, metadata }: { metrics: a
                             </thead>
                             <tbody className="divide-y divide-border/50">
                                 {recentSales.length === 0 ? (
-                                    <tr><td colSpan={5} className="py-12 text-center text-muted-foreground">Aucune vente enregistrée pour le moment.</td></tr>
+                                    <tr><td colSpan={5} className="py-12 text-center text-muted-foreground">Aucune vente enregistrée.</td></tr>
                                 ) : recentSales.map(sale => (
                                     <tr key={sale.id} className="hover:bg-muted/30 transition-colors">
-                                        <td className="px-5 py-4 font-medium text-foreground font-mono text-xs">
-                                            #{sale.id.slice(-6).toUpperCase()}
-                                        </td>
-                                        <td className="px-5 py-4 text-foreground text-sm">
-                                            {sale.customerName || "Client Comptoir"}
-                                        </td>
-                                        <td className="px-5 py-4 font-semibold text-foreground">
-                                            {new Intl.NumberFormat('fr-FR').format(sale.totalAmount)} <span className="text-xs text-muted-foreground font-normal">FCFA</span>
-                                        </td>
+                                        <td className="px-5 py-4 font-medium text-foreground font-mono text-xs">#{sale.id.slice(-6).toUpperCase()}</td>
+                                        <td className="px-5 py-4 text-foreground text-sm">{sale.customerName || "Client Comptoir"}</td>
+                                        <td className="px-5 py-4 font-semibold text-foreground">{new Intl.NumberFormat('fr-FR').format(sale.totalAmount)} <span className="text-xs text-muted-foreground font-normal">FCFA</span></td>
                                         <td className="px-5 py-4 text-center">
                                             <span className={cn(
                                                 "px-2.5 py-1 rounded-md text-[11px] font-medium border",
                                                 sale.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-orange-500/10 text-orange-600 border-orange-500/20"
                                             )}>
-                                                {sale.status === 'COMPLETED' ? 'Payé' : 'En attente'}
+                                                {sale.status === 'COMPLETED' ? 'Payé' : 'Attente'}
                                             </span>
                                         </td>
                                         <td className="px-5 py-4 text-right text-muted-foreground text-xs">
@@ -163,6 +218,37 @@ export function DashboardClient({ metrics, recentSales, metadata }: { metrics: a
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile View */}
+                    <div className="md:hidden divide-y divide-border/50">
+                        {recentSales.length === 0 ? (
+                            <div className="py-12 text-center text-muted-foreground">Aucune vente enregistrée.</div>
+                        ) : recentSales.map(sale => (
+                            <div key={sale.id} className="p-5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest font-mono">#{sale.id.slice(-6).toUpperCase()}</span>
+                                        <h4 className="text-sm font-bold text-foreground">{sale.customerName || "Client Comptoir"}</h4>
+                                    </div>
+                                    <span className={cn(
+                                        "px-2 py-0.5 rounded text-[8px] font-black uppercase border",
+                                        sale.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-orange-500/10 text-orange-600 border-orange-500/20"
+                                    )}>
+                                        {sale.status === 'COMPLETED' ? 'Payé' : 'Attente'}
+                                    </span>
+                                </div>
+                                <div className="flex items-end justify-between">
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] font-bold text-muted-foreground/40 uppercase">Montant Total</span>
+                                        <span className="text-lg font-black text-foreground italic">{new Intl.NumberFormat('fr-FR').format(sale.totalAmount)} F</span>
+                                    </div>
+                                    <span className="text-[10px] text-muted-foreground tabular-nums opacity-60">
+                                        {new Date(sale.createdAt).toLocaleDateString()} · {new Date(sale.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 

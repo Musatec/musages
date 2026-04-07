@@ -170,25 +170,24 @@ export function InventoryManager({ initialProducts }: { initialProducts: Product
                     ))}
                 </div>
 
-                {/* --- STOCK TABLE --- */}
-                <div className="bg-card border border-border shadow-sm rounded-xl overflow-hidden min-h-[500px] flex flex-col">
+                {/* --- STOCK TABLE (Desktop) --- */}
+                <div className="hidden md:block bg-card border border-border shadow-sm rounded-xl overflow-hidden min-h-[500px] flex flex-col">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm border-separate border-spacing-0">
                             <thead className="bg-muted/10 text-muted-foreground text-xs font-semibold border-b border-border">
                                 <tr>
                                     <th className="px-6 py-4">Article</th>
                                     <th className="px-6 py-4">Catégorie</th>
-                                    <th className="px-6 py-4">P. Achat</th>
-                                    <th className="px-6 py-4">P. Vente</th>
-                                    <th className="px-6 py-4">Stock Réel</th>
-                                    <th className="px-6 py-4 text-center">État</th>
+                                    <th className="px-6 py-4 text-center">Stock</th>
+                                    <th className="px-6 py-4 text-right">État</th>
+                                    <th className="px-6 py-4 text-right">P. Vente</th>
                                     <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/50">
                                 {filteredProducts.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="py-20 text-center text-muted-foreground italic">Aucun produit trouvé dans l'inventaire.</td>
+                                        <td colSpan={6} className="py-20 text-center text-muted-foreground italic">Aucun produit trouvé.</td>
                                     </tr>
                                 ) : filteredProducts.map((p) => {
                                     const isLow = p.stock <= (p.minStock || 5);
@@ -204,56 +203,39 @@ export function InventoryManager({ initialProducts }: { initialProducts: Product
                                                             <Package className="w-4 h-4 text-muted-foreground/30" />
                                                         )}
                                                     </div>
-                                                    <div className="overflow-hidden">
-                                                        <h3 className="font-bold text-foreground text-sm uppercase truncate mb-0.5">{p.name}</h3>
-                                                        <p className="text-[10px] text-muted-foreground font-mono uppercase truncate opacity-60">REF: {p.id.slice(-6).toUpperCase()}</p>
+                                                    <div>
+                                                        <h3 className="font-bold text-foreground text-sm uppercase truncate">{p.name}</h3>
+                                                        <p className="text-[9px] text-muted-foreground font-mono uppercase opacity-60">REF: {p.id.slice(-6).toUpperCase()}</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-xs font-medium text-muted-foreground">
-                                                {p.category || "Standard"}
-                                            </td>
-                                            <td className="px-6 py-4 text-xs font-semibold text-muted-foreground opacity-60">
-                                                {p.costPrice ? formatMoney(p.costPrice) : "—"} F
-                                            </td>
-                                            <td className="px-6 py-4 text-sm font-bold text-foreground">
-                                                {formatMoney(p.price)} F
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col gap-1 w-32">
-                                                    <div className="flex justify-between items-end mb-1">
-                                                        <span className={cn("text-base font-bold leading-none", isLow ? "text-red-500" : "text-foreground")}>{p.stock}</span>
-                                                        <span className="text-[9px] text-muted-foreground uppercase">En stock</span>
-                                                    </div>
-                                                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                                            <td className="px-6 py-4 text-xs font-medium text-muted-foreground">{p.category || "Standard"}</td>
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <span className={cn("text-sm font-bold", isLow ? "text-red-500" : "text-foreground")}>{p.stock}</span>
+                                                    <div className="h-1 w-16 bg-muted rounded-full overflow-hidden">
                                                         <div 
-                                                            className={cn("h-full transition-all duration-700", isOut ? "bg-red-500" : isLow ? "bg-amber-500" : "bg-primary")} 
+                                                            className={cn("h-full", isOut ? "bg-red-500" : isLow ? "bg-amber-500" : "bg-primary")} 
                                                             style={{ width: `${Math.min(100, (p.stock / 50) * 100)}%` }} 
                                                         />
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-center">
+                                            <td className="px-6 py-4 text-right">
                                                 <span className={cn(
-                                                    "px-3 py-1 rounded-md text-[10px] font-bold border block w-fit mx-auto shadow-sm",
+                                                    "px-2 py-0.5 rounded text-[9px] font-black uppercase border",
                                                     isOut ? "bg-red-500/10 text-red-500 border-red-500/20" : 
                                                     isLow ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : 
                                                     "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                                                 )}>
-                                                    {isOut ? "Rupture" : isLow ? "Seuil" : "Certifié"}
+                                                    {isOut ? "Rupture" : isLow ? "Seuil" : "OK"}
                                                 </span>
                                             </td>
+                                            <td className="px-6 py-4 text-right font-bold text-foreground">{formatMoney(p.price)} F</td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => handleQuickStock(p.id, p.name)} className="p-2 bg-background border border-border rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors shadow-sm" title="Réapprovisionner">
-                                                        <Plus className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button onClick={() => handleDelete(p.id, p.name)} className="p-2 bg-background border border-border rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm" title="Supprimer">
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                                <div className="group-hover:hidden text-muted-foreground">
-                                                    <MoreHorizontal className="w-4 h-4 ml-auto" />
+                                                    <button onClick={() => handleQuickStock(p.id, p.name)} className="p-2 bg-background border border-border rounded-lg hover:border-primary/50 transition-all"><Plus className="w-3.5 h-3.5" /></button>
+                                                    <button onClick={() => handleDelete(p.id, p.name)} className="p-2 bg-background border border-border rounded-lg hover:bg-red-500 hover:text-white transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -262,6 +244,51 @@ export function InventoryManager({ initialProducts }: { initialProducts: Product
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                {/* --- MOBILE CARD VIEW --- */}
+                <div className="md:hidden space-y-4">
+                    {filteredProducts.length === 0 ? (
+                         <div className="py-20 text-center text-muted-foreground italic">Aucun produit trouvé.</div>
+                    ) : filteredProducts.map((p) => {
+                        const isLow = p.stock <= (p.minStock || 5);
+                        const isOut = p.stock === 0;
+                        return (
+                            <div key={p.id} className="bg-card border border-border p-4 rounded-2xl space-y-4 shadow-sm">
+                                <div className="flex items-center gap-4">
+                                     <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center shrink-0 overflow-hidden">
+                                        {p.image ? <SafeImage src={p.image} alt={p.name} className="w-full h-full object-cover" /> : <Package className="w-5 h-5 text-muted-foreground/30" />}
+                                    </div>
+                                    <div className="flex-1 overflow-hidden">
+                                        <h3 className="font-bold text-foreground text-sm uppercase truncate">{p.name}</h3>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[10px] font-black text-primary">{formatMoney(p.price)} F</span>
+                                            <span className="text-[8px] text-muted-foreground/50 uppercase font-bold tracking-tighter">REF: {p.id.slice(-6).toUpperCase()}</span>
+                                        </div>
+                                    </div>
+                                    <span className={cn(
+                                        "px-2 py-0.5 rounded text-[8px] font-black uppercase border",
+                                        isOut ? "bg-red-500/10 text-red-500 border-red-500/20" : 
+                                        isLow ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : 
+                                        "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                    )}>
+                                        {isOut ? "Out" : isLow ? "Alert" : "OK"}
+                                    </span>
+                                </div>
+                                
+                                <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                                    <div className="flex flex-col">
+                                        <span className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest">Stock Disponible</span>
+                                        <span className={cn("text-lg font-black", isLow ? "text-red-500" : "text-foreground")}>{p.stock}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => handleQuickStock(p.id, p.name)} className="px-3 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Réappro.</button>
+                                        <button onClick={() => handleDelete(p.id, p.name)} className="p-2.5 bg-red-500/5 text-red-500 border border-red-500/10 rounded-xl active:scale-95 transition-all"><Trash2 className="w-4 h-4" /></button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>

@@ -26,6 +26,7 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
     const { theme } = useTheme();
     const planParam = searchParams?.get("plan")?.toUpperCase();
+    const modeParam = searchParams?.get("mode");
 
     const logoSrc = theme === "light" ? "/logo-black.svg" : "/logo.svg";
     
@@ -37,11 +38,10 @@ export default function LoginPage() {
     }, [planParam]);
 
     const [loading, setLoading] = useState(false);
-    const [isSignUp, setIsSignUp] = useState(planParam ? true : false);
+    const [isSignUp, setIsSignUp] = useState(modeParam === "signup" || (planParam ? true : false));
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
-    const [enterpriseName, setEnterpriseName] = useState("");
     const [error, setError] = useState<string | null>(null);
 
     const handleAuth = async (e: React.FormEvent) => {
@@ -55,16 +55,29 @@ export default function LoginPage() {
                 const result = await register({
                     email,
                     password,
-                    name: fullName,
-                    enterpriseName
+                    name: fullName
                 });
 
                 if (result.error) {
                     throw new Error(result.error);
                 }
 
-                toast.success("Compte créé avec succès ! Connectez-vous.");
-                setIsSignUp(false);
+                toast.success("Empire créé ! Préparation de votre accès... ✨");
+                
+                // Auto-login after register
+                const loginRes = await signIn("credentials", {
+                    email,
+                    password,
+                    redirect: false,
+                });
+
+                if (loginRes?.error) {
+                    setIsSignUp(false); // Fallback to manual login if auto-login fails
+                    return;
+                }
+                
+                // Ensure absolute path with slash
+                router.push("/setup");
             } else {
                 // Login flow
                 const result = await signIn("credentials", {
@@ -164,41 +177,27 @@ export default function LoginPage() {
                     <form onSubmit={handleAuth} className="relative z-10 space-y-4">
                         <AnimatePresence mode="wait">
                             {isSignUp && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: "auto" }}
-                                        exit={{ opacity: 0, height: 0 }}
-                                        className="grid grid-cols-2 gap-4"
-                                    >
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Nom Complet</label>
-                                            <div className="relative group">
-                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    placeholder="Ex: John Doe"
-                                                    className="w-full bg-foreground/5 border border-border rounded-xl pl-10 pr-3 py-3 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-foreground/10 outline-none transition-all font-bold text-sm"
-                                                    value={fullName}
-                                                    onChange={(e) => setFullName(e.target.value)}
-                                                />
-                                            </div>
+                                <motion.div 
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="space-y-1.5 pb-4">
+                                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Nom Complet</label>
+                                        <div className="relative group">
+                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                            <input
+                                                type="text"
+                                                required
+                                                placeholder="Ex: John Doe"
+                                                className="w-full bg-foreground/5 border border-border rounded-xl pl-10 pr-3 py-3 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-foreground/10 outline-none transition-all font-bold text-sm"
+                                                value={fullName}
+                                                onChange={(e) => setFullName(e.target.value)}
+                                            />
                                         </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Entreprise</label>
-                                            <div className="relative group">
-                                                <LayoutDashboard className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    placeholder="Focus Corp"
-                                                    className="w-full bg-foreground/5 border border-border rounded-xl pl-10 pr-3 py-3 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-foreground/10 outline-none transition-all font-bold text-sm"
-                                                    value={enterpriseName}
-                                                    onChange={(e) => setEnterpriseName(e.target.value)}
-                                                />
-                                            </div>
-                                        </div>
-                                    </motion.div>
+                                    </div>
+                                </motion.div>
                             )}
                         </AnimatePresence>
 

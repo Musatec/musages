@@ -9,23 +9,26 @@ export async function getUserStores() {
     if (!session?.user?.id) return { success: false, error: "Non connecté" };
 
     try {
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id }
+        });
+
         const ownedStores = await prisma.store.findMany({
             where: { ownerId: session.user.id, deletedAt: null },
             orderBy: { createdAt: "asc" }
         });
 
-        // Also fetch the store the user is currently assigned to (if they are a seller)
         const currentStore = session.user.storeId 
             ? await prisma.store.findUnique({ where: { id: session.user.storeId } })
             : null;
 
-        return { success: true, ownedStores, currentStore };
+        return { success: true, ownedStores, currentStore, plan: user?.plan || "STARTER" };
     } catch (error: unknown) {
         return { success: false, error: "Erreur lors de la récupération des magasins." };
     }
 }
 
-export async function createStore(name: string, plan: "STARTER" | "GROWTH" | "BUSINESS" = "STARTER") {
+export async function createStore(name: string) {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: "Non autorisé" };
 
@@ -37,32 +40,30 @@ export async function createStore(name: string, plan: "STARTER" | "GROWTH" | "BU
 
         if (!user) return { success: false, error: "Utilisateur non trouvé" };
 
-        // Plan Validation (Updated to match DG + 2 Managers for GROWTH)
-        if (plan === "STARTER" && user.ownedStores.length >= 1) return { success: false, error: "Le Plan STARTER limite à 1 Point de Vente." };
-        if (plan === "GROWTH" && user.ownedStores.length >= 3) return { success: false, error: "Le Plan GROWTH limite à 3 Points de Vente (DG + 2 Succursales)." };
-        if (plan === "BUSINESS" && user.ownedStores.length >= 10) return { success: false, error: "Le Plan BUSINESS limite à 10 Points de Vente." };
+        // Strictly enforce plan limits
+        const existingCount = user.ownedStores.length;
+        if (user.plan === "STARTER" && existingCount >= 1) {
+            return { success: false, error: "Le Plan STARTER (3000 F) est limité à 1 seule boutique." };
+        }
+        if (user.plan === "GROWTH" && existingCount >= 3) {
+            return { success: false, error: "Le Plan GROWTH (5000 F) est limité à 3 boutiques au total." };
+        }
+        if (user.plan === "BUSINESS" && existingCount >= 6) {
+            return { success: false, error: "Le Plan BUSINESS (7000 F) est limité à 6 boutiques réseau." };
+        }
 
         const store = await prisma.store.create({
             data: {
                 name,
-                plan,
+                plan: user.plan as any, // Sync store plan field with owner plan
                 ownerId: user.id
             }
         });
 
-        // If it's the user's first store, assign it to them immediately
-        if (!user.storeId) {
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { storeId: store.id, role: "ADMIN" }
-            });
-        }
-
-        revalidatePath("/settings");
-        revalidatePath("/dashboard");
+        revalidatePath("/admin/stores");
         return { success: true, store };
     } catch (error: unknown) {
-        return { success: false, error: "Erreur lors de la création du point de vente." };
+        return { success: false, error: "Erreur lors de la création de la succursale." };
     }
 }
 

@@ -38,12 +38,18 @@ export async function createStore(data: z.infer<typeof CreateStoreSchema>) {
       },
     });
 
-    // 2. Link user to the store and make them ADMIN
+    // 2. Link user to the store, set their role to ADMIN, and activate 7-day trial
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
         storeId: store.id,
         role: "ADMIN",
+        plan: plan as any,
+        subscriptionStatus: "TRIALING",
+        trialEndsAt,
       },
     });
 

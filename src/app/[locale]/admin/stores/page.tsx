@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 export default function StoreManagerPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState<{ ownedStores: any[], currentStore: any } | null>(null);
+    const [data, setData] = useState<{ ownedStores: any[], currentStore: any, plan: string } | null>(null);
 
     // Form states
     const [newStoreName, setNewStoreName] = useState("");
@@ -34,11 +34,21 @@ export default function StoreManagerPage() {
         setLoading(false);
     };
 
+    const getLimits = (plan: string) => {
+        if (plan === "BUSINESS") return 6;
+        if (plan === "GROWTH") return 3;
+        return 1;
+    };
+
+    const currentLimit = getLimits(data?.plan || "STARTER");
+    const currentCount = data?.ownedStores?.length || 0;
+    const canCreateMore = currentCount < currentLimit;
+
     useEffect(() => { fetchData(); }, []);
 
     const handleCreateStore = async (e: React.FormEvent) => {
         e.preventDefault();
-        const res = await createStore(newStoreName, newStorePlan);
+        const res = await createStore(newStoreName);
         if (res.success) {
             toast.success(`Succursale "${newStoreName}" créée avec succès !`);
             setNewStoreName("");
@@ -94,8 +104,12 @@ export default function StoreManagerPage() {
                         <ShieldCheck className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest opacity-60">Licence Actuelle</p>
-                        <p className="text-xs font-bold uppercase text-foreground">{data?.ownedStores?.[0]?.plan || "Réseau"}</p>
+                        <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-widest opacity-60">
+                            Plan {data?.plan || "STARTER"} ({currentCount}/{currentLimit})
+                        </p>
+                        <p className="text-xs font-bold uppercase text-foreground">
+                            {canCreateMore ? `${currentLimit - currentCount} emplacement(s) libre(s)` : "Réseau à capacité maximale"}
+                        </p>
                     </div>
                 </div>
             </header>
@@ -222,26 +236,27 @@ export default function StoreManagerPage() {
                                 <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 ml-1">Nom de la succursale</label>
                                 <input 
                                     required 
+                                    disabled={!canCreateMore}
                                     value={newStoreName}
                                     onChange={e => setNewStoreName(e.target.value)}
-                                    placeholder="Ex: Succursale Plateau"
-                                    className="w-full bg-muted/20 border border-border rounded-xl px-5 py-3.5 text-sm font-bold uppercase focus:border-primary/50 outline-none"
+                                    placeholder={canCreateMore ? "Ex: Succursale Plateau" : "Limite de plan atteinte"}
+                                    className="w-full bg-muted/20 border border-border rounded-xl px-5 py-3.5 text-sm font-bold uppercase focus:border-primary/50 outline-none disabled:opacity-50"
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 ml-1">Niveau d'Exploitation (Plan)</label>
-                                <select 
-                                    value={newStorePlan} 
-                                    onChange={(e: any) => setNewStorePlan(e.target.value)}
-                                    className="w-full bg-muted/20 border border-border rounded-xl px-5 py-4 text-xs font-bold uppercase outline-none focus:border-primary/50 appearance-none"
-                                >
-                                    <option value="STARTER">Starter Edition (SaaS Solo)</option>
-                                    <option value="GROWTH">Growth Pro (DG + 2 Gérants)</option>
-                                    <option value="BUSINESS">Business Empire (DG + Multi)</option>
-                                </select>
-                            </div>
-                            <button type="submit" className="w-full py-4 bg-primary text-primary-foreground rounded-xl text-sm font-bold uppercase shadow-lg shadow-primary/10 hover:bg-primary/90 active:scale-95 transition-all flex items-center justify-center gap-3">
-                                Déployer la Boutique 
+                            
+                            {!canCreateMore && (
+                                <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl text-center space-y-2 animate-in fade-in slide-in-from-top-2">
+                                    <p className="text-[10px] font-bold text-primary uppercase">Passer au plan supérieur pour plus de succursales</p>
+                                    <button type="button" className="text-[9px] font-black uppercase tracking-widest underline underline-offset-4 hover:opacity-70 transition-opacity">Consulter les tarifs</button>
+                                </div>
+                            )}
+
+                            <button 
+                                type="submit" 
+                                disabled={!canCreateMore}
+                                className="w-full py-4 bg-primary text-primary-foreground rounded-xl text-sm font-bold uppercase shadow-lg shadow-primary/10 hover:bg-primary/90 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                {canCreateMore ? "Déployer la Boutique" : "Capacité Atteinte"}
                                 <ArrowRight className="w-4 h-4" />
                             </button>
                         </form>

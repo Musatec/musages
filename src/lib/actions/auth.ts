@@ -28,33 +28,19 @@ export async function register(data: z.infer<typeof RegisterSchema>) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user and their first store in a transaction
-    await prisma.$transaction(async (tx) => {
-        const newUser = await tx.user.create({
-            data: {
-                email,
-                name,
-                password: hashedPassword,
-                role: "ADMIN",
-            },
-        });
-
-        if (enterpriseName) {
-            const store = await tx.store.create({
-                data: {
-                    name: enterpriseName,
-                    ownerId: newUser.id,
-                    plan: "STARTER"
-                }
-            });
-            
-            // Assign user to their newly created store
-            await tx.user.update({
-                where: { id: newUser.id },
-                data: { storeId: store.id }
-            });
-        }
+    // Create user only
+    await (prisma.user as any).create({
+        data: {
+            email,
+            name,
+            password: hashedPassword,
+            role: "ADMIN",
+            subscriptionStatus: "TRIALING",
+            trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        },
     });
+
+    return { success: true };
 
     return { success: true };
   } catch (error: any) {

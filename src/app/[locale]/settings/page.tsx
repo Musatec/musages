@@ -15,14 +15,19 @@ import {
     Percent, 
     Image as ImageIcon,
     LucideIcon,
-    ChevronRight
+    ChevronRight,
+    CreditCard,
+    Zap,
+    Crown,
+    History
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getSubscriptionData, initiatePayment } from "@/lib/actions/subscription";
 
 export default function StoreSettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [activeTab, setActiveTab] = useState<'general' | 'branding' | 'taxes' | 'security'>('general');
+    const [activeTab, setActiveTab] = useState<'general' | 'branding' | 'taxes' | 'security' | 'subscription'>('subscription');
 
     // Store State
     const [storeData, setStoreData] = useState({
@@ -37,6 +42,15 @@ export default function StoreSettingsPage() {
             email: ""
         }
     });
+
+    const [subData, setSubData] = useState<any>(null);
+
+    const fetchSubscription = useCallback(async () => {
+        const data = await getSubscriptionData();
+        setSubData(data);
+    }, []);
+
+    useEffect(() => { fetchSubscription(); }, [fetchSubscription]);
 
     const fetchStore = useCallback(async () => {
         setLoading(true);
@@ -116,6 +130,7 @@ export default function StoreSettingsPage() {
                     <TabButton id="branding" label="Image de Marque" icon={Palette} />
                     <TabButton id="taxes" label="Fiscalité & Taxes" icon={Percent} />
                     <TabButton id="security" label="Sessions & Sécurité" icon={ShieldCheck} />
+                    <TabButton id="subscription" label="Mon Abonnement" icon={CreditCard} />
                 </div>
 
                 {/* Content Area */}
@@ -241,21 +256,72 @@ export default function StoreSettingsPage() {
                             </div>
                         )}
 
-                        {activeTab === 'security' && (
+                         {activeTab === 'subscription' && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-right-2 duration-300">
-                                 <div className="p-6 bg-muted/20 border border-border rounded-xl space-y-4">
-                                     <div className="flex items-center gap-3 text-emerald-500">
-                                         <ShieldCheck className="w-5 h-5" />
-                                         <h3 className="text-sm font-bold uppercase tracking-wider">Sécurité des Accès</h3>
-                                     </div>
-                                     <p className="text-[11px] text-muted-foreground leading-relaxed font-medium uppercase tracking-tight">
-                                         Toutes les sessions de gestion sont sécurisées par un chiffrement standard. Les logs de connexion sont audités quotidiennement.
-                                     </p>
-                                 </div>
+                                <div className="p-8 bg-primary/10 border border-primary/20 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <Crown className="w-24 h-24" />
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-primary text-black flex items-center justify-center font-black">
+                                                <Zap className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black uppercase tracking-tight italic">Plan {subData?.plan}</h3>
+                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Status: <span className={cn(subData?.subscriptionStatus === 'ACTIVE' ? "text-emerald-500" : "text-primary")}>{subData?.subscriptionStatus}</span></p>
+                                            </div>
+                                        </div>
+                                        {subData?.subscriptionStatus === 'TRIALING' && (
+                                            <div className="bg-white/5 border border-white/5 px-4 py-2 rounded-xl">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-primary italic">Période d'essai active : {subData?.daysRemaining} jour(s) restants</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={async () => {
+                                            const res = await initiatePayment(subData?.plan || "STARTER");
+                                            if (res.success) window.location.href = res.paymentUrl;
+                                        }}
+                                        className="bg-primary text-black px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all w-full md:w-auto italic"
+                                    >
+                                        Payer ma Licence (PayTech)
+                                    </button>
+                                </div>
 
-                                 <button type="button" className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
-                                     Initialiser la Clé de Chiffrement (Action Critique)
-                                 </button>
+                                <div className="space-y-4">
+                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-2">Historique des Transactions</h4>
+                                    <div className="bg-muted/10 border border-border rounded-2xl overflow-hidden">
+                                        {subData?.payments?.length > 0 ? (
+                                            <table className="w-full text-left text-[10px] uppercase font-bold">
+                                                <thead className="bg-muted/20 border-b border-border text-muted-foreground/40 font-black">
+                                                    <tr>
+                                                        <th className="px-6 py-4">Date</th>
+                                                        <th className="px-6 py-4">Référence</th>
+                                                        <th className="px-6 py-4">Montant</th>
+                                                        <th className="px-6 py-4 text-right">Statut</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-border/50">
+                                                    {subData?.payments.map((p: any) => (
+                                                        <tr key={p.id}>
+                                                            <td className="px-6 py-4">{new Date(p.createdAt).toLocaleDateString()}</td>
+                                                            <td className="px-6 py-4 font-mono text-muted-foreground tracking-tighter">{p.id}</td>
+                                                            <td className="px-6 py-4 text-primary italic">{p.amount} F</td>
+                                                            <td className="px-6 py-4 text-right"><span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[8px]">{p.status}</span></td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        ) : (
+                                            <div className="p-12 text-center space-y-2 opacity-30">
+                                                <History className="w-8 h-8 mx-auto" strokeWidth={1} />
+                                                <p className="text-[9px] font-black tracking-widest italic">Aucune transaction enregistrée</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </form>

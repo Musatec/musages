@@ -12,15 +12,19 @@ import { LanguageSwitcher } from "./language-switcher";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
+import { useTheme } from "next-themes";
 
 export function MobileHeader() {
     const { data: session } = useSession();
     const pathname = usePathname();
     const router = useRouter();
     const t = useTranslations("Sidebar");
+    const { theme } = useTheme();
     const [isOpen, setIsOpen] = useState(false);
     const isAdmin = session?.user?.role === "ADMIN";
+
+    const logoSrc = theme === "dark" ? "/logo.svg" : "/logo-black.svg";
 
     // Masquer si pas de boutique
     if (pathname === "/login" || !session?.user?.storeId) return null;
@@ -31,7 +35,7 @@ export function MobileHeader() {
             <div className="md:hidden flex items-center justify-between px-5 py-4 fixed top-0 left-0 right-0 z-[50] bg-background/80 backdrop-blur-xl border-b border-white/5">
                 <Link href="/dashboard" className="flex items-center gap-2 active:scale-95 transition-transform">
                     <div className="relative">
-                        <SafeImage src="/logo.svg?v=6" alt="MINDOS Logo" width={100} height={32} className="h-8 w-auto" priority />
+                        <SafeImage src={logoSrc} alt="MINDOS Logo" width={100} height={32} className="h-8 w-auto" priority />
                         <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_var(--primary)]" />
                     </div>
                 </Link>
@@ -74,7 +78,7 @@ export function MobileHeader() {
                 {/* Header Profile Section */}
                 <div className="relative px-6 pt-10 pb-8 border-b border-white/5">
                     <div className="flex items-center justify-between mb-8">
-                        <SafeImage src="/logo.svg?v=6" alt="MINDOS" width={80} height={20} className="h-5 w-auto" />
+                        <SafeImage src={logoSrc} alt="MINDOS" width={80} height={20} className="h-5 w-auto" />
                         <button
                             onClick={() => setIsOpen(false)}
                             className="p-2 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all active:scale-95"
@@ -197,11 +201,8 @@ export function MobileHeader() {
                     </div>
 
                     <button
-                        onClick={async () => {
-                            await supabase.auth.signOut();
-                            window.location.href = "/";
-                        }}
-                        className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-red-500/5 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all text-red-500/60 font-black tracking-widest uppercase text-[10px] group shadow-inner"
+                        onClick={() => signOut({ callbackUrl: '/' })}
+                        className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-red-500/5 border border-red-500/10 hover:bg-red-500 hover:text-white transition-all text-red-500 font-black tracking-widest uppercase text-[10px] group shadow-inner"
                     >
                         <LogOut className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         <span>Déconnexion Système</span>

@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { DashboardClient } from "@/components/modules/dashboard/dashboard-client";
+import { getSubscriptionData } from "@/lib/actions/subscription";
 
 export default async function DashboardPage({
   params,
@@ -110,11 +111,15 @@ export default async function DashboardPage({
       enterpriseName: store?.name || "Votre Entreprise"
   };
 
+  const userSubscription = await getSubscriptionData();
+
   return (
     <DashboardClient 
       metadata={metadata}
       metrics={stats} 
       recentSales={serializedRecentSales as any} 
+      userRole={session.user.role}
+      userSubscription={userSubscription as any}
     />
   );
 }

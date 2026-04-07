@@ -40,10 +40,10 @@ export default function LandingPage() {
 
             {/* 1. NAVBAR (Flottante) */}
             <nav className={cn(
-                "fixed top-0 w-full z-50 transition-all duration-500 border-b",
+                "fixed top-0 inset-x-0 z-50 transition-all duration-500 border-b",
                 scrolled
                     ? "bg-background/80 backdrop-blur-xl border-border py-4"
-                    : "bg-transparent border-transparent py-6"
+                    : "bg-background/40 backdrop-blur-md border-transparent py-4"
             )}>
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-2 group">
@@ -65,7 +65,7 @@ export default function LandingPage() {
                             Se Connecter
                         </Link>
                         <Link
-                            href="/login"
+                            href="/login?mode=signup"
                             className="text-[11px] font-black uppercase tracking-[0.2em] px-6 py-2.5 bg-primary text-black rounded-full hover:bg-primary/80 transition-all shadow-[0_0_20px_rgba(249,115,22,0.3)] active:scale-95"
                         >
                             Commencer
@@ -123,7 +123,7 @@ export default function LandingPage() {
                             className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4"
                         >
                             <Link
-                                href="/login"
+                                href="/login?mode=signup"
                                 className="group w-full sm:w-auto px-8 py-4 md:px-10 md:py-5 bg-primary text-black rounded-2xl font-black text-base md:text-lg hover:bg-primary/80 transition-all shadow-[0_20px_40px_rgba(249,115,22,0.2)] active:scale-95 flex items-center justify-center gap-3 uppercase"
                             >
                                 Lancer mon Workspace <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -238,7 +238,7 @@ export default function LandingPage() {
                             <span className="text-primary italic">Vitesse Supérieure ?</span>
                         </h2>
                         <Link
-                            href="/login"
+                            href="/login?mode=signup"
                             className="inline-flex w-full sm:w-auto items-center justify-center gap-4 px-8 py-4 md:px-12 md:py-6 bg-primary text-black rounded-2xl font-black text-lg md:text-xl hover:bg-primary/80 transition-all shadow-[0_20px_40px_rgba(249,115,22,0.3)] active:scale-95 uppercase"
                         >
                             Prendre les Commandes <ChevronRight className="w-6 h-6" />
@@ -248,18 +248,26 @@ export default function LandingPage() {
             </main>
 
             {/* 4. FOOTER SIMPLE */}
-            <footer className="py-12 px-6 border-t border-border bg-background">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div className="flex items-center gap-3 grayscale opacity-30 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer mb-6 md:mb-0">
-                        <SafeImage src={logoSrc} alt="MINDOS Logo" width={80} height={20} className="h-5 w-auto" />
-                        <span className="text-[11px] font-black tracking-[0.3em] uppercase">MINDOS</span>
+            <footer className="py-16 px-6 border-t border-border bg-background relative overflow-hidden">
+                <div className="max-w-7xl mx-auto flex flex-col items-center gap-8 relative z-10">
+                    <div className="flex items-center gap-3 grayscale opacity-30 hover:grayscale-0 hover:opacity-100 transition-all duration-500 cursor-pointer">
+                        <SafeImage src={logoSrc} alt="MINDOS Logo" width={100} height={25} className="h-6 w-auto" />
+                        <span className="text-xs font-black tracking-[0.4em] uppercase">MINDOS</span>
                     </div>
 
-                    <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.3em] text-center mb-6 md:mb-0 px-4">
-                        © 2026 MINDOS · TOUS DROITS RÉSERVÉS
+                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.4em] text-center">
+                        MINDOS 2026 · TOUS DROITS RÉSERVÉS
                     </p>
 
+                    <div className="flex items-center gap-6 mt-4 opacity-20">
+                         <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                         <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                         <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+                    </div>
                 </div>
+                
+                {/* Subtle light effect at bottom */}
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
             </footer>
 
             {/* Cinematic Noise Overlay */}

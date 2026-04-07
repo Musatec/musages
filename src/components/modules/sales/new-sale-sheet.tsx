@@ -25,6 +25,8 @@ interface Product {
 
 interface CartItem extends Product {
     quantity: number;
+    isManual?: boolean;
+    customName?: string;
 }
 
 export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
@@ -38,6 +40,30 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
     const [customerPhone, setCustomerPhone] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [currentTime, setCurrentTime] = useState("");
+
+    // Manual item form
+    const [manualName, setManualName] = useState("");
+    const [manualPrice, setManualPrice] = useState("");
+
+    const addManualItem = () => {
+        if (!manualName || !manualPrice) {
+            toast.error("Nom et prix requis");
+            return;
+        }
+        const item: CartItem = {
+            id: "MANUAL_" + Date.now(),
+            name: manualName,
+            price: Number(manualPrice),
+            stock: 0,
+            quantity: 1,
+            isManual: true,
+            customName: manualName
+        };
+        setCart([...cart, item]);
+        setManualName("");
+        setManualPrice("");
+        toast.success("Article manuel ajouté");
+    };
 
     useEffect(() => {
         if (open) {
@@ -94,7 +120,12 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
         setIsSubmitting(true);
         try {
             const res = await processSale({
-                items: cart,
+                items: cart.map(item => ({
+                    id: item.isManual ? "MANUAL" : item.id,
+                    name: item.isManual ? item.customName : undefined,
+                    quantity: item.quantity,
+                    price: item.price
+                })),
                 total,
                 paymentMethod,
                 amountPaid: payingAmount,
@@ -177,6 +208,36 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
                         </div>
                     </div>
 
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-6 h-1 bg-emerald-500 rounded-full" />
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-foreground">Saisie Manuelle</h3>
+                        </div>
+                        <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 flex flex-col xl:flex-row gap-3">
+                            <input 
+                                value={manualName}
+                                onChange={(e) => setManualName(e.target.value)}
+                                placeholder="Nom de l'article..."
+                                className="flex-1 bg-white/5 border border-border/50 rounded-xl px-4 py-3 text-xs font-semibold focus:border-emerald-500/50 outline-none transition-all"
+                            />
+                            <div className="flex gap-2">
+                                <input 
+                                    type="number"
+                                    value={manualPrice}
+                                    onChange={(e) => setManualPrice(e.target.value)}
+                                    placeholder="Prix"
+                                    className="w-24 bg-white/5 border border-border/50 rounded-xl px-4 py-3 text-xs font-semibold focus:border-emerald-500/50 outline-none transition-all"
+                                />
+                                <button 
+                                    onClick={addManualItem}
+                                    className="bg-emerald-500 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all active:scale-95 flex items-center gap-2"
+                                >
+                                    <Plus className="w-4 h-4" /> AJOUTER
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="space-y-8">
                         {Object.entries(groupedProducts).map(([category, products]) => (
                             <div key={category} className="space-y-4">
@@ -237,9 +298,14 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
                                     <p className="text-[10px] font-bold uppercase tracking-[0.4em]">Panier Vide</p>
                                 </div>
                             ) : cart.map(item => (
-                                <div key={item.id} className="flex items-center gap-3 p-3 bg-muted/20 rounded-xl border border-border/50">
+                                <div key={item.id} className={cn(
+                                    "flex items-center gap-3 p-3 rounded-xl border transition-all",
+                                    item.isManual ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/20 border-border/50"
+                                )}>
                                     <div className="flex-1 space-y-0.5">
-                                        <p className="text-[11px] font-bold uppercase tracking-tight text-foreground leading-none">{item.name}</p>
+                                        <p className="text-[11px] font-bold uppercase tracking-tight text-foreground leading-none">
+                                            {item.name} {item.isManual && <span className="text-[8px] opacity-40 italic ml-1">(MANUEL)</span>}
+                                        </p>
                                         <p className="text-[10px] font-bold text-primary leading-none">{item.price.toLocaleString()} F × {item.quantity}</p>
                                     </div>
                                     <div className="flex items-center gap-2">

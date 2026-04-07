@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
 export async function processSale(data: { 
-    items: { id: string, quantity: number, price: number }[], 
+    items: { id: string | null, quantity: number, price: number, name?: string }[], 
     total: number, 
     paymentMethod: string,
     amountPaid?: number,
@@ -34,38 +34,46 @@ export async function processSale(data: {
                     sellerId: userId,
                     status: isUnpaid ? "PARTIAL" : "COMPLETED",
                     items: {
-                        create: data.items.map(item => ({
-                            productId: item.id,
-                            quantity: item.quantity,
-                            price: item.price,
-                        }))
+                        create: data.items.map(item => {
+                            const isManual = !item.id || item.id === "MANUAL";
+                            return {
+                                productId: isManual ? null : item.id,
+                                customName: isManual ? (item.name || "ARTICLE MANUEL") : null,
+                                quantity: item.quantity,
+                                price: item.price,
+                            } as any;
+                        })
                     }
                 }
             });
 
-            // 2. Update Stocks and Create Movements
             for (const item of data.items) {
-                // Update specific stock for this store/product
-                await tx.stock.update({
-                    where: { 
-                        storeId_productId: { 
-                            storeId, 
-                            productId: item.id 
-                        } 
-                    },
-                    data: { quantity: { decrement: item.quantity } }
-                });
+                if (item.id && item.id !== "MANUAL") {
+                    // Update specific stock for this store/product
+                    await tx.stock.update({
+                        where: { 
+                            storeId_productId: { 
+                                storeId, 
+                                productId: item.id 
+                            } 
+                        },
+                        data: { quantity: { decrement: item.quantity } }
+                    });
 
-                // Audit the movement (traçabilité du stock)
-                await tx.stockMovement.create({
-                    data: {
-                        productId: item.id,
-                        storeId,
-                        userId,
-                        quantity: -item.quantity, // Négatif car sortie
-                        reason: `Vente #${sale.id.slice(-6)}`,
-                    }
-                });
+                    // Audit the movement (traçabilité du stock)
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: item.id,
+                            storeId,
+                            userId,
+                            quantity: -item.quantity, // Négatif car sortie
+                            reason: `Vente #${sale.id.slice(-6)}`,
+                        }
+                    });
+                } else {
+                    // Manual Article - No stock to update but we can still log an "item-less" movement or just skip
+                    // Let's skip stock movement for non-inventory items to avoid cluttering the stock ledger
+                }
             }
 
             // 3. Create Capital Transaction (INCOME)
@@ -122,25 +130,27 @@ export async function deleteSale(saleId: string) {
             if (!sale) throw new Error("Vente non trouvée");
 
             for (const item of sale.items) {
-                await tx.stock.update({
-                    where: { 
-                        storeId_productId: { 
-                            storeId: session.user?.storeId as string, 
-                            productId: item.productId 
-                        } 
-                    },
-                    data: { quantity: { increment: item.quantity } }
-                });
+                if (item.productId) {
+                    await tx.stock.update({
+                        where: { 
+                            storeId_productId: { 
+                                storeId: session.user?.storeId as string, 
+                                productId: item.productId 
+                            } 
+                        },
+                        data: { quantity: { increment: item.quantity } }
+                    });
 
-                await tx.stockMovement.create({
-                    data: {
-                        productId: item.productId,
-                        storeId: session.user?.storeId as string,
-                        userId: session.user?.id as string,
-                        quantity: item.quantity, 
-                        reason: `Annulation Vente #${sale.id.slice(-6)}`,
-                    }
-                });
+                    await tx.stockMovement.create({
+                        data: {
+                            productId: item.productId,
+                            storeId: session.user?.storeId as string,
+                            userId: session.user?.id as string,
+                            quantity: item.quantity, 
+                            reason: `Annulation Vente #${sale.id.slice(-6)}`,
+                        }
+                    });
+                }
             }
 
             await tx.sale.delete({

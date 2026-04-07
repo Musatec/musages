@@ -13,6 +13,7 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing, type Locale } from '@/i18n/routing';
 import { SessionProvider } from "next-auth/react";
+import { PwaRegistrar } from "@/components/providers/pwa-registrar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -60,6 +61,12 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "MINDOS",
+    startupImage: [
+      {
+        url: '/icon.svg?v=6',
+        media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)',
+      },
+    ],
   },
   icons: {
     icon: '/icon.svg?v=6',
@@ -68,8 +75,12 @@ export const metadata: Metadata = {
     other: {
       rel: 'mask-icon',
       url: '/icon.svg?v=6',
-      color: 'hsl(var(--primary))',
+      color: '#ea580c',
     },
+  },
+  applicationName: "MINDOS",
+  formatDetection: {
+    telephone: false,
   },
 };
 
@@ -104,6 +115,7 @@ export default async function RootLayout({
               <AuthProvider>
                 <SystemGuardian>
                   <SidebarProvider>
+                    <PwaRegistrar />
                     <AppLayout>
                       {children}
                     </AppLayout>

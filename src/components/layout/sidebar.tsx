@@ -18,6 +18,7 @@ import {
     Server,
     Truck
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -26,7 +27,19 @@ import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 
-const NAV_SECTIONS = [
+interface NavItem {
+    label: string;
+    icon: any;
+    href: string;
+    roles?: string[];
+}
+
+interface NavSection {
+    title: string;
+    items: NavItem[];
+}
+
+const NAV_SECTIONS: NavSection[] = [
     {
         title: "OPÉRATIONS",
         items: [
@@ -48,17 +61,19 @@ const NAV_SECTIONS = [
     {
         title: "DIRECTION",
         items: [
-            { label: "Moniteur d'Audit", icon: Activity, href: "/admin" },
-            { label: "Caisse & Dépenses", icon: TrendingUp, href: "/expenses" },
-            { label: "Rapports & Analytics", icon: TrendingUp, href: "/reports" },
-            { label: "Gestion Équipe", icon: Users, href: "/hr" },
-            { label: "Centrale Réseau", icon: Server, href: "/admin/stores" },
-            { label: "Paramètres Globaux", icon: Settings, href: "/settings" },
+            { label: "Moniteur d'Audit", icon: Activity, href: "/admin", roles: ["ADMIN"] },
+            { label: "Caisse & Dépenses", icon: TrendingUp, href: "/expenses", roles: ["ADMIN", "MANAGER"] },
+            { label: "Rapports & Analytics", icon: TrendingUp, href: "/reports", roles: ["ADMIN"] },
+            { label: "Gestion Équipe", icon: Users, href: "/hr", roles: ["ADMIN", "MANAGER"] },
+            { label: "Centrale Réseau", icon: Server, href: "/admin/stores", roles: ["ADMIN"] },
+            { label: "Paramètres Globaux", icon: Settings, href: "/settings", roles: ["ADMIN"] },
         ]
     }
 ];
 
 export function Sidebar() {
+    const { data: session } = useSession();
+    const userRole = session?.user?.role || "SELLER";
     const pathname = usePathname();
     const { collapsed, setCollapsed } = useSidebar();
     const { theme } = useTheme();
@@ -68,7 +83,7 @@ export function Sidebar() {
     return (
         <aside 
             className={cn(
-                "fixed left-0 top-0 h-screen transition-all duration-500 ease-in-out flex flex-col z-50 sidebar-container bg-background border-r border-border/50",
+                "fixed left-0 top-0 h-screen transition-all duration-500 ease-in-out hidden md:flex flex-col z-50 sidebar-container bg-background border-r border-border/50",
                 collapsed ? "w-20" : "w-64"
             )}
         >
@@ -104,43 +119,58 @@ export function Sidebar() {
 
             {/* Navigation */}
             <nav className="flex-1 px-3 space-y-6 py-6 overflow-y-auto no-scrollbar relative z-10">
-                {NAV_SECTIONS.map((section) => (
-                    <div key={section.title} className="space-y-1">
-                        {!collapsed && (
-                            <p className="px-3 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 mb-3 italic">
-                                {section.title}
-                            </p>
-                        )}
-                        <div className="space-y-0.5">
-                            {section.items.map((item) => {
-                                const isActive = pathname.includes(item.href);
-                                return (
-                                    <Link 
-                                        key={item.href} 
-                                        href={item.href}
-                                        className={cn(
-                                            "flex items-center gap-3 p-2.5 rounded-xl transition-all group relative overflow-hidden",
-                                            isActive 
-                                                ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]" 
-                                                : "opacity-80 hover:opacity-100 hover:bg-white/5"
-                                        )}
-                                    >
-                                        <item.icon className={cn("w-4 h-4 transition-all relative z-10", isActive ? "scale-110" : "group-hover:scale-110")} />
-                                        {!collapsed && (
-                                            <span className={cn(
-                                                "text-[12px] font-bold transition-all whitespace-nowrap relative z-10",
-                                                isActive ? "opacity-100" : "opacity-90 group-hover:opacity-100"
-                                            )}>
-                                                {item.label}
-                                            </span>
-                                        )}
-                                    </Link>
-                                );
-                            })}
+                {NAV_SECTIONS.map((section) => {
+                    // Filter items based on user role
+                    const visibleItems = section.items.filter(item => {
+                        const hasRole = !item.roles || item.roles.includes(userRole);
+                        const isStarter = session?.user?.plan === "STARTER";
+                        
+                        // Hide Centrale Réseau for Starter plans
+                        if (item.label === "Centrale Réseau" && isStarter) return false;
+                        
+                        return hasRole;
+                    });
+
+                    if (visibleItems.length === 0) return null;
+
+                    return (
+                        <div key={section.title} className="space-y-1">
+                            {!collapsed && (
+                                <p className="px-3 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 mb-3 italic">
+                                    {section.title}
+                                </p>
+                            )}
+                            <div className="space-y-0.5">
+                                {visibleItems.map((item) => {
+                                    const isActive = pathname.includes(item.href);
+                                    return (
+                                        <Link 
+                                            key={item.href} 
+                                            href={item.href}
+                                            className={cn(
+                                                "flex items-center gap-3 p-2.5 rounded-xl transition-all group relative overflow-hidden",
+                                                isActive 
+                                                    ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]" 
+                                                    : "opacity-80 hover:opacity-100 hover:bg-white/5"
+                                            )}
+                                        >
+                                            <item.icon className={cn("w-4 h-4 transition-all relative z-10", isActive ? "scale-110" : "group-hover:scale-110")} />
+                                            {!collapsed && (
+                                                <span className={cn(
+                                                    "text-[12px] font-bold transition-all whitespace-nowrap relative z-10",
+                                                    isActive ? "opacity-100" : "opacity-90 group-hover:opacity-100"
+                                                )}>
+                                                    {item.label}
+                                                </span>
+                                            )}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                            {!collapsed && section.title !== "DIRECTION" && <div className="mx-3 mt-4 h-[1px] bg-white/5" />}
                         </div>
-                        {!collapsed && section.title !== "DIRECTION" && <div className="mx-3 mt-4 h-[1px] bg-white/5" />}
-                    </div>
-                ))}
+                    );
+                })}
             </nav>
 
             {/* Footer Actions */}
