@@ -6,6 +6,56 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// --- LOGISTICS & PROCUREMENT ---
+model Supplier {
+  id          String   @id @default(cuid())
+  storeId     String
+  store       Store    @relation(fields: [storeId], references: [id])
+  name        String
+  contactName String?
+  email       String?
+  phone       String?
+  address     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  purchases   Purchase[]
+}
+
+model Purchase {
+  id            String         @id @default(cuid())
+  storeId       String
+  store         Store          @relation(fields: [storeId], references: [id])
+  supplierId    String
+  supplier      Supplier       @relation(fields: [supplierId], references: [id])
+  totalAmount   Float
+  amountPaid    Float          @default(0)
+  status        PurchaseStatus @default(COMPLETED)
+  paymentMethod String         @default("CASH")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  items         PurchaseItem[]
+}
+
+model PurchaseItem {
+  id        String   @id @default(cuid())
+  purchaseId String
+  purchase  Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Float
+}
+
+enum PurchaseStatus {
+  COMPLETED
+  PENDING
+  CANCELLED
+  PARTIAL
+}
+
 // --- ENUMS ---
 enum Role {
   ADMIN
@@ -56,6 +106,11 @@ model Store {
   employees   Employee[]
   auditLogs   AuditLog[]
   stockMovements StockMovement[]
+  suppliers   Supplier[]
+  purchases   Purchase[]
+
+  ownerId     String?
+  owner       User?     @relation("StoreOwner", fields: [ownerId], references: [id])
 }
 
 model User {
@@ -76,6 +131,10 @@ model User {
   sessions      Session[]
   sales         Sale[]
   transactions  Transaction[]
+
+  auditLogs     AuditLog[]
+  stockMovements StockMovement[]
+  ownedStores   Store[]   @relation("StoreOwner")
 }
 
 // Next-Auth Models (Auth.js v5)
@@ -132,6 +191,7 @@ model Product {
   stocks      Stock[]
   saleItems   SaleItem[]
   movements   StockMovement[]
+  purchaseItems PurchaseItem[]
 
   @@unique([storeId, sku])
 }
@@ -157,6 +217,7 @@ model StockMovement {
   quantity  Int      // Can be negative
   reason    String   // (e.g., "Sale", "Reception", "Adjustment")
   userId    String   // Who did it?
+  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 }
 
@@ -228,6 +289,7 @@ model AuditLog {
   storeId   String
   store     Store    @relation(fields: [storeId], references: [id])
   userId    String
+  user      User     @relation(fields: [userId], references: [id])
   action    String   // (e.g., "DELETE_SALE", "UPDATE_STOCK")
   details   Json?
   createdAt DateTime @default(now())

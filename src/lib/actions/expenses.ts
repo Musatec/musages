@@ -87,3 +87,26 @@ export async function createExpense(data: {
         return { error: "Impossible d'enregistrer la dépense." };
     }
 }
+
+/**
+ * Supprime une dépense (Annulation). Doit être utilisé le jour même pour éviter la triche.
+ */
+export async function deleteExpense(expenseId: string) {
+    const session = await auth();
+    if (!session?.user?.id || !session?.user?.storeId) return { error: "Non autorisé" };
+
+    try {
+        await prisma.transaction.delete({
+            where: {
+                id: expenseId,
+                storeId: session.user.storeId
+            }
+        });
+
+        revalidatePath("/expenses");
+        revalidatePath("/capital");
+        return { success: true };
+    } catch (error: unknown) {
+        return { error: "Impossible de supprimer la dépense." };
+    }
+}

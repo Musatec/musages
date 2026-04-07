@@ -160,113 +160,110 @@ export function TeamClient({ employees: initialEmployees, plan, maxAllowed }: Te
                </div>
             )}
 
-            {/* Employee Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredEmployees.map((emp, i) => (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        key={emp.id} 
-                        className="bg-card border border-border/50 rounded-[2.5rem] p-6 hover:border-primary/30 transition-all group relative overflow-hidden"
-                    >
-                        {/* Status Glow */}
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 blur-2xl rounded-full" />
-                        
-                        <div className="flex items-start justify-between relative z-10 mb-6">
-                            <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-border flex items-center justify-center shadow-2xl relative overflow-hidden group-hover:scale-105 transition-transform">
-                               <ShieldCheck className={cn("w-6 h-6", emp.role === 'ADMIN' ? "text-orange-500" : "text-primary")} />
-                               <div className="absolute inset-0 bg-white/[0.03] animate-pulse" />
-                            </div>
-                            <div className="flex flex-col items-end">
-                                <span className={cn(
-                                    "px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border",
-                                    emp.role === 'ADMIN' ? "bg-orange-500/10 text-orange-500 border-orange-500/20" : "bg-primary/10 text-primary border-primary/20 shadow-xl"
-                                )}>
-                                    {emp.role}
-                                </span>
-                                <p className="text-[8px] font-medium text-muted-foreground mt-2 uppercase tracking-tighter">Actif</p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4 relative z-10">
-                            <div>
-                                <h3 className="text-lg font-black tracking-tighter text-white group-hover:text-primary transition-colors">
-                                    {emp.firstName} {emp.lastName}
-                                </h3>
-                                <div className="flex items-center gap-2 text-muted-foreground mt-1">
-                                    <BadgeCheck className="w-3 h-3 text-emerald-500" />
-                                    <span className="text-[9px] font-black uppercase tracking-widest italic opacity-50 px-0.5">Certifié Mindos</span>
-                                </div>
-                            </div>
-
-                            {/* Financial Stats */}
-                            <div className="grid grid-cols-2 gap-3 py-4 border-y border-white/5">
-                                <div className="space-y-1">
-                                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Salaire Mensuel</p>
-                                    <p className="text-sm font-black text-white">{Number(emp.salary || 0).toLocaleString()} <span className="text-[9px] opacity-40">FCFA</span></p>
-                                </div>
-                                <div className="space-y-1 text-right">
-                                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Acomptes (Dette)</p>
-                                    <p className={cn("text-sm font-black", (emp.advances || 0) > 0 ? "text-orange-500" : "text-emerald-500")}>
-                                        -{Number(emp.advances || 0).toLocaleString()} <span className="text-[9px] opacity-40">FCFA</span>
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <button 
-                                onClick={() => setIsAdvancing(emp.id)}
-                                className="w-full py-3 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition-all flex items-center justify-center gap-2"
-                            >
-                                <Banknote className="w-3.5 h-3.5" />
-                                Verser une avance
-                            </button>
-
-                            <div className="space-y-2 pt-2">
-                                <div className="flex items-center gap-3 text-muted-foreground group-hover:text-foreground transition-colors overflow-hidden">
-                                    <Mail className="w-3 h-3" />
-                                    <span className="text-[10px] font-medium truncate">{emp.email}</span>
-                                </div>
-                                {emp.phone && (
-                                    <div className="flex items-center gap-3 text-muted-foreground group-hover:text-foreground transition-colors">
-                                        <Phone className="w-3 h-3" />
-                                        <span className="text-[10px] font-medium">+{emp.phone}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="mt-6 flex items-center justify-between text-muted-foreground border-t border-white/5 pt-4">
-                           <p className="text-[8px] font-black uppercase tracking-widest opacity-30 italic">ID: #{emp.id.slice(-6)}</p>
-                           <div className="flex items-center gap-4">
-                                <button 
-                                    onClick={async () => {
-                                        if(confirm("Réinitialiser les acomptes ?")) {
-                                            const res = await resetEmployeeAdvances(emp.id);
-                                            if(res.success) {
-                                                setEmployees(employees.map(e => e.id === emp.id ? {...e, advances: 0} : e));
-                                                toast.success("Acomptes réinitialisés.");
-                                            }
-                                        }
-                                    }}
-                                    className="text-muted-foreground/40 hover:text-white transition-colors"
-                                    title="Réinitialiser acomptes"
-                                >
-                                    <RotateCcw className="w-4 h-4" />
-                                </button>
-                                <button className="text-red-500/40 hover:text-red-500 transition-colors">
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                           </div>
-                        </div>
-                    </motion.div>
-                ))}
-
-                {filteredEmployees.length === 0 && (
-                    <div className="col-span-full py-20 text-center border-2 border-dashed border-border/30 rounded-[3rem]">
-                         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground italic anima-pulse">Aucun talent détecté dans ce secteur.</p>
+            {/* --- PAYROLL DIRECTORY: HIGH-DENSITY TABLE --- */}
+            <div className="bg-card border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl flex-1 flex flex-col min-h-[500px]">
+                <div className="p-8 border-b border-border/30 bg-muted/5 flex items-center justify-between">
+                    <div>
+                         <h3 className="text-sm font-black text-foreground italic uppercase tracking-widest">Répertoire de Paie Protocol</h3>
+                         <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-[0.2em] mt-1">Analyse des flux salariaux en temps réel</p>
                     </div>
-                )}
+                </div>
+                
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-separate border-spacing-0">
+                        <thead>
+                            <tr className="bg-muted/10 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 border-b border-border">
+                                <th className="px-8 py-5 border-b border-border/50">Talent / Identité</th>
+                                <th className="px-8 py-5 border-b border-border/50">Rôle Stratégique</th>
+                                <th className="px-8 py-5 border-b border-border/50">Ancienneté</th>
+                                <th className="px-8 py-5 border-b border-border/50">Salaire Brut</th>
+                                <th className="px-8 py-5 border-b border-border/50 text-orange-500 italic">Dettes (Acomptes)</th>
+                                <th className="px-8 py-5 border-b border-border/50 text-right">Contrôles RH</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/10">
+                            {filteredEmployees.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="py-32 text-center text-[11px] font-black uppercase tracking-[0.4em] opacity-10 italic">Aucun talent identifié dans le registre.</td>
+                                </tr>
+                            ) : filteredEmployees.map((emp, i) => {
+                                // Simple seniority calculation (Days since createdAt)
+                                const joinDate = new Date(emp.createdAt);
+                                const diffTime = Math.abs(new Date().getTime() - joinDate.getTime());
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                const seniorityText = diffDays > 30 ? `${Math.floor(diffDays/30)} Mois` : `${diffDays} Jours`;
+
+                                return (
+                                    <tr key={emp.id} className="group hover:bg-muted/5 transition-all">
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-xl bg-muted/40 border border-border/50 flex items-center justify-center shrink-0 overflow-hidden shadow-inner group-hover:bg-primary group-hover:text-black transition-all">
+                                                     <ShieldCheck className={cn("w-5 h-5", emp.role === 'ADMIN' ? "text-orange-500" : "text-primary group-hover:text-black")} />
+                                                </div>
+                                                <div className="space-y-0.5">
+                                                    <h3 className="text-xs font-black text-foreground tracking-tight uppercase italic">{emp.firstName} {emp.lastName}</h3>
+                                                    <p className="text-[9px] font-mono text-muted-foreground/30 uppercase tracking-widest">{emp.email}</p>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className={cn(
+                                                "inline-flex px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest italic",
+                                                emp.role === 'ADMIN' ? "bg-orange-500/10 text-orange-500 border-orange-500/20" : "bg-primary/10 text-primary border-primary/20"
+                                            )}>
+                                                {emp.role}
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-xs font-black italic text-muted-foreground uppercase">{seniorityText}</span>
+                                                <div className="h-0.5 w-16 bg-muted/20 rounded-full overflow-hidden">
+                                                     <div className="h-full bg-emerald-500" style={{ width: `${Math.min(100, (diffDays / 365) * 100)}%` }} />
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <span className="text-sm font-black italic text-foreground tracking-tighter">{Number(emp.salary || 0).toLocaleString()} <span className="text-[10px] opacity-20 not-italic">F</span></span>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <div className="flex flex-col">
+                                                <span className={cn("text-sm font-black italic tracking-tighter", (emp.advances || 0) > 0 ? "text-orange-500 underline decoration-orange-500/20" : "text-emerald-500 opacity-30")}>
+                                                    -{Number(emp.advances || 0).toLocaleString()} F
+                                                </span>
+                                                {(emp.advances || 0) > 0 && <span className="text-[8px] font-black text-orange-500/40 uppercase tracking-widest mt-1 italic">Retenue à la source requise</span>}
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-5 text-right">
+                                            <div className="flex items-center justify-end gap-2 translate-x-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                                <button onClick={() => setIsAdvancing(emp.id)} className="p-2.5 bg-background border border-border/50 hover:bg-emerald-500 hover:text-black rounded-xl transition-all shadow-sm" title="Verser Acompte">
+                                                    <Banknote className="w-4 h-4" />
+                                                </button>
+                                                <button 
+                                                    onClick={async () => {
+                                                        if(confirm("Réinitialiser les acomptes ?")) {
+                                                            const res = await resetEmployeeAdvances(emp.id);
+                                                            if(res.success) {
+                                                                setEmployees(employees.map(e => e.id === emp.id ? {...e, advances: 0} : e));
+                                                                toast.success("Acomptes réinitialisés.");
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="p-2.5 bg-background border border-border/50 hover:bg-blue-500 hover:text-white rounded-xl transition-all shadow-sm"
+                                                    title="Sync Acomptes"
+                                                >
+                                                    <RotateCcw className="w-4 h-4" />
+                                                </button>
+                                                <button className="p-2.5 bg-background border border-border/50 hover:bg-red-500 hover:text-white rounded-xl transition-all shadow-sm">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* Add Employee Modal */}

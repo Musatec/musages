@@ -4,33 +4,36 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { 
     Users, Plus, Search, 
-    TrendingUp, Wallet, Banknote, 
-    Clock, Phone, Mail, 
-    CreditCard, ArrowUpRight, ArrowDownRight,
-    Loader2, X, MoreVertical, ShieldCheck, 
-    UserIcon, Trash2, ChevronRight, UserPlus
+    Wallet, Banknote, 
+    Clock, Phone, 
+    ShieldCheck, 
+    UserIcon, Trash2, UserPlus,
+    MoreHorizontal,
+    ArrowUpRight,
+    RefreshCcw,
+    Filter
 } from "lucide-react";
 import { 
     Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
 } from "@/components/ui/sheet";
 import { getEmployees, createEmployee, giveAdvance, payRestSalary } from "@/lib/actions/hr";
+import { HRData, EmployeeFormData } from "@/types/hr";
 import { TopLoader } from "@/components/ui/top-loader";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
 
 export default function HRPage() {
     const [loading, setLoading] = useState(true);
     const [isActionPending, setIsActionPending] = useState(false);
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<HRData | null>(null);
     const [search, setSearch] = useState("");
     const [openAdd, setOpenAdd] = useState(false);
 
-    const [formData, setFormData] = useState({ firstName: "", lastName: "", email: "", phone: "", salary: "" });
+    const [formData, setFormData] = useState<EmployeeFormData>({ firstName: "", lastName: "", email: "", phone: "", salary: "" });
 
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await getEmployees();
+            const res = await getEmployees() as unknown as HRData;
             setData(res);
         } finally {
             setLoading(false);
@@ -47,7 +50,7 @@ export default function HRPage() {
         try {
             const res = await createEmployee({ ...formData, salary: Number(formData.salary) });
             if (res.success) {
-                toast.success("Talent recruté ! ✨");
+                toast.success("Nouveau collaborateur enregistré !");
                 setOpenAdd(false);
                 setFormData({ firstName: "", lastName: "", email: "", phone: "", salary: "" });
                 fetchData();
@@ -56,22 +59,22 @@ export default function HRPage() {
     };
 
     const handleAdvance = async (eId: string, name: string) => {
-        const amount = prompt(`💸 Acompte à verser pour ${name} :`);
+        const amount = prompt(`Montant de l'acompte pour ${name} :`);
         if (!amount || isNaN(Number(amount))) return;
         setIsActionPending(true);
         try {
             const res = await giveAdvance(eId, Number(amount));
-            if (res.success) { toast.success(`Acompte versé ! ✨💸`); fetchData(); }
+            if (res.success) { toast.success(`Acompte enregistré.`); fetchData(); }
             else toast.error(res.error);
         } finally { setIsActionPending(false); }
     };
 
     const handleSalaryPayment = async (eId: string, name: string, net: number) => {
-        if (!confirm(`👤 Finaliser la paie de ${name} ? (${formatMoney(net)} F)`)) return;
+        if (!confirm(`Confirmer le paiement du solde de salaire pour ${name} ? (${formatMoney(net)} F)`)) return;
         setIsActionPending(true);
         try {
             const res = await payRestSalary(eId);
-            if (res.success) { toast.success(`Salaire soldé ! ✨🏁`); fetchData(); }
+            if (res.success) { toast.success(`Salaire soldé.`); fetchData(); }
             else toast.error(res.error);
         } finally { setIsActionPending(false); }
     };
@@ -81,120 +84,182 @@ export default function HRPage() {
     }, [data, search]);
 
     return (
-        <div className="p-6 md:p-8 space-y-8 bg-background text-foreground transition-colors duration-500 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8">
             {loading && <TopLoader />}
 
-            {/* --- COMPACT HEADER --- */}
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border/50 pb-6">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none text-foreground">
-                        Gestion <span className="text-primary">Équipe.</span>
-                    </h1>
-                    <p className="text-[9px] text-muted-foreground/50 font-black tracking-[0.2em] uppercase">HUMAN RESOURCES | {data?.metrics?.count || 0} COLLABORATEURS</p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-3 p-1.5 bg-muted/20 border border-border rounded-xl group focus-within:ring-1 ring-primary/20 transition-all">
-                        <Search className="w-4 h-4 ml-2 text-muted-foreground/30 group-focus-within:text-primary transition-colors" />
-                        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="RECHERCHER..." className="bg-transparent border-none outline-none py-2 px-1 w-40 text-[9px] uppercase font-black tracking-widest placeholder:text-muted-foreground/20" />
+            <div className="max-w-[1600px] mx-auto w-full space-y-8">
+                
+                {/* --- PROFESSIONAL HEADER --- */}
+                <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/50 text-foreground">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Gestion de l'Équipe</h1>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            {data?.metrics?.count || 0} collaborateurs enregistrés dans votre boutique.
+                        </p>
                     </div>
-                    <Sheet open={openAdd} onOpenChange={setOpenAdd}>
-                        <SheetTrigger asChild>
-                            <button className="bg-primary text-white px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-lg italic">
-                                <UserPlus className="w-4 h-4" /> Recruter
-                            </button>
-                        </SheetTrigger>
-                        <SheetContent className="w-[450px] bg-card border-l border-border p-10 flex flex-col shadow-2xl rounded-l-[2.5rem]">
-                            <SheetHeader className="mb-10 text-left">
-                                <SheetTitle className="text-2xl font-black italic tracking-tighter uppercase text-foreground leading-none">Nouvel <span className="text-primary">Talent.</span></SheetTitle>
-                                <p className="text-[9px] font-black text-muted-foreground/50 uppercase tracking-[0.3em] font-sans">MINDOS INTEGRATION PROTOCOL</p>
-                            </SheetHeader>
-                            <form onSubmit={handleCreate} className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                     <input required value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full bg-muted/10 border-transparent rounded-xl px-5 py-4 text-xs font-black shadow-inner" placeholder="PRENOM" />
-                                     <input required value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full bg-muted/10 border-transparent rounded-xl px-5 py-4 text-xs font-black shadow-inner" placeholder="NOM" />
-                                </div>
-                                <input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-muted/10 border-transparent rounded-xl px-5 py-4 text-xs font-black shadow-inner" placeholder="WHATSAPP (+221...)" />
-                                <div className="p-8 bg-muted/5 border border-border rounded-[2rem] space-y-4">
-                                    <label className="text-[9px] font-black uppercase tracking-[0.3em] text-primary text-center block leading-none">Salaire Mensuel Fixe</label>
-                                    <input required type="number" value={formData.salary} onChange={e => setFormData({...formData, salary: e.target.value})} className="w-full bg-background border border-primary/20 rounded-xl py-6 text-3xl font-black text-primary text-center" />
-                                </div>
-                                <button disabled={isActionPending} className="w-full py-6 bg-primary text-white rounded-2xl font-black uppercase tracking-[0.4em] text-[10px] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-4 italic mt-10">
-                                    {isActionPending ? <Loader2 className="animate-spin w-6 h-6" /> : "Intégrer à l'équipe"}
-                                </button>
-                            </form>
-                        </SheetContent>
-                    </Sheet>
-                </div>
-            </header>
 
-            {/* Metrics Compact Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                {[
-                    { label: "Masse Salariale", value: data?.metrics?.totalPayroll, icon: Users, color: "text-primary" },
-                    { label: "Acomptes Versés", value: data?.metrics?.totalAdvances, icon: Wallet, color: "text-amber-500" },
-                    { label: "Solde Restant", value: data?.metrics?.netToPay, icon: ShieldCheck, color: "text-emerald-500" },
-                    { label: "Effectif Total", value: data?.metrics?.count, icon: UserIcon, color: "text-muted-foreground", suffix: " Pers" }
-                ].map((m, i) => (
-                    <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm relative overflow-hidden group">
-                        <div className="flex flex-col gap-2 relative z-10">
-                            <div className={cn("inline-flex items-center gap-2", m.color)}>
-                                <m.icon className="w-4 h-4" />
-                                <p className="text-[8px] font-black uppercase tracking-widest leading-none">{m.label}</p>
+                    <div className="flex items-center gap-3">
+                        <div className="relative group w-full md:w-72">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                            <input 
+                                value={search} 
+                                onChange={(e) => setSearch(e.target.value)} 
+                                placeholder="Rechercher un employé..." 
+                                className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
+                            />
+                        </div>
+                        <Sheet open={openAdd} onOpenChange={setOpenAdd}>
+                            <SheetTrigger asChild>
+                                <button className="bg-primary text-primary-foreground h-10 px-5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-primary/90 active:scale-95 transition-all shadow-md shadow-primary/10">
+                                    <UserPlus className="w-4 h-4" /> Ajouter
+                                </button>
+                            </SheetTrigger>
+                            <SheetContent className="sm:max-w-md bg-card border-l border-border p-8 flex flex-col shadow-2xl">
+                                <SheetHeader className="mb-8 text-left">
+                                    <SheetTitle className="text-2xl font-bold">Inscrire un Personnel</SheetTitle>
+                                    <p className="text-sm text-muted-foreground mt-1">Enregistrez les informations contractuelles du nouveau talent.</p>
+                                </SheetHeader>
+                                <form onSubmit={handleCreate} className="space-y-6 overflow-y-auto pr-2">
+                                    <div className="grid grid-cols-2 gap-4">
+                                         <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-muted-foreground ml-1">Prénom</label>
+                                            <input required value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full bg-muted/30 border-border border rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none" placeholder="Musa" />
+                                         </div>
+                                         <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-muted-foreground ml-1">Nom</label>
+                                            <input required value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full bg-muted/30 border-border border rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none" placeholder="Tec" />
+                                         </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                         <label className="text-xs font-semibold text-muted-foreground ml-1">Téléphone / Contact</label>
+                                         <input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-muted/30 border-border border rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none" placeholder="+221 ..." />
+                                    </div>
+                                    <div className="p-6 bg-primary/5 border border-primary/20 rounded-2xl space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-tight text-primary text-center block">Salaire Mensuel Fixe</label>
+                                        <div className="flex items-center justify-center gap-2">
+                                            <input required type="number" value={formData.salary} onChange={e => setFormData({...formData, salary: e.target.value})} className="w-full bg-transparent border-none py-1 text-4xl font-bold text-primary text-center outline-none" placeholder="0" />
+                                            <span className="text-sm font-bold opacity-40">F</span>
+                                        </div>
+                                    </div>
+                                    <button disabled={isActionPending} className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/10 active:scale-95 transition-all flex items-center justify-center gap-3">
+                                        {isActionPending ? <Loader2 className="animate-spin w-5 h-5" /> : "Valider le recrutement"}
+                                    </button>
+                                </form>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
+                </header>
+
+                {/* --- METRICS GRID --- */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                        { label: "Masse Salariale", value: data?.metrics?.totalPayroll || 0, icon: Users, color: "text-primary", sub: "Budget mensuel" },
+                        { label: "Acomptes (Total)", value: data?.metrics?.totalAdvances || 0, icon: Wallet, color: "text-amber-500", sub: "Dettes employés" },
+                        { label: "Solde à Verser", value: data?.metrics?.netToPay || 0, icon: ShieldCheck, color: "text-emerald-500", sub: "Restant mois en cours" },
+                        { label: "Effectif Total", value: data?.metrics?.count || 0, icon: UserIcon, color: "text-muted-foreground", sub: "Collaborateurs actifs" }
+                    ].map((m, i) => (
+                        <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className={cn("p-2 rounded-lg bg-muted/50 border border-border shadow-sm", m.color)}>
+                                    <m.icon className="w-4 h-4" />
+                                </div>
+                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{m.label}</span>
                             </div>
-                            <h2 className="text-xl font-black text-foreground italic tracking-tight uppercase leading-none">
-                                {typeof m.value === 'number' ? formatMoney(m.value) : m.value}
-                                <span className="text-[10px] opacity-20 ml-1 font-black">{m.suffix || ' F'}</span>
+                            <h2 className="text-2xl font-bold text-foreground">
+                                {typeof m.value === 'number' ? formatMoney(m.value) : m.value} 
+                                <span className="text-xs font-medium ml-1">{typeof m.value === 'number' && i !== 3 ? ' FCFA' : ''}</span>
                             </h2>
+                            <p className="text-[11px] text-muted-foreground mt-1">{m.sub}</p>
                         </div>
+                    ))}
+                </div>
+
+                {/* --- STAFF DIRECTORY TABLE --- */}
+                <div className="bg-card border border-border shadow-sm rounded-xl overflow-hidden min-h-[500px] flex flex-col">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm border-separate border-spacing-0">
+                            <thead className="bg-muted/10 text-muted-foreground text-xs font-semibold border-b border-border">
+                                <tr>
+                                    <th className="px-6 py-4">Collaborateur</th>
+                                    <th className="px-6 py-4">Date Recrutement</th>
+                                    <th className="px-6 py-4">Salaire Base</th>
+                                    <th className="px-6 py-4">Acomptes</th>
+                                    <th className="px-6 py-4">Reste à payer</th>
+                                    <th className="px-6 py-4 text-center">Statut Paie</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border/50">
+                                {filteredEmployees?.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="py-20 text-center text-muted-foreground italic">Aucun membre d'équipe enregistré.</td>
+                                    </tr>
+                                ) : filteredEmployees?.map((employee) => {
+                                    const net = employee.salary - employee.advances;
+                                    const advPercent = Math.min(100, (employee.advances / employee.salary) * 100);
+
+                                    return (
+                                        <tr key={employee.id} className="group hover:bg-muted/20 transition-all">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0 shadow-sm transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                                                        <UserIcon className="w-4 h-4 opacity-40 group-hover:opacity-100" />
+                                                    </div>
+                                                    <div className="overflow-hidden">
+                                                        <h3 className="font-bold text-foreground text-sm uppercase truncate mb-0.5">{employee.firstName} {employee.lastName}</h3>
+                                                        <p className="text-[10px] text-muted-foreground font-mono uppercase truncate opacity-60">{employee.phone || "Non renseigné"}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-xs font-medium text-muted-foreground">
+                                                {new Date(employee.startDate).toLocaleDateString('fr-FR')}
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-bold text-foreground">
+                                                {formatMoney(employee.salary)} F
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-1 w-32">
+                                                    <div className="flex justify-between items-end mb-1">
+                                                        <span className="text-xs font-bold text-amber-600">-{formatMoney(employee.advances)} F</span>
+                                                    </div>
+                                                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                                                        <div className={cn("h-full transition-all duration-700", advPercent > 70 ? "bg-red-500" : "bg-amber-500")} style={{ width: `${advPercent}%` }} />
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={cn("text-sm font-bold", net > 0 ? "text-emerald-600" : "text-muted-foreground italic opacity-40")}>
+                                                    {net > 0 ? formatMoney(net) + " F" : "SOLDÉ"}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={cn(
+                                                    "px-3 py-1 rounded-md text-[10px] font-bold border block w-fit mx-auto shadow-sm",
+                                                    net <= 0 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                                                )}>
+                                                    {net <= 0 ? "PAYÉ" : "EN ATTENTE"}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => handleAdvance(employee.id, employee.firstName)} className="p-2 bg-background border border-border rounded-lg hover:bg-amber-500 hover:text-white transition-colors shadow-sm" title="Verser acompte">
+                                                        <Wallet className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button onClick={() => handleSalaryPayment(employee.id, employee.firstName, net)} disabled={net <= 0} className={cn("p-2 bg-background border border-border rounded-lg transition-colors shadow-sm", net <= 0 ? "opacity-20 cursor-not-allowed" : "hover:bg-primary hover:text-primary-foreground")}>
+                                                        <ArrowUpRight className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                                <div className="group-hover:hidden text-muted-foreground">
+                                                    <MoreHorizontal className="w-4 h-4 ml-auto" />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
                     </div>
-                ))}
-            </div>
-
-            {/* Team Grid Compact */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredEmployees?.map((employee: any) => {
-                    const net = employee.salary - employee.advances;
-                    const advPercent = Math.min(100, (employee.advances / employee.salary) * 100);
-
-                    return (
-                        <div key={employee.id} className="bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/20 transition-all duration-300 group relative overflow-hidden flex flex-col justify-between h-full min-h-[300px]">
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <div className="w-10 h-10 bg-muted/40 rounded-xl flex items-center justify-center border border-border group-hover:bg-primary group-hover:text-white transition-all shadow-inner shrink-0">
-                                        <UserIcon className="w-5 h-5 opacity-30 group-hover:opacity-100 transition-opacity" />
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-[8px] font-black text-primary italic uppercase tracking-widest">Actif ✅</span>
-                                        <p className="text-[7px] text-muted-foreground/30 font-black uppercase tracking-widest mt-1">Ref: {employee.id.slice(-4).toUpperCase()}</p>
-                                    </div>
-                                </div>
-                                <div className="space-y-0.5">
-                                    <h3 className="text-lg font-black text-foreground tracking-tight uppercase italic leading-none">{employee.firstName} <span className="opacity-30">{employee.lastName}</span></h3>
-                                    <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none">{employee.phone || "Pas de contact"}</p>
-                                </div>
-                                {/* Financial Mini Bar */}
-                                <div className="space-y-2 pt-2">
-                                    <div className="flex justify-between items-center text-[7px] font-black uppercase text-muted-foreground/40 italic">
-                                        <span>Acomptes versés</span>
-                                        <span>{formatMoney(employee.advances)} F</span>
-                                    </div>
-                                    <div className="h-1.5 w-full bg-muted/20 rounded-full border border-border overflow-hidden">
-                                        <div className={cn("h-full transition-all duration-1000", advPercent > 50 ? "bg-amber-500" : "bg-emerald-500")} style={{ width: `${advPercent}%` }} />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="pt-4 grid grid-cols-2 gap-3 border-t border-border/40 mt-4">
-                                <button onClick={() => handleAdvance(employee.id, employee.firstName)} className="bg-muted/10 border border-border hover:bg-amber-500 hover:text-white transition-all py-3 px-2 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-sm active:scale-95 flex items-center justify-center gap-2">
-                                    <Wallet className="w-3.5 h-3.5" /> Acompte
-                                </button>
-                                <button onClick={() => handleSalaryPayment(employee.id, employee.firstName, net)} disabled={net <= 0} className={cn("py-3 px-2 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-sm active:scale-95 flex items-center justify-center gap-2 transition-all", net <= 0 ? "bg-muted text-muted-foreground opacity-20" : "bg-primary text-white hover:scale-105")}>
-                                    <ArrowUpRight className="w-4 h-4 stroke-[3]" /> SOLDE
-                                </button>
-                            </div>
-                        </div>
-                    );
-                })}
+                </div>
             </div>
         </div>
     );

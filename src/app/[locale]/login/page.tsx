@@ -19,11 +19,15 @@ import { register } from "@/lib/actions/auth";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import NextImage from "next/image";
+import { useTheme } from "next-themes";
 
 export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { theme } = useTheme();
     const planParam = searchParams?.get("plan")?.toUpperCase();
+
+    const logoSrc = theme === "light" ? "/logo-black.svg" : "/logo.svg";
     
     // Memory: Save plan to cookie if present
     useEffect(() => {
@@ -37,6 +41,7 @@ export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [fullName, setFullName] = useState("");
+    const [enterpriseName, setEnterpriseName] = useState("");
     const [error, setError] = useState<string | null>(null);
 
     const handleAuth = async (e: React.FormEvent) => {
@@ -50,7 +55,8 @@ export default function LoginPage() {
                 const result = await register({
                     email,
                     password,
-                    name: fullName
+                    name: fullName,
+                    enterpriseName
                 });
 
                 if (result.error) {
@@ -84,14 +90,14 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-6 font-sans relative overflow-hidden">
+        <div className="min-h-screen bg-background flex items-center justify-center p-6 font-sans relative overflow-hidden">
             {/* Background Effects */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
                 <div className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-primary/5 blur-[120px] rounded-full" />
             </div>
 
-            <div className="w-full max-w-md relative z-10 space-y-8">
+            <div className="w-full max-w-md relative z-10 space-y-6">
                 {/* Logo & Welcome */}
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
@@ -101,7 +107,7 @@ export default function LoginPage() {
                     <div className="flex justify-center mb-6">
                         <div className="relative w-48 h-12">
                             <NextImage 
-                                src="/logo.svg" 
+                                src={logoSrc} 
                                 alt="Mindos Logo" 
                                 fill
                                 className="object-contain"
@@ -118,15 +124,15 @@ export default function LoginPage() {
                                 className={cn(
                                     "p-6 rounded-[2rem] border-2 mb-8 relative overflow-hidden",
                                     planParam === "BUSINESS" ? "bg-blue-500/10 border-blue-500/30" : 
-                                    planParam === "GROWTH" ? "bg-orange-500/10 border-orange-500/30" :
-                                    "bg-white/5 border-white/10"
+                                    planParam === "GROWTH" ? "bg-primary/10 border-primary/30" :
+                                    "bg-foreground/5 border-border"
                                 )}
                             >
                                 <div className="relative z-10 text-center space-y-1">
                                     <h2 className={cn(
                                         "text-2xl font-black uppercase tracking-tighter italic",
                                         planParam === "BUSINESS" ? "text-blue-500" : 
-                                        planParam === "GROWTH" ? "text-orange-500" : "text-white"
+                                        planParam === "GROWTH" ? "text-primary" : "text-foreground"
                                     )}>
                                         Plan {planParam}.
                                     </h2>
@@ -138,7 +144,7 @@ export default function LoginPage() {
                         )}
                     </AnimatePresence>
 
-                    <h1 className="text-4xl font-black text-white tracking-tighter">
+                    <h1 className="text-4xl font-black text-foreground tracking-tighter">
                         {isSignUp ? "Créez votre accès" : "Bienvenue Mentor"}
                     </h1>
                     <p className="text-muted-foreground text-sm font-medium">
@@ -153,34 +159,50 @@ export default function LoginPage() {
                     className="bg-card border border-border shadow-2xl rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden"
                 >
                     {/* Glassmorphism Effect */}
-                    <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-3xl" />
+                    <div className="absolute inset-0 bg-foreground/[0.02] backdrop-blur-3xl" />
                     
-                    <form onSubmit={handleAuth} className="relative z-10 space-y-6">
+                    <form onSubmit={handleAuth} className="relative z-10 space-y-4">
                         <AnimatePresence mode="wait">
                             {isSignUp && (
-                                <motion.div 
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="space-y-2"
-                                >
-                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Nom Complet</label>
-                                    <div className="relative group">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                                        <input
-                                            type="text"
-                                            required
-                                            placeholder="Ex: Musa Technology"
-                                            className="w-full bg-white/5 border border-border rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-muted-foreground/30 focus:border-primary/50 focus:bg-white/10 outline-none transition-all font-bold text-sm"
-                                            value={fullName}
-                                            onChange={(e) => setFullName(e.target.value)}
-                                        />
-                                    </div>
-                                </motion.div>
+                                    <motion.div 
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="grid grid-cols-2 gap-4"
+                                    >
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Nom Complet</label>
+                                            <div className="relative group">
+                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    placeholder="Ex: John Doe"
+                                                    className="w-full bg-foreground/5 border border-border rounded-xl pl-10 pr-3 py-3 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-foreground/10 outline-none transition-all font-bold text-sm"
+                                                    value={fullName}
+                                                    onChange={(e) => setFullName(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Entreprise</label>
+                                            <div className="relative group">
+                                                <LayoutDashboard className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    placeholder="Focus Corp"
+                                                    className="w-full bg-foreground/5 border border-border rounded-xl pl-10 pr-3 py-3 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-foreground/10 outline-none transition-all font-bold text-sm"
+                                                    value={enterpriseName}
+                                                    onChange={(e) => setEnterpriseName(e.target.value)}
+                                                />
+                                            </div>
+                                        </div>
+                                    </motion.div>
                             )}
                         </AnimatePresence>
 
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Email Professionnel</label>
                             <div className="relative group">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -188,14 +210,14 @@ export default function LoginPage() {
                                     type="email"
                                     required
                                     placeholder="nom@entreprise.com"
-                                    className="w-full bg-white/5 border border-border rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-muted-foreground/30 focus:border-primary/50 focus:bg-white/10 outline-none transition-all font-bold text-sm"
+                                    className="w-full bg-foreground/5 border border-border rounded-xl pl-12 pr-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-foreground/10 outline-none transition-all font-bold text-sm"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Mot de Passe</label>
                             <div className="relative group">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -203,7 +225,7 @@ export default function LoginPage() {
                                     type="password"
                                     required
                                     placeholder="••••••••••••"
-                                    className="w-full bg-white/5 border border-border rounded-2xl pl-12 pr-4 py-4 text-white placeholder:text-muted-foreground/30 focus:border-primary/50 focus:bg-white/10 outline-none transition-all font-bold text-sm"
+                                    className="w-full bg-foreground/5 border border-border rounded-xl pl-12 pr-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:border-primary/50 focus:bg-foreground/10 outline-none transition-all font-bold text-sm"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
@@ -245,9 +267,9 @@ export default function LoginPage() {
                             className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
                         >
                             {isSignUp ? (
-                                <span>Déjà membre ? <b className="text-white underline underline-offset-4">Se connecter</b></span>
+                                <span>Déjà membre ? <b className="text-foreground underline underline-offset-4">Se connecter</b></span>
                             ) : (
-                                <span>Nouveau ici ? <b className="text-white underline underline-offset-4">Créer un compte</b></span>
+                                <span>Nouveau ici ? <b className="text-foreground underline underline-offset-4">Créer un compte</b></span>
                             )}
                         </button>
                     </div>

@@ -21,8 +21,8 @@ type Task = Database['public']['Tables']['tasks']['Row'];
 type Project = Database['public']['Tables']['projects']['Row'];
 
 const COLUMNS = [
-    { id: 'todo', title: 'À faire', color: 'bg-white/5 border-white/10' },
-    { id: 'in_progress', title: 'En cours', color: 'bg-orange-500/10 border-orange-500/20' },
+    { id: 'todo', title: 'À faire', color: 'bg-foreground/5 border-border/50' },
+    { id: 'in_progress', title: 'En cours', color: 'bg-primary/10 border-primary/20' },
     { id: 'done', title: 'Terminé', color: 'bg-emerald-500/10 border-emerald-500/20' }
 ];
 
@@ -217,20 +217,20 @@ export default function ProjectDetailPage() {
             {/* Header */}
             <div className="flex flex-col gap-4">
                 <div className="flex justify-between items-center">
-                    <Link href="/studio" className="flex items-center text-muted-foreground hover:text-white transition-colors w-fit">
+                    <Link href="/studio" className="flex items-center text-muted-foreground hover:text-foreground transition-colors w-fit">
                         <ArrowLeft className="h-4 w-4 mr-2" /> Retour aux Projets
                     </Link>
 
                     {/* Project Settings Trigger */}
                     <Sheet open={isEditOpen} onOpenChange={setIsEditOpen}>
                         <SheetTrigger asChild>
-                            <button className="p-2 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition">
+                            <button className="p-2 hover:bg-foreground/10 rounded-lg text-muted-foreground hover:text-foreground transition">
                                 <Settings className="h-5 w-5" />
                             </button>
                         </SheetTrigger>
-                        <SheetContent className="bg-[#0B101B]/95 border-l border-white/10">
+                        <SheetContent className="bg-[#0B101B]/95 border-l border-border/50">
                             <SheetHeader>
-                                <SheetTitle className="text-white">Modifier le Projet</SheetTitle>
+                                <SheetTitle className="text-foreground">Modifier le Projet</SheetTitle>
                             </SheetHeader>
                             <div className="py-6 space-y-6">
                                 <div className="space-y-2">
@@ -238,7 +238,7 @@ export default function ProjectDetailPage() {
                                     <input
                                         value={editFormData.title}
                                         onChange={e => setEditFormData({ ...editFormData, title: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white"
+                                        className="w-full bg-foreground/5 border border-border/50 rounded-xl px-4 py-2 text-foreground"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -247,14 +247,14 @@ export default function ProjectDetailPage() {
                                         value={editFormData.description}
                                         onChange={e => setEditFormData({ ...editFormData, description: e.target.value })}
                                         rows={4}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white resize-none"
+                                        className="w-full bg-foreground/5 border border-border/50 rounded-xl px-4 py-2 text-foreground resize-none"
                                     />
                                 </div>
-                                <button onClick={handleUpdateProject} className="w-full bg-primary text-black font-bold py-3 rounded-xl hover:bg-orange-400">
+                                <button onClick={handleUpdateProject} className="w-full bg-primary text-black font-bold py-3 rounded-xl hover:bg-primary/80">
                                     Sauvegarder les modifications
                                 </button>
 
-                                <div className="pt-6 border-t border-white/10 mt-6">
+                                <div className="pt-6 border-t border-border/50 mt-6">
                                     <button onClick={handleDeleteProject} className="w-full text-red-400 hover:bg-red-400/10 py-3 rounded-xl flex items-center justify-center gap-2">
                                         <Trash2 className="h-4 w-4" /> Supprimer le projet
                                     </button>
@@ -268,12 +268,12 @@ export default function ProjectDetailPage() {
                     <div className="flex items-start gap-6">
                         {/* Petite vignette image si existe */}
                         {project.image_url && (
-                            <div className="h-24 w-24 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shrink-0 hidden md:block relative">
+                            <div className="h-24 w-24 rounded-2xl overflow-hidden border border-border/50 shadow-2xl shrink-0 hidden md:block relative">
                                 <Image src={project.image_url} alt="Project Cover" fill className="object-cover" />
                             </div>
                         )}
                         <div>
-                            <h1 className="text-3xl md:text-5xl font-bold text-white mb-2">{project.title}</h1>
+                            <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-2">{project.title}</h1>
                             <p className="text-muted-foreground max-w-2xl">{project.description}</p>
                         </div>
                     </div>
@@ -281,7 +281,7 @@ export default function ProjectDetailPage() {
             </div>
 
             {/* Mobile Tab Navigation (Kanban) */}
-            <div className="flex md:hidden items-center gap-1.5 bg-[#1C1C1E] p-1.5 rounded-2xl border border-white/5 mb-2">
+            <div className="flex md:hidden items-center gap-1.5 bg-[#1C1C1E] p-1.5 rounded-2xl border border-border/50 mb-2">
                 {COLUMNS.map(col => (
                     <button
                         key={col.id}
@@ -290,7 +290,7 @@ export default function ProjectDetailPage() {
                             "flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
                             activeTab === col.id
                                 ? "bg-white text-black shadow-lg"
-                                : "text-muted-foreground hover:bg-white/5"
+                                : "text-muted-foreground hover:bg-foreground/5"
                         )}
                     >
                         {col.title}
@@ -314,8 +314,8 @@ export default function ProjectDetailPage() {
                             )}
                         >
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-black text-white uppercase tracking-widest text-xs">{col.title}</h3>
-                                <span className="bg-white/10 text-[9px] font-black px-2.5 py-1 rounded-full text-muted-foreground uppercase tracking-widest">
+                                <h3 className="font-black text-foreground uppercase tracking-widest text-xs">{col.title}</h3>
+                                <span className="bg-foreground/10 text-[9px] font-black px-2.5 py-1 rounded-full text-muted-foreground uppercase tracking-widest">
                                     {tasks.filter(t => t.status === col.id).length} missions
                                 </span>
                             </div>
@@ -323,9 +323,9 @@ export default function ProjectDetailPage() {
                             {/* Zone de Tâches */}
                             <div className="flex-1 space-y-4 overflow-y-auto pr-1 custom-scrollbar">
                                 {tasks.filter(t => t.status === col.id).map(task => (
-                                    <div key={task.id} className="bg-[#0B101B]/40 backdrop-blur-xl border border-white/5 p-5 rounded-2xl group hover:border-primary/50 transition-all shadow-xl">
+                                    <div key={task.id} className="bg-[#0B101B]/40 backdrop-blur-xl border border-border/50 p-5 rounded-2xl group hover:border-primary/50 transition-all shadow-xl">
                                         <div className="flex justify-between items-start mb-3">
-                                            <h4 className="font-bold text-white text-sm leading-tight">{task.title}</h4>
+                                            <h4 className="font-bold text-foreground text-sm leading-tight">{task.title}</h4>
                                             <button
                                                 onClick={() => deleteTask(task.id)}
                                                 className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-400 transition-all"
@@ -335,11 +335,11 @@ export default function ProjectDetailPage() {
                                         </div>
 
                                         {/* Actions rapides de déplacement */}
-                                        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
+                                        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border/50">
                                             {col.id !== 'todo' && (
                                                 <button
                                                     onClick={() => updateTaskStatus(task.id, 'todo')}
-                                                    className="text-[9px] font-black uppercase tracking-widest bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg transition-all text-muted-foreground"
+                                                    className="text-[9px] font-black uppercase tracking-widest bg-foreground/5 hover:bg-foreground/10 px-3 py-1.5 rounded-lg transition-all text-muted-foreground"
                                                 >
                                                     ← À faire
                                                 </button>
@@ -347,7 +347,7 @@ export default function ProjectDetailPage() {
                                             {col.id !== 'in_progress' && (
                                                 <button
                                                     onClick={() => updateTaskStatus(task.id, 'in_progress')}
-                                                    className="text-[9px] font-black uppercase tracking-widest bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 px-3 py-1.5 rounded-lg transition-all"
+                                                    className="text-[9px] font-black uppercase tracking-widest bg-primary/10 hover:bg-primary/20 text-primary/80 px-3 py-1.5 rounded-lg transition-all"
                                                 >
                                                     En cours
                                                 </button>
@@ -370,7 +370,7 @@ export default function ProjectDetailPage() {
                                         <input
                                             type="text"
                                             placeholder={`+ Nouvelle mission dans ${col.title}...`}
-                                            className="w-full bg-black/20 border border-dashed border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-white placeholder:text-muted-foreground/30 focus:border-primary/50 focus:bg-black/40 outline-none transition-all shadow-inner"
+                                            className="w-full bg-black/20 border border-dashed border-border/50 rounded-2xl px-5 py-4 text-xs font-bold text-foreground placeholder:text-muted-foreground/30 focus:border-primary/50 focus:bg-black/40 outline-none transition-all shadow-inner"
                                             value={newTaskTitle}
                                             onChange={(e) => setNewTaskTitle(e.target.value)}
                                         />

@@ -60,38 +60,38 @@ export default function CapitalPage() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-[#050505] text-white p-4 md:p-6 pb-24 font-sans selection:bg-emerald-500/30">
+        <div className="min-h-screen w-full bg-[#050505] text-foreground p-4 md:p-6 pb-24 font-sans selection:bg-emerald-500/30">
             <div className="max-w-4xl mx-auto space-y-6">
 
                 {/* Header Compact */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
-                        <p className="text-orange-500 text-[8px] font-black uppercase tracking-[0.3em] pl-1 mb-1 opacity-50">Finance Engine</p>
+                        <p className="text-primary text-[8px] font-black uppercase tracking-[0.3em] pl-1 mb-1 opacity-50">Finance Engine</p>
                         <h1 className="text-xl md:text-2xl font-black tracking-tight uppercase italic leading-none">
-                            Gestion <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-400 italic">Capital.</span>
+                            Gestion <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary/80 to-red-400 italic">Capital.</span>
                         </h1>
                     </div>
-                    <div className="flex items-center gap-2 bg-[#1C1C1E] border border-white/5 p-0.5 rounded-lg">
+                    <div className="flex items-center gap-2 bg-[#1C1C1E] border border-border/50 p-0.5 rounded-lg">
                         <input
                             type="month"
                             value={filterMonth}
                             onChange={(e) => setFilterMonth(e.target.value)}
-                            className="bg-transparent text-[10px] font-black uppercase tracking-wider text-gray-500 focus:text-white outline-none px-3 py-1.5 cursor-pointer"
+                            className="bg-transparent text-[10px] font-black uppercase tracking-wider text-muted-foreground focus:text-foreground outline-none px-3 py-1.5 cursor-pointer"
                         />
                     </div>
                 </div>
 
                 {/* ZONE A: BILAN COMPACT */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-4 relative overflow-hidden group shadow-xl shadow-orange-900/40 border border-t-white/20">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 blur-[60px] -translate-y-1/2 translate-x-1/2 rounded-full pointer-events-none" />
+                    <div className="bg-gradient-to-br from-primary to-primary rounded-2xl p-4 relative overflow-hidden group shadow-xl shadow-orange-900/40 border border-t-white/20">
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-foreground/10 blur-[60px] -translate-y-1/2 translate-x-1/2 rounded-full pointer-events-none" />
                         <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-[8px] font-black uppercase tracking-[0.2em] text-orange-100/60">Solde Total Alpha</span>
-                                <div className="p-1.5 rounded-lg bg-white/20 backdrop-blur-md text-white border border-white/10"><Wallet className="w-4 h-4" /></div>
+                                <div className="p-1.5 rounded-lg bg-foreground/20 backdrop-blur-md text-foreground border border-border/50"><Wallet className="w-4 h-4" /></div>
                             </div>
                             <div>
-                                <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter italic leading-none">
+                                <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tighter italic leading-none">
                                     {loading ? "..." : formatMoney(balance)}
                                 </h2>
                                 <p className="text-[8px] text-orange-100/40 font-black uppercase tracking-widest mt-1">Disponibilités globales</p>
@@ -106,7 +106,7 @@ export default function CapitalPage() {
                                 <span className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-600">Entrées</span>
                             </div>
                             <div>
-                                <h2 className="text-2xl font-black text-white tracking-tight italic group-hover:text-emerald-400 transition-colors leading-none">
+                                <h2 className="text-2xl font-black text-foreground tracking-tight italic group-hover:text-emerald-400 transition-colors leading-none">
                                     {loading ? "..." : formatMoney(incomeMonth)}
                                 </h2>
                                 <span className="text-[7px] text-emerald-500/40 font-black uppercase tracking-widest">Perf. Mensuelle</span>
@@ -121,7 +121,7 @@ export default function CapitalPage() {
                                 <span className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-600">Sorties</span>
                             </div>
                             <div>
-                                <h2 className="text-2xl font-black text-white tracking-tight italic group-hover:text-red-400 transition-colors leading-none">
+                                <h2 className="text-2xl font-black text-foreground tracking-tight italic group-hover:text-red-400 transition-colors leading-none">
                                     {loading ? "..." : formatMoney(expenseMonth)}
                                 </h2>
                                 <span className="text-[7px] text-red-500/40 font-black uppercase tracking-widest">Charges Alpha</span>
@@ -138,9 +138,9 @@ export default function CapitalPage() {
 
                     <div className="space-y-1.5">
                         {loading ? (
-                            <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>
+                            <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
                         ) : transactions.length === 0 ? (
-                            <div className="py-12 border border-dashed border-white/5 rounded-2xl text-center text-[10px] text-gray-600 font-black uppercase tracking-widest italic">
+                            <div className="py-12 border border-dashed border-border/50 rounded-2xl text-center text-[10px] text-gray-600 font-black uppercase tracking-widest italic">
                                 Registry Empty.
                             </div>
                         ) : (
@@ -148,14 +148,14 @@ export default function CapitalPage() {
                                 <div
                                     key={tx.id}
                                     onClick={() => handleEditTransaction(tx)}
-                                    className="group relative bg-[#121214] hover:bg-[#18181B] border border-white/5 rounded-xl p-3 transition-all cursor-pointer overflow-hidden"
+                                    className="group relative bg-[#121214] hover:bg-[#18181B] border border-border/50 rounded-xl p-3 transition-all cursor-pointer overflow-hidden"
                                 >
                                     <div className="flex items-center gap-3 pl-2">
                                         <div className={cn(
                                             "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border",
                                             tx.type === 'INCOME'
-                                                ? "bg-zinc-900 border-emerald-500/10 text-emerald-500"
-                                                : "bg-zinc-900 border-red-500/10 text-red-500"
+                                                ? "bg-card border-emerald-500/10 text-emerald-500"
+                                                : "bg-card border-red-500/10 text-red-500"
                                         )}>
                                             {tx.type === 'INCOME' ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                                         </div>
@@ -169,7 +169,7 @@ export default function CapitalPage() {
                                                     {new Date(tx.createdAt).toLocaleDateString()}
                                                 </span>
                                             </div>
-                                            <p className="font-black text-white text-[11px] uppercase truncate group-hover:text-orange-400 transition-colors italic leading-none">{tx.description}</p>
+                                            <p className="font-black text-foreground text-[11px] uppercase truncate group-hover:text-primary/80 transition-colors italic leading-none">{tx.description}</p>
                                         </div>
 
                                         <div className={cn(
@@ -188,7 +188,7 @@ export default function CapitalPage() {
                 <div className="hidden md:block fixed bottom-6 right-6">
                     <button
                         onClick={handleNewTransaction}
-                        className="h-12 px-5 rounded-xl bg-orange-600 text-white font-black uppercase tracking-widest shadow-2xl hover:bg-orange-500 transition-all flex items-center gap-2 hover:scale-105 active:scale-95 text-[10px] italic border border-white/10"
+                        className="h-12 px-5 rounded-xl bg-primary text-foreground font-black uppercase tracking-widest shadow-2xl hover:bg-primary transition-all flex items-center gap-2 hover:scale-105 active:scale-95 text-[10px] italic border border-border/50"
                     >
                         <Plus className="w-4 h-4 stroke-[3]" />
                         Nouvelle Entrée

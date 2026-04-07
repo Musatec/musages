@@ -119,7 +119,7 @@ export default function SocialPage() {
                 </div>
 
                 {/* Custom Tabs Navigation */}
-                <div className="grid grid-cols-3 gap-1 bg-zinc-900/50 p-1 rounded-xl border border-border/50 backdrop-blur-xl">
+                <div className="grid grid-cols-3 gap-1 bg-card/50 p-1 rounded-xl border border-border/50 backdrop-blur-xl">
                     {[
                         { id: "accounts", label: "COMPTES", icon: Users },
                         { id: "planner", label: "PLANNING", icon: Layout },
@@ -131,11 +131,11 @@ export default function SocialPage() {
                             className={cn(
                                 "flex flex-col xs:flex-row items-center justify-center gap-1.5 py-2 md:py-3 rounded-lg text-[8px] md:text-[9px] font-black uppercase tracking-tighter xs:tracking-widest transition-all",
                                 activeTab === tab.id
-                                    ? "bg-orange-600 text-white shadow-lg shadow-orange-900/20"
-                                    : "text-zinc-500 hover:text-zinc-300"
+                                    ? "bg-primary text-foreground shadow-lg shadow-orange-900/20"
+                                    : "text-muted-foreground hover:text-zinc-300"
                             )}
                         >
-                            <tab.icon className={cn("w-3 h-3 md:w-3.5 md:h-3.5", activeTab === tab.id ? "text-white" : "text-zinc-600")} />
+                            <tab.icon className={cn("w-3 h-3 md:w-3.5 md:h-3.5", activeTab === tab.id ? "text-foreground" : "text-muted-foreground")} />
                             <span className="truncate">{tab.label}</span>
                         </button>
                     ))}

@@ -70,7 +70,7 @@ export default function BookPreviewPage() {
                     <span className="font-sans text-sm font-medium">Retour à l&apos;éditeur</span>
                 </Link>
                 <div className="flex gap-4">
-                    <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-sans text-sm">
+                    <button onClick={handlePrint} className="flex items-center gap-2 px-4 py-2 bg-black text-foreground rounded-lg hover:bg-gray-800 transition-colors font-sans text-sm">
                         <Printer className="w-4 h-4" />
                         Imprimer / PDF
                     </button>
@@ -91,7 +91,7 @@ export default function BookPreviewPage() {
                     <p className="text-xl text-gray-600 mb-12">Un roman écrit avec MINDOS</p>
 
                     {book.summary && (
-                        <div className="max-w-lg mx-auto text-gray-500 italic leading-relaxed">
+                        <div className="max-w-lg mx-auto text-muted-foreground italic leading-relaxed">
                             {book.summary}
                         </div>
                     )}
@@ -102,13 +102,13 @@ export default function BookPreviewPage() {
                     {chapters.map((chapter, idx) => (
                         <article key={chapter.id} className="print:break-before-page pt-12">
                             <div className="text-center mb-12">
-                                <span className="text-sm uppercase tracking-widest text-gray-400 mb-2 block font-sans">Chapitre {idx + 1}</span>
+                                <span className="text-sm uppercase tracking-widest text-muted-foreground mb-2 block font-sans">Chapitre {idx + 1}</span>
                                 <h2 className="text-3xl font-bold">{chapter.title}</h2>
                             </div>
 
                             <div
                                 className="prose prose-lg prose-gray max-w-none text-justify leading-loose"
-                                dangerouslySetInnerHTML={{ __html: chapter.content || "<p className='text-gray-400 italic text-center'>[Chapitre vide]</p>" }}
+                                dangerouslySetInnerHTML={{ __html: chapter.content || "<p className='text-muted-foreground italic text-center'>[Chapitre vide]</p>" }}
                             />
 
                             <div className="flex justify-center mt-16 mb-16">
@@ -118,12 +118,12 @@ export default function BookPreviewPage() {
                     ))}
 
                     {chapters.length === 0 && (
-                        <p className="text-center text-gray-400 italic">Ce livre ne contient encore aucun chapitre.</p>
+                        <p className="text-center text-muted-foreground italic">Ce livre ne contient encore aucun chapitre.</p>
                     )}
                 </div>
 
                 {/* End Page */}
-                <div className="mt-32 text-center text-gray-400 text-sm print:break-before-page py-32">
+                <div className="mt-32 text-center text-muted-foreground text-sm print:break-before-page py-32">
                     <p>Fin du manuscrit</p>
                     <p className="mt-2">Généré par MINDOS Studio</p>
                 </div>

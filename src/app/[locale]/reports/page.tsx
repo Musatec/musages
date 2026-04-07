@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { getFinancialReport } from "@/lib/actions/reports";
+import { getFinancialReport, FinancialReport } from "@/lib/actions/reports";
 import { ReportsClient } from "@/components/modules/reports/reports-client";
 
 export default async function ReportsPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -25,7 +25,7 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
 
     return (
         <div className="flex-1 overflow-hidden bg-background">
-            <ReportsClient initialData={reportData as any} />
+            <ReportsClient initialData={reportData as FinancialReport} />
         </div>
     );
 }

@@ -10,54 +10,84 @@ import {
     Users, 
     ChevronLeft, 
     Settings,
+    Activity,
     LogOut,
     PlusCircle,
     FileText,
-    CreditCard
+    CreditCard,
+    Server,
+    Truck
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { motion } from "framer-motion";
+import { useTheme } from "next-themes";
 
-const NAV_ITEMS = [
-    { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-    { label: "Journal Ventes", icon: ArrowLeftRight, href: "/sales/journal" },
-    { label: "Studio Facture", icon: FileText, href: "/sales/invoices" },
-    { label: "Suivi des Dettes", icon: CreditCard, href: "/sales/debts", highlight: true },
-    { label: "Inventaire", icon: Package, href: "/inventory" },
-    { label: "Dépenses", icon: TrendingUp, href: "/expenses" },
-    { label: "Gestion Équipe", icon: Users, href: "/hr" },
+const NAV_SECTIONS = [
+    {
+        title: "OPÉRATIONS",
+        items: [
+            { label: "Tableau de Bord", icon: LayoutDashboard, href: "/dashboard" },
+            { label: "Journal des Ventes", icon: ArrowLeftRight, href: "/sales/journal" },
+            { label: "Factures & Devis", icon: FileText, href: "/sales/invoices" },
+            { label: "Suivi des Dettes", icon: CreditCard, href: "/sales/debts" },
+        ]
+    },
+    {
+        title: "LOGISTIQUE",
+        items: [
+            { label: "Inventaire Global", icon: Package, href: "/inventory" },
+            { label: "Nouvel Arrivage", icon: ShoppingCart, href: "/logistics/purchases" },
+            { label: "Mouvements & Audit", icon: PlusCircle, href: "/inventory/movements" },
+            { label: "Gestion Fournisseurs", icon: Truck, href: "/logistics/suppliers" },
+        ]
+    },
+    {
+        title: "DIRECTION",
+        items: [
+            { label: "Moniteur d'Audit", icon: Activity, href: "/admin" },
+            { label: "Caisse & Dépenses", icon: TrendingUp, href: "/expenses" },
+            { label: "Rapports & Analytics", icon: TrendingUp, href: "/reports" },
+            { label: "Gestion Équipe", icon: Users, href: "/hr" },
+            { label: "Centrale Réseau", icon: Server, href: "/admin/stores" },
+            { label: "Paramètres Globaux", icon: Settings, href: "/settings" },
+        ]
+    }
 ];
 
 export function Sidebar() {
     const pathname = usePathname();
     const { collapsed, setCollapsed } = useSidebar();
+    const { theme } = useTheme();
+
+    const logoSrc = theme === "dark" ? "/logo-black.svg" : "/logo.svg";
 
     return (
         <aside 
             className={cn(
-                "fixed left-0 top-0 h-screen transition-all duration-500 ease-in-out flex flex-col z-50 bg-background border-r border-border shadow-sm",
+                "fixed left-0 top-0 h-screen transition-all duration-500 ease-in-out flex flex-col z-50 sidebar-container bg-background border-r border-border/50",
                 collapsed ? "w-20" : "w-64"
             )}
         >
+            {/* Mesh Texture Overlay */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '12px 12px' }} />
+            
             {/* Logo Section */}
-            <div className="p-4 flex items-center justify-between overflow-hidden">
+            <div className="p-4 flex items-center justify-between overflow-hidden relative z-10 border-b border-white/5">
                 <Link href="/dashboard" className="flex items-center">
                     <div className={cn("transition-all duration-500 flex items-center gap-3", collapsed ? "w-10 overflow-hidden" : "w-40")}>
                         <div className={cn(
-                            "relative transition-all duration-500",
-                            collapsed ? "w-10 h-10 min-w-10" : "w-40 h-10 min-w-40"
+                            "relative transition-all duration-300",
+                            collapsed ? "w-10 h-10" : "w-28 h-8"
                         )}>
                             <Image 
-                                src="/logo.svg" 
+                                src={collapsed ? "/icon.svg" : logoSrc} 
                                 alt="Mindos Logo" 
                                 fill
-                                className={cn(
-                                    "object-contain transition-all duration-500",
-                                    collapsed ? "scale-[2.5] translate-x-[-12px]" : "scale-100"
-                                )} 
+                                className="object-contain transition-all duration-300" 
                                 priority
                             />
                         </div>
@@ -65,64 +95,73 @@ export function Sidebar() {
                 </Link>
                 {/* Collapse Control */}
                 <button 
-                  onClick={() => setCollapsed(!collapsed)}
-                  className="p-1.5 bg-muted/10 border border-border/30 rounded-lg hover:bg-primary hover:text-black transition-all shadow-sm active:scale-90"
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-primary hover:text-white transition-all shadow-sm active:scale-90"
                 >
-                    <ChevronLeft className={cn("w-3.5 h-3.5 transition-transform duration-500 text-muted-foreground", collapsed ? "rotate-180" : "rotate-0")} />
+                    <ChevronLeft className={cn("w-3.5 h-3.5 transition-transform duration-500 text-muted-foreground hover:text-white", collapsed ? "rotate-180" : "rotate-0")} />
                 </button>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-4 space-y-1.5 py-4 overflow-y-auto no-scrollbar">
-                {NAV_ITEMS.map((item) => {
-                    const isActive = pathname.includes(item.href);
-                    return (
-                        <Link 
-                            key={item.href} 
-                            href={item.href}
-                            className={cn(
-                                "flex items-center gap-4 p-3.5 rounded-2xl transition-all group relative overflow-hidden",
-                                isActive 
-                                    ? "bg-primary text-black shadow-lg shadow-primary/20 translate-x-1" 
-                                    : item.highlight 
-                                        ? "bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
-                                        : "text-muted-foreground hover:bg-muted/40 hover:text-foreground hover:translate-x-1"
-                            )}
-                        >
-                            <item.icon className={cn("w-5 h-5 transition-all", isActive ? "scale-110" : "group-hover:scale-110")} />
-                            {!collapsed && (
-                                <span className={cn(
-                                    "text-[9px] font-black uppercase tracking-[0.2em] transition-all whitespace-nowrap",
-                                    isActive ? "opacity-100 italic" : "opacity-60"
-                                )}>
-                                    {item.label}
-                                </span>
-                            )}
-                        </Link>
-                    );
-                })}
+            <nav className="flex-1 px-3 space-y-6 py-6 overflow-y-auto no-scrollbar relative z-10">
+                {NAV_SECTIONS.map((section) => (
+                    <div key={section.title} className="space-y-1">
+                        {!collapsed && (
+                            <p className="px-3 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 mb-3 italic">
+                                {section.title}
+                            </p>
+                        )}
+                        <div className="space-y-0.5">
+                            {section.items.map((item) => {
+                                const isActive = pathname.includes(item.href);
+                                return (
+                                    <Link 
+                                        key={item.href} 
+                                        href={item.href}
+                                        className={cn(
+                                            "flex items-center gap-3 p-2.5 rounded-xl transition-all group relative overflow-hidden",
+                                            isActive 
+                                                ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]" 
+                                                : "opacity-80 hover:opacity-100 hover:bg-white/5"
+                                        )}
+                                    >
+                                        <item.icon className={cn("w-4 h-4 transition-all relative z-10", isActive ? "scale-110" : "group-hover:scale-110")} />
+                                        {!collapsed && (
+                                            <span className={cn(
+                                                "text-[12px] font-bold transition-all whitespace-nowrap relative z-10",
+                                                isActive ? "opacity-100" : "opacity-90 group-hover:opacity-100"
+                                            )}>
+                                                {item.label}
+                                            </span>
+                                        )}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                        {!collapsed && section.title !== "DIRECTION" && <div className="mx-3 mt-4 h-[1px] bg-white/5" />}
+                    </div>
+                ))}
             </nav>
 
             {/* Footer Actions */}
-            <div className="p-4 border-t border-border/50 space-y-4">
+            <div className="p-4 border-t border-border/20 space-y-4 relative z-10">
                 <div className="flex items-center justify-center">
-                    <ThemeToggle />
+                    <ThemeToggle collapsed={collapsed} />
                 </div>
 
                 <button 
                     onClick={() => window.location.href = '/login'}
                     className={cn(
-                        "w-full flex items-center gap-4 p-3 rounded-xl text-red-500/40 hover:text-red-500 hover:bg-red-500/10 transition-all group border border-transparent hover:border-red-500/20 active:scale-95",
+                        "w-full flex items-center gap-4 p-3 rounded-xl hover:bg-red-500/10 transition-all group active:scale-95 border border-transparent hover:border-red-500/10",
                         collapsed && "justify-center px-0"
                     )}
                 >
-                    <div className="w-8 h-8 rounded-lg bg-red-500/5 flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-all shadow-sm">
-                        <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+                    <div className="w-9 h-9 rounded-xl bg-red-500/10 flex items-center justify-center group-hover:bg-red-500 transition-all shadow-sm">
+                        <LogOut className="w-5 h-5 transition-transform group-hover:-translate-x-0.5 text-red-500 group-hover:text-white" />
                     </div>
                     {!collapsed && (
                         <div className="text-left">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] block leading-none">Déconnexion</span>
-                            <span className="text-[7px] font-bold text-red-500/30 uppercase tracking-widest mt-0.5 group-hover:text-red-500/50 transition-colors">Terminer Session</span>
+                            <span className="text-[14px] font-bold opacity-80 group-hover:opacity-100 group-hover:text-red-500 transition-all">Déconnexion</span>
                         </div>
                     )}
                 </button>

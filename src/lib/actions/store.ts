@@ -9,6 +9,7 @@ const CreateStoreSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
   address: z.string().optional(),
   plan: z.enum(["STARTER", "GROWTH", "BUSINESS"]),
+  config: z.record(z.string(), z.any()).optional(),
 });
 
 export async function createStore(data: z.infer<typeof CreateStoreSchema>) {
@@ -25,14 +26,15 @@ export async function createStore(data: z.infer<typeof CreateStoreSchema>) {
   }
 
   try {
-    const { name, address, plan } = validatedFields.data;
+    const { name, address, plan, config } = validatedFields.data;
     
-    // 1. Create the store with subscription plan
+    // 1. Create the store with subscription plan and branding config
     const store = await prisma.store.create({
       data: {
         name,
         address,
         plan,
+        config: config || {},
       },
     });
 
@@ -71,18 +73,34 @@ export async function createStore(data: z.infer<typeof CreateStoreSchema>) {
 
 export async function getStore() {
   const session = await auth();
-
-  if (!session?.user?.storeId) {
-    return null;
-  }
+  if (!session?.user?.storeId) return null;
 
   try {
       return await prisma.store.findUnique({
         where: { id: session.user.storeId },
       });
-  } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Erreur inconnue";
-      console.error("[STORE] getStore Error:", message);
+  } catch (error) {
       return null;
+  }
+}
+
+export async function updateStore(data: { name: string; address?: string; config?: any }) {
+  const session = await auth();
+  if (!session?.user?.storeId) return { success: false, error: "Non autorisé" };
+
+  try {
+      await prisma.store.update({
+        where: { id: session.user.storeId },
+        data: {
+          name: data.name,
+          address: data.address,
+          config: data.config
+        }
+      });
+      revalidatePath("/settings");
+      revalidatePath("/dashboard");
+      return { success: true };
+  } catch (error) {
+      return { success: false, error: "Erreur de mise à jour" };
   }
 }

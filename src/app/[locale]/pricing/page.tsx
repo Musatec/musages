@@ -13,7 +13,7 @@ export default function PricingPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white selection:bg-primary/30 relative overflow-hidden flex flex-col items-center justify-center p-4 sm:p-8">
+        <div className="min-h-screen bg-[#050505] text-foreground selection:bg-primary/30 relative overflow-hidden flex flex-col items-center justify-center p-4 sm:p-8">
 
             <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
             <div className="relative z-10 w-full max-w-4xl space-y-12">
@@ -24,7 +24,7 @@ export default function PricingPage() {
                         <Zap className="w-2.5 h-2.5" />
                         Accès Beta Ouvert
                     </div>
-                    <h1 className="text-3xl md:text-5xl font-black tracking-tighter italic uppercase text-white leading-tight">
+                    <h1 className="text-3xl md:text-5xl font-black tracking-tighter italic uppercase text-foreground leading-tight">
                         ÉLEVEZ VOTRE <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/40 italic">SYSTÈME CRÉATIF.</span>
                     </h1>
@@ -42,7 +42,7 @@ export default function PricingPage() {
                         <div className="space-y-6">
                             <div className="space-y-1">
                                 <div className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-[0.3em]">Plan Actuel Alpha</div>
-                                <h2 className="text-3xl font-black text-white italic tracking-tighter">FREE.</h2>
+                                <h2 className="text-3xl font-black text-foreground italic tracking-tighter">FREE.</h2>
                                 <p className="text-[10px] text-muted-foreground/50 font-bold uppercase italic">Pour les bâtisseurs solitaires.</p>
                             </div>
 
@@ -59,13 +59,13 @@ export default function PricingPage() {
                                         <div className="w-4 h-4 rounded-full bg-accent/5 flex items-center justify-center border border-border/10">
                                             <Check className="w-2.5 h-2.5 text-muted-foreground/40 group-hover/item:text-primary transition-colors" />
                                         </div>
-                                        <span className="text-[10px] text-white/60 font-black uppercase tracking-tight italic">{feature}</span>
+                                        <span className="text-[10px] text-foreground/60 font-black uppercase tracking-tight italic">{feature}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <Link href="/dashboard" className="mt-8 w-full py-4 bg-transparent border border-white/5 hover:bg-white/5 rounded-xl text-center text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center justify-center gap-2">
+                        <Link href="/dashboard" className="mt-8 w-full py-4 bg-transparent border border-border/50 hover:bg-foreground/5 rounded-xl text-center text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center justify-center gap-2">
                             Dashboard
                             <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
@@ -85,7 +85,7 @@ export default function PricingPage() {
                                     <Star className="w-2.5 h-2.5 fill-current" />
                                     Accès Prioritaire
                                 </div>
-                                <h2 className="text-3xl font-black text-white italic tracking-tighter">PRO.</h2>
+                                <h2 className="text-3xl font-black text-foreground italic tracking-tighter">PRO.</h2>
                                 <p className="text-[10px] text-primary/50 font-bold uppercase italic">Pour les visionnaires insatiables.</p>
                             </div>
 
@@ -103,7 +103,7 @@ export default function PricingPage() {
                                         <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
                                             <Sparkles className="w-2 h-2 text-primary" />
                                         </div>
-                                        <span className="text-[10px] text-white/80 font-black uppercase tracking-tight italic">{feature}</span>
+                                        <span className="text-[10px] text-foreground/80 font-black uppercase tracking-tight italic">{feature}</span>
                                     </div>
                                 ))}
                             </div>
@@ -121,32 +121,32 @@ export default function PricingPage() {
                 </div>
 
                 {/* Trust Elements Compact */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 border-t border-white/5 opacity-40 hover:opacity-100 transition-opacity duration-700">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 border-t border-border/50 opacity-40 hover:opacity-100 transition-opacity duration-700">
                     <div className="flex items-center gap-3">
                         <ShieldCheck className="w-6 h-6 text-muted-foreground/30" />
                         <div>
-                            <h4 className="text-[8px] font-black uppercase tracking-widest text-white/60 leading-none">Security Alpha</h4>
+                            <h4 className="text-[8px] font-black uppercase tracking-widest text-foreground/60 leading-none">Security Alpha</h4>
                             <p className="text-[7px] text-muted-foreground/40 font-black uppercase mt-1">Cryptage Supabase.</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <Rocket className="w-6 h-6 text-muted-foreground/30" />
                         <div>
-                            <h4 className="text-[8px] font-black uppercase tracking-widest text-white/60 leading-none">Ultra Fast</h4>
+                            <h4 className="text-[8px] font-black uppercase tracking-widest text-foreground/60 leading-none">Ultra Fast</h4>
                             <p className="text-[7px] text-muted-foreground/40 font-black uppercase mt-1">Zero Friction Start.</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <Star className="w-6 h-6 text-muted-foreground/30" />
                         <div>
-                            <h4 className="text-[8px] font-black uppercase tracking-widest text-white/60 leading-none">Beta Club</h4>
+                            <h4 className="text-[8px] font-black uppercase tracking-widest text-foreground/60 leading-none">Beta Club</h4>
                             <p className="text-[7px] text-muted-foreground/40 font-black uppercase mt-1">Évolution Continue.</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="text-center">
-                    <Link href="/" className="text-[8px] font-black text-muted-foreground/40 hover:text-white uppercase tracking-[0.4em] transition-colors">
+                    <Link href="/" className="text-[8px] font-black text-muted-foreground/40 hover:text-foreground uppercase tracking-[0.4em] transition-colors">
                         ← Retour Portail
                     </Link>
                 </div>

@@ -90,6 +90,10 @@ export default async function DashboardPage({
     netCashflow,
   };
 
+  const store = await prisma.store.findUnique({
+      where: { id: storeId }
+  });
+
   // Serialize to avoid Date object issues
   const serializedRecentSales = recentSales.map(sale => ({
     ...sale,
@@ -101,8 +105,14 @@ export default async function DashboardPage({
     createdAt: log.createdAt.toISOString(),
   }));
 
+  const metadata = {
+      userName: session.user.name || "DG",
+      enterpriseName: store?.name || "Votre Entreprise"
+  };
+
   return (
     <DashboardClient 
+      metadata={metadata}
       metrics={stats} 
       recentSales={serializedRecentSales as any} 
     />

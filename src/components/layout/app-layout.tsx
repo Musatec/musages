@@ -9,6 +9,8 @@ import { useSidebar } from "@/components/providers/sidebar-provider";
 
 import { TopLoader } from "@/components/ui/top-loader";
 import { Suspense } from "react";
+import { EliteHeader } from "@/components/layout/elite-header";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -41,10 +43,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     ? (collapsed ? 'md:ml-20' : 'md:ml-64') 
                     : ''
             }`}>
+                {/* Global Command Bar (Mentor Powered) */}
+                {showLayout && <EliteHeader />}
+
                 {/* Spacer pour le header mobile */}
                 {showLayout && <div className="h-16 md:hidden" />}
 
-                {children}
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={pathname}
+                        initial={{ opacity: 0, y: 10, filter: "blur(10px)" }}
+                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                        exit={{ opacity: 0, y: -10, filter: "blur(10px)" }}
+                        transition={{ duration: 0.4, ease: "circOut" }}
+                        className="flex-1"
+                    >
+                        {children}
+                    </motion.div>
+                </AnimatePresence>
 
                 {/* Spacer pour la nav mobile */}
                 {showLayout && <div className="h-32 md:hidden" />}

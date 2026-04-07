@@ -214,46 +214,46 @@ export default function BookDetailPage() {
         }
     };
 
-    if (loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Chargement du manuscrit...</div>;
-    if (!book) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">Livre introuvable</div>;
+    if (loading) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-foreground">Chargement du manuscrit...</div>;
+    if (!book) return <div className="min-h-screen bg-[#050505] flex items-center justify-center text-foreground">Livre introuvable</div>;
 
     return (
-        <div className="min-h-screen w-full bg-[#050505] text-white p-6 md:p-12 font-sans selection:bg-[#F97316] relative">
+        <div className="min-h-screen w-full bg-[#050505] text-foreground p-6 md:p-12 font-sans selection:bg-[hsl(var(--primary))] relative">
             <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-gray-900/40 to-transparent -z-10" />
 
             <div className="max-w-5xl mx-auto space-y-12">
-                <Link href="/books" className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors group">
+                <Link href="/books" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group">
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     <span>Retour à la bibliothèque</span>
                 </Link>
 
                 {isEditingBook ? (
-                    <form onSubmit={handleUpdateBook} className="bg-[#1C1C1E] p-8 rounded-3xl border border-white/5 space-y-8 animate-in fade-in zoom-in-95">
+                    <form onSubmit={handleUpdateBook} className="bg-[#1C1C1E] p-8 rounded-3xl border border-border/50 space-y-8 animate-in fade-in zoom-in-95">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Titre</label>
-                                <input value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-lg font-bold focus:border-[#F97316] outline-none" />
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Titre</label>
+                                <input value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-border/50 rounded-xl px-4 py-3 text-lg font-bold focus:border-[hsl(var(--primary))] outline-none" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Statut</label>
-                                <select value={editStatus} onChange={e => setEditStatus(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-3 outline-none">
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Statut</label>
+                                <select value={editStatus} onChange={e => setEditStatus(e.target.value)} className="w-full bg-black/40 border border-border/50 rounded-xl px-4 py-3 outline-none">
                                     <option value="draft">📝 Brouillon</option>
                                     <option value="published">✨ Publié</option>
                                 </select>
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Résumé</label>
-                            <textarea value={editSummary} onChange={e => setEditSummary(e.target.value)} className="w-full h-32 bg-black/40 border border-white/5 rounded-xl px-4 py-3 focus:border-[#F97316] outline-none resize-none" />
+                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Résumé</label>
+                            <textarea value={editSummary} onChange={e => setEditSummary(e.target.value)} className="w-full h-32 bg-black/40 border border-border/50 rounded-xl px-4 py-3 focus:border-[hsl(var(--primary))] outline-none resize-none" />
                         </div>
-                        <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
-                            <button type="button" onClick={() => setIsEditingBook(false)} className="px-6 py-2 text-gray-500 hover:text-white transition-colors">Annuler</button>
-                            <button type="submit" disabled={isSavingBook} className="px-8 py-2 bg-[#F97316] text-white font-bold rounded-xl hover:bg-orange-600 transition-all">Enregistrer</button>
+                        <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+                            <button type="button" onClick={() => setIsEditingBook(false)} className="px-6 py-2 text-muted-foreground hover:text-foreground transition-colors">Annuler</button>
+                            <button type="submit" disabled={isSavingBook} className="px-8 py-2 bg-[hsl(var(--primary))] text-foreground font-bold rounded-xl hover:bg-primary transition-all">Enregistrer</button>
                         </div>
                     </form>
                 ) : (
                     <div className="flex flex-col md:flex-row gap-12 items-start">
-                        <div className="w-56 shrink-0 aspect-[2/3] relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+                        <div className="w-56 shrink-0 aspect-[2/3] relative rounded-2xl overflow-hidden shadow-2xl border border-border/50 group">
                             {book.cover_url ? (
                                 <Image src={book.cover_url} alt={book.title} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
                             ) : (
@@ -265,23 +265,23 @@ export default function BookDetailPage() {
                         <div className="flex-1 space-y-6">
                             <div className="space-y-2">
                                 <div className="flex items-center gap-3">
-                                    <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest border", book.status === 'published' ? "bg-green-500/10 border-green-500/20 text-green-400" : "bg-orange-500/10 border-orange-500/20 text-orange-400")}>
+                                    <span className={cn("px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest border", book.status === 'published' ? "bg-green-500/10 border-green-500/20 text-green-400" : "bg-primary/10 border-primary/20 text-primary/80")}>
                                         {book.status === 'published' ? 'Statut : Publié' : 'Statut : Brouillon'}
                                     </span>
                                 </div>
                                 <h1 className="text-6xl font-black tracking-tighter">{book.title}</h1>
-                                <p className="text-gray-400 text-lg leading-relaxed max-w-2xl italic">&quot;{book.summary || "Aucun résumé pour le moment."}&quot;</p>
+                                <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl italic">&quot;{book.summary || "Aucun résumé pour le moment."}&quot;</p>
                             </div>
                             <div className="flex items-center gap-3 pt-4">
-                                <button onClick={handleExportPDF} disabled={isExporting} className="flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-[#F97316] hover:text-white transition-all active:scale-95 disabled:opacity-50">
+                                <button onClick={handleExportPDF} disabled={isExporting} className="flex items-center gap-2 px-6 py-3 bg-white text-black font-bold rounded-xl hover:bg-[hsl(var(--primary))] hover:text-foreground transition-all active:scale-95 disabled:opacity-50">
                                     {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                                     Exporter PDF
                                 </button>
-                                <button onClick={() => setIsEditingBook(true)} className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/5 text-white font-bold rounded-xl hover:bg-white/10 transition-all">
-                                    <Edit3 className="w-4 h-4 text-[#F97316]" />
+                                <button onClick={() => setIsEditingBook(true)} className="flex items-center gap-2 px-6 py-3 bg-foreground/5 border border-border/50 text-foreground font-bold rounded-xl hover:bg-foreground/10 transition-all">
+                                    <Edit3 className="w-4 h-4 text-[hsl(var(--primary))]" />
                                     Modifier
                                 </button>
-                                <button onClick={handleDeleteBook} className="p-3 bg-red-500/10 border border-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                                <button onClick={handleDeleteBook} className="p-3 bg-red-500/10 border border-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-foreground transition-all">
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
@@ -289,34 +289,34 @@ export default function BookDetailPage() {
                     </div>
                 )}
 
-                <div className="space-y-8 pt-12 border-t border-white/5">
+                <div className="space-y-8 pt-12 border-t border-border/50">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-black flex items-center gap-3">
-                            <FileText className="w-6 h-6 text-[#F97316]" />
+                            <FileText className="w-6 h-6 text-[hsl(var(--primary))]" />
                             Table des Matières
                             <span className="text-xs text-gray-600 font-mono ml-2">[{chapters.length} chapitres]</span>
                         </h2>
-                        <button onClick={() => setIsCreatingChapter(true)} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-[#F97316]/10 text-[#F97316] font-bold rounded-xl transition-all border border-[#F97316]/20">
+                        <button onClick={() => setIsCreatingChapter(true)} className="flex items-center gap-2 px-4 py-2 bg-foreground/5 hover:bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] font-bold rounded-xl transition-all border border-[hsl(var(--primary))]/20">
                             <Plus className="w-4 h-4" />
                             Nouveau Chapitre
                         </button>
                     </div>
 
                     {isCreatingChapter && (
-                        <form onSubmit={handleAddChapter} className="flex gap-4 p-4 bg-[#1C1C1E] border border-[#F97316]/30 rounded-2xl animate-in slide-in-from-top-4">
-                            <input autoFocus placeholder="Titre du nouveau chapitre..." value={newChapterTitle} onChange={e => setNewChapterTitle(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-white" />
-                            <button type="submit" className="px-6 py-2 bg-[#F97316] text-white font-bold rounded-xl">Ajouter</button>
-                            <button type="button" onClick={() => setIsCreatingChapter(false)} className="px-4 py-2 text-gray-500">Annuler</button>
+                        <form onSubmit={handleAddChapter} className="flex gap-4 p-4 bg-[#1C1C1E] border border-[hsl(var(--primary))]/30 rounded-2xl animate-in slide-in-from-top-4">
+                            <input autoFocus placeholder="Titre du nouveau chapitre..." value={newChapterTitle} onChange={e => setNewChapterTitle(e.target.value)} className="flex-1 bg-transparent border-none outline-none text-foreground" />
+                            <button type="submit" className="px-6 py-2 bg-[hsl(var(--primary))] text-foreground font-bold rounded-xl">Ajouter</button>
+                            <button type="button" onClick={() => setIsCreatingChapter(false)} className="px-4 py-2 text-muted-foreground">Annuler</button>
                         </form>
                     )}
 
                     <div className="grid grid-cols-1 gap-3">
                         {chapters.map((chapter, idx) => (
-                            <div key={chapter.id} className="group bg-[#1C1C1E]/50 border border-white/5 hover:border-[#F97316]/30 hover:bg-[#1C1C1E] rounded-2xl p-5 transition-all flex items-center justify-between">
+                            <div key={chapter.id} className="group bg-[#1C1C1E]/50 border border-border/50 hover:border-[hsl(var(--primary))]/30 hover:bg-[#1C1C1E] rounded-2xl p-5 transition-all flex items-center justify-between">
                                 <Link href={`/books/${id}/chapter/${chapter.id}`} className="flex-1 flex items-center gap-6">
                                     <span className="text-sm font-black text-gray-700 font-mono">{(idx + 1).toString().padStart(2, '0')}</span>
                                     <div>
-                                        <p className="font-bold text-white group-hover:text-[#F97316] transition-colors">{chapter.title}</p>
+                                        <p className="font-bold text-foreground group-hover:text-[hsl(var(--primary))] transition-colors">{chapter.title}</p>
                                         <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-1">Dernière modification : {new Date(chapter.updated_at).toLocaleDateString()}</p>
                                     </div>
                                 </Link>

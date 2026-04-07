@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  transpilePackages: ["react-icons", "@hello-pangea/dnd"],
   // Forcer webpack pour next-pwa
   webpack: (config, { isServer }) => {
     return config;

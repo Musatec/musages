@@ -50,18 +50,18 @@ export default function ResetPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 font-sans selection:bg-[#F97316] selection:text-white relative overflow-hidden">
+        <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 font-sans selection:bg-[hsl(var(--primary))] selection:text-foreground relative overflow-hidden">
             {/* Ambient Background */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#F97316]/10 blur-[120px] rounded-full animate-pulse" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-orange-600/5 blur-[120px] rounded-full" />
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[hsl(var(--primary))]/10 blur-[120px] rounded-full animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
             </div>
 
             <div className="w-full max-w-md relative z-10 space-y-8 animate-in fade-in zoom-in duration-700">
                 {/* Header Branding */}
                 <div className="text-center space-y-6">
-                    <div className="inline-flex items-center justify-center p-4 bg-[#1C1C1E] rounded-3xl border border-white/5 shadow-2xl relative group">
-                        <div className="absolute inset-0 bg-gradient-to-br from-[#F97316]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-xl" />
+                    <div className="inline-flex items-center justify-center p-4 bg-[#1C1C1E] rounded-3xl border border-border/50 shadow-2xl relative group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary))]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-xl" />
                         <SafeImage
                             src="/logo.svg?v=4"
                             alt="Logo MINDOS"
@@ -72,31 +72,31 @@ export default function ResetPasswordPage() {
                         />
                     </div>
                     <div>
-                        <div className="flex items-center justify-center gap-2 text-[#F97316] mb-2">
+                        <div className="flex items-center justify-center gap-2 text-[hsl(var(--primary))] mb-2">
                             <ShieldCheck className="w-4 h-4" />
                             <span className="text-[10px] font-black uppercase tracking-[0.3em]">Protocole de Sécurité</span>
                         </div>
-                        <h1 className="text-4xl font-black text-white tracking-tight mb-2">
+                        <h1 className="text-4xl font-black text-foreground tracking-tight mb-2">
                             Restauration.
                         </h1>
-                        <p className="text-gray-500 text-sm font-medium tracking-wide uppercase max-w-[280px] mx-auto">
+                        <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase max-w-[280px] mx-auto">
                             Définissez votre nouveau mot de passe de Maîtrise pour réintégrer le Sanctuaire.
                         </p>
                     </div>
                 </div>
 
-                <div className="bg-[#1C1C1E]/50 backdrop-blur-3xl p-6 sm:p-8 rounded-[2rem] border border-white/5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative">
+                <div className="bg-[#1C1C1E]/50 backdrop-blur-3xl p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative">
                     <form onSubmit={handleReset} className="space-y-6">
                         <div className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nouveau Mot de passe</label>
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Nouveau Mot de passe</label>
                                 <div className="relative group">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-[#F97316] transition-colors" />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-[hsl(var(--primary))] transition-colors" />
                                     <input
                                         type="password"
                                         required
                                         placeholder="••••••••"
-                                        className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-4 py-3.5 text-white placeholder:text-gray-700 focus:border-[#F97316]/50 focus:bg-black/60 outline-none transition-all"
+                                        className="w-full bg-black/40 border border-border/50 rounded-2xl pl-12 pr-4 py-3.5 text-foreground placeholder:text-gray-700 focus:border-[hsl(var(--primary))]/50 focus:bg-black/60 outline-none transition-all"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                     />
@@ -104,14 +104,14 @@ export default function ResetPasswordPage() {
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Confirmer le Mot de passe</label>
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Confirmer le Mot de passe</label>
                                 <div className="relative group">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-[#F97316] transition-colors" />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-[hsl(var(--primary))] transition-colors" />
                                     <input
                                         type="password"
                                         required
                                         placeholder="••••••••"
-                                        className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-4 py-3.5 text-white placeholder:text-gray-700 focus:border-[#F97316]/50 focus:bg-black/60 outline-none transition-all"
+                                        className="w-full bg-black/40 border border-border/50 rounded-2xl pl-12 pr-4 py-3.5 text-foreground placeholder:text-gray-700 focus:border-[hsl(var(--primary))]/50 focus:bg-black/60 outline-none transition-all"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                     />
@@ -128,7 +128,7 @@ export default function ResetPasswordPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#F97316] hover:bg-orange-600 text-white font-bold text-sm h-14 rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 shadow-xl shadow-orange-500/20 disabled:opacity-50"
+                            className="w-full bg-[hsl(var(--primary))] hover:bg-primary text-foreground font-bold text-sm h-14 rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 shadow-xl shadow-primary/20 disabled:opacity-50"
                         >
                             {loading ? (
                                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -145,7 +145,7 @@ export default function ResetPasswordPage() {
                 <div className="text-center">
                     <button
                         onClick={() => router.push('/login')}
-                        className="text-xs text-gray-500 hover:text-white transition-colors uppercase tracking-widest font-black"
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest font-black"
                     >
                         Retourner à la porte
                     </button>

@@ -384,7 +384,7 @@ export default function LaboPage() {
                         {isSaving && <span className="hidden sm:inline text-[10px] text-primary animate-pulse font-mono uppercase tracking-widest">Enregistrement...</span>}
                         <button
                             onClick={handleCreateNote}
-                            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs sm:text-sm font-black uppercase tracking-widest transition-all disabled:opacity-20 shadow-lg shadow-orange-500/20"
+                            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary hover:bg-primary text-foreground rounded-xl text-xs sm:text-sm font-black uppercase tracking-widest transition-all disabled:opacity-20 shadow-lg shadow-primary/20"
                         >
                             <Plus className="w-4 h-4" />
                             <span className="hidden sm:inline">Nouveau Projet</span>
@@ -487,8 +487,8 @@ export default function LaboPage() {
                             </div>
                         ) : (
                             <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-                                <div className="w-24 h-24 rounded-full bg-orange-500/10 flex items-center justify-center mb-6 p-6">
-                                    <FileText className="w-16 h-16 text-orange-500" />
+                                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6 p-6">
+                                    <FileText className="w-16 h-16 text-primary" />
                                 </div>
                                 <h3 className="text-xl font-bold text-foreground mb-2">Espace de Recherche</h3>
                                 <p className="text-muted-foreground max-w-xs">Sélectionnez ou créez une note pour commencer à approfondir vos idées.</p>

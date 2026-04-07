@@ -39,7 +39,6 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [currentTime, setCurrentTime] = useState("");
 
-    // Initial Fetch & Clock
     useEffect(() => {
         if (open) {
             getProducts().then(setProducts);
@@ -53,7 +52,6 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
         }
     }, [open]);
 
-    // Logic
     const groupedProducts = useMemo(() => {
         const filtered = products.filter(p => 
             p.name.toLowerCase().includes(search.toLowerCase())
@@ -110,6 +108,8 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
                 setCustomerName("");
                 setCustomerPhone("");
                 setOpen(false);
+                // Trigger refresh if needed
+                window.location.reload(); 
             } else {
                 toast.error(res.error || "Erreur lors du paiement");
             }
@@ -125,100 +125,90 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
             <SheetTrigger asChild>
                 {trigger}
             </SheetTrigger>
-            <SheetContent className="w-[95vw] sm:max-w-[1100px] bg-background border-border p-0 flex flex-col sm:flex-row overflow-hidden shadow-2xl rounded-l-2xl transition-colors duration-500">
+            <SheetContent className="w-[95vw] sm:max-w-[1100px] bg-background border-border p-0 flex flex-col sm:flex-row overflow-hidden shadow-2xl rounded-l-2xl">
                 
-                {/* --- LEFT SECTION: CATALOG --- */}
+                {/* --- CATALOG --- */}
                 <div className="flex-1 flex flex-col bg-muted/20 p-4 md:p-6 space-y-6 overflow-y-auto custom-scrollbar border-r border-border/50">
-                    {/* POS Header */}
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
                             <ShoppingCart className="w-6 h-6 text-white" />
                         </div>
-                        <div className="space-y-0.5">
-                            <h2 className="text-xl font-black tracking-tighter text-foreground uppercase italic leading-none">Caisse <span className="text-primary italic">MINDOS</span></h2>
-                            <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/40">
+                        <div className="space-y-1">
+                            <h2 className="text-xl font-bold tracking-tight text-foreground uppercase">Caisse <span className="text-primary italic">MINDOS</span></h2>
+                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/50">
                                 <span>{currentDateLabel}</span>
                                 <span className="opacity-20">•</span>
-                                <span className="text-primary flex items-center gap-1 font-black">
-                                    <Clock className="w-2.5 h-2.5" /> {currentTime}
+                                <span className="text-primary flex items-center gap-1 font-bold">
+                                    <Clock className="w-3 h-3" /> {currentTime}
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Search & Customer Inputs */}
                     <div className="flex flex-col xl:flex-row gap-3">
                         <div className="relative flex-1 group">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                             <input 
-                                type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Scanner ou chercher un produit..."
-                                className="w-full bg-card border border-border/10 focus:ring-1 focus:ring-primary/20 rounded-xl py-3.5 pl-12 pr-6 font-bold text-xs transition-all text-foreground placeholder:text-muted-foreground/30 shadow-sm outline-none"
+                                placeholder="Rechercher un article..."
+                                className="w-full bg-card border border-border rounded-xl py-3 pl-11 pr-4 text-xs font-semibold focus:ring-1 focus:ring-primary/20 outline-none transition-all shadow-sm"
                             />
                         </div>
                         <div className="flex gap-3">
                             <div className="relative w-48 group">
-                                <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                 <input 
-                                    type="text"
                                     value={customerName}
                                     onChange={(e) => setCustomerName(e.target.value)}
-                                    placeholder="Nom Client"
-                                    className="w-full bg-card border border-border/10 focus:ring-1 focus:ring-primary/20 rounded-xl py-3.5 pl-12 pr-6 font-bold text-xs transition-all text-foreground placeholder:text-muted-foreground/30 shadow-sm outline-none"
+                                    placeholder="Client"
+                                    className="w-full bg-card border border-border rounded-xl py-3 pl-11 pr-4 text-xs font-semibold focus:ring-1 focus:ring-primary/20 outline-none transition-all shadow-sm"
                                 />
                             </div>
                             <div className="relative w-40 group">
-                                <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                 <input 
-                                    type="text"
                                     value={customerPhone}
                                     onChange={(e) => setCustomerPhone(e.target.value)}
-                                    placeholder="+221..."
-                                    className="w-full bg-card border border-border/10 focus:ring-1 focus:ring-primary/20 rounded-xl py-3.5 pl-12 pr-6 font-bold text-xs transition-all text-foreground placeholder:text-muted-foreground/30 shadow-sm outline-none"
+                                    placeholder="WhatsApp"
+                                    className="w-full bg-card border border-border rounded-xl py-3 pl-11 pr-4 text-xs font-semibold focus:ring-1 focus:ring-primary/20 outline-none transition-all shadow-sm"
                                 />
                             </div>
                         </div>
                     </div>
 
-                    {/* Catalog List */}
-                    <div className="space-y-12">
+                    <div className="space-y-8">
                         {Object.entries(groupedProducts).map(([category, products]) => (
-                            <div key={category} className="space-y-6">
+                            <div key={category} className="space-y-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-8 h-1 bg-primary rounded-full" />
-                                    <h3 className="text-[12px] font-black uppercase tracking-[0.4em] text-foreground italic">{category}</h3>
-                                    <span className="text-[10px] font-black text-muted-foreground/20 ml-auto">{products.length} ARTICLES</span>
+                                    <div className="w-6 h-1 bg-primary rounded-full" />
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-foreground">{category}</h3>
+                                    <span className="text-[10px] font-bold text-muted-foreground/40 ml-auto">{products.length} EN STOCK</span>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {products.map(p => (
-                                        <div key={p.id} className="flex items-center justify-between p-3 bg-card border border-border/40 hover:border-primary/40 hover:shadow-lg transition-all rounded-xl group overflow-hidden relative">
-                                            <div className="flex items-center gap-3 flex-1 relative z-10">
+                                        <div key={p.id} className="flex items-center justify-between p-3 bg-card border border-border/40 hover:border-primary/40 hover:shadow-md transition-all rounded-xl group relative overflow-hidden">
+                                            <div className="flex items-center gap-3 flex-1">
                                                 <div className="w-10 h-10 bg-muted/40 rounded-lg flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
                                                     <Package className="w-5 h-5" />
                                                 </div>
                                                 <div className="space-y-0.5">
-                                                    <span className="text-[12px] font-black uppercase tracking-tight text-foreground block leading-none">{p.name}</span>
-                                                    <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">{p.stock} UNITÉS</span>
+                                                    <span className="text-xs font-bold uppercase tracking-tight text-foreground block leading-none">{p.name}</span>
+                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase opacity-40">{p.stock} EN STOCK</p>
                                                 </div>
                                             </div>
-                                            
-                                            <div className="flex items-center gap-4 relative z-10">
-                                                <p className="text-[13px] font-black text-foreground w-20 text-right">
-                                                    {p.price.toLocaleString()} <span className="text-[9px] opacity-20 italic ml-0.5 font-black">F</span>
+                                            <div className="flex items-center gap-4">
+                                                <p className="text-sm font-bold text-foreground">
+                                                    {p.price.toLocaleString()} F
                                                 </p>
                                                 <button 
                                                     onClick={() => addToCart(p)}
-                                                    className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-primary hover:text-white hover:scale-105 active:scale-90 transition-all shadow-md"
+                                                    className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-md active:scale-90"
                                                 >
                                                     <Plus className="w-5 h-5 stroke-[3]" />
                                                 </button>
                                             </div>
-
-                                            {/* Subtle Glow */}
-                                            <div className="absolute top-0 right-0 w-12 h-12 bg-primary/5 blur-[20px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
                                         </div>
                                     ))}
                                 </div>
@@ -227,108 +217,96 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
                     </div>
                 </div>
 
-                {/* --- RIGHT SECTION: TICKET --- */}
-                <div className="w-full sm:w-[380px] bg-card flex flex-col shadow-[-40px_0_100px_rgba(0,0,0,0.05)] relative z-20">
-                    <div className="p-5 md:p-6 space-y-6 flex-1 flex flex-col">
-                        {/* Ticket Header */}
-                        <div className="flex items-center justify-between border-b border-border/10 pb-4">
+                {/* --- TICKET --- */}
+                <div className="w-full sm:w-[400px] bg-card flex flex-col shadow-[-20px_0_60px_rgba(0,0,0,0.05)] border-l border-border/50">
+                    <div className="p-6 flex-1 flex flex-col">
+                        <div className="flex items-center justify-between border-b border-border/10 pb-4 mb-6">
                             <div className="flex flex-col gap-0.5">
-                                <h3 className="text-lg font-black tracking-tighter text-foreground uppercase italic">Ticket Client</h3>
-                                <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.2em] italic">{itemsCount} ARTICLE{itemsCount > 1 ? 'S' : ''}</p>
+                                <h3 className="text-lg font-bold tracking-tight text-foreground uppercase">Ticket Client</h3>
+                                <p className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">{itemsCount} ARTICLE{itemsCount > 1 ? 'S' : ''}</p>
                             </div>
-                            <div className="w-10 h-10 rounded-xl bg-muted/10 flex items-center justify-center border border-border/20 shadow-sm">
-                                <ShoppingCart className="w-4 h-4 text-muted-foreground/40" />
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm text-primary">
+                                <ShoppingCart className="w-4 h-4" />
                             </div>
                         </div>
 
-                        {/* Cart List or Empty */}
-                        <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto py-2 custom-scrollbar space-y-3">
                             {cart.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center space-y-6 opacity-10">
-                                    <ShoppingCart className="w-24 h-24 stroke-[1]" />
-                                    <p className="text-[10px] font-black uppercase tracking-[0.5em] italic">Panier en attente</p>
+                                <div className="h-full flex flex-col items-center justify-center opacity-10 space-y-4">
+                                    <ShoppingCart className="w-16 h-16 stroke-[1.5]" />
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.4em]">Panier Vide</p>
                                 </div>
-                            ) : (
-                                <div className="space-y-4 pr-2">
-                                    {cart.map(item => (
-                                        <div key={item.id} className="flex items-center gap-3 p-3.5 bg-background rounded-xl border border-border/50 hover:border-primary/20 transition-all group relative overflow-hidden">
-                                            <div className="flex-1 space-y-0.5">
-                                                <p className="text-[11px] font-black uppercase tracking-tight text-foreground leading-none">{item.name}</p>
-                                                <p className="text-[9px] font-black text-primary italic leading-none">{item.price.toLocaleString()} F × {item.quantity}</p>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex items-center gap-2 bg-muted/10 rounded-lg p-1 border border-border/20">
-                                                    <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 flex items-center justify-center hover:bg-foreground hover:text-background rounded-md transition-all"><Minus className="w-3 h-3" /></button>
-                                                    <span className="text-[10px] font-black w-4 text-center text-foreground">{item.quantity}</span>
-                                                    <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 flex items-center justify-center hover:bg-primary hover:text-white rounded-md transition-all"><Plus className="w-3 h-3" /></button>
-                                                </div>
-                                                <button onClick={() => setCart(cart.filter(i => i.id !== item.id))} className="text-muted-foreground/20 hover:text-red-500 transition-all"><X className="w-4 h-4" /></button>
-                                            </div>
+                            ) : cart.map(item => (
+                                <div key={item.id} className="flex items-center gap-3 p-3 bg-muted/20 rounded-xl border border-border/50">
+                                    <div className="flex-1 space-y-0.5">
+                                        <p className="text-[11px] font-bold uppercase tracking-tight text-foreground leading-none">{item.name}</p>
+                                        <p className="text-[10px] font-bold text-primary leading-none">{item.price.toLocaleString()} F × {item.quantity}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1.5 bg-background rounded-lg p-1 border border-border">
+                                            <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 flex items-center justify-center hover:bg-primary hover:text-white rounded-md transition-all"><Minus className="w-3 h-3" /></button>
+                                            <span className="text-[10px] font-bold w-4 text-center">{item.quantity}</span>
+                                            <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 flex items-center justify-center hover:bg-primary hover:text-white rounded-md transition-all"><Plus className="w-3 h-3" /></button>
                                         </div>
-                                    ))}
+                                        <button onClick={() => setCart(cart.filter(i => i.id !== item.id))} className="text-muted-foreground/20 hover:text-red-500 transition-colors"><X className="w-4 h-4" /></button>
+                                    </div>
                                 </div>
-                            )}
+                            ))}
                         </div>
 
-                        <div className="space-y-6 pt-6 border-t border-dashed border-border/20">
-                            {/* Total Pill (Elite Theme) */}
-                            <div className="bg-foreground text-background rounded-2xl p-6 flex justify-between items-center shadow-xl relative overflow-hidden group">
-                                <div className="text-left relative z-10 text-background">
-                                     <p className="text-[8px] font-black uppercase tracking-[0.4em] opacity-40 leading-tight italic">Total Net</p>
-                                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary italic">Payable</p>
+                        <div className="pt-6 border-t border-dashed border-border/30 space-y-6">
+                            <div className="bg-foreground text-background rounded-2xl p-5 flex justify-between items-center shadow-lg overflow-hidden relative">
+                                <div className="space-y-0.5 relative z-10">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Total Net</p>
                                 </div>
-                                <h2 className="text-3xl font-black tracking-tighter italic relative z-10 text-background">
-                                    {total.toLocaleString()} <span className="text-lg italic opacity-30 ml-1 font-black">F</span>
+                                <h2 className="text-3xl font-bold tracking-tight relative z-10">
+                                    {total.toLocaleString()} <span className="text-sm opacity-40">F</span>
                                 </h2>
-                                <div className="absolute top-0 right-0 w-32 h-full bg-primary/10 blur-[50px] rounded-full pointer-events-none opacity-50" />
+                                <div className="absolute top-0 right-0 w-32 h-full bg-primary/10 blur-[40px] pointer-events-none opacity-50" />
                             </div>
 
-                            {/* Payment Methods */}
-                            <div className="grid grid-cols-4 gap-3">
+                            <div className="grid grid-cols-4 gap-2">
                                 {[
-                                    { id: "CASH", label: "CASH", icon: Banknote, color: "bg-emerald-500", glow: "shadow-emerald-500/20" },
-                                    { id: "WAVE", label: "WAVE", icon: Smartphone, color: "bg-blue-500", glow: "shadow-blue-500/20" },
-                                    { id: "ORANGE", label: "ORANGE", icon: Smartphone, color: "bg-orange-500", glow: "shadow-orange-500/20" },
-                                    { id: "NON_PAYE", label: "DETTE", icon: CreditCard, color: "bg-red-500", glow: "shadow-red-500/20" },
+                                    { id: "CASH", label: "CASH", icon: Banknote, color: "bg-emerald-500" },
+                                    { id: "WAVE", label: "WAVE", icon: Smartphone, color: "bg-blue-500" },
+                                    { id: "ORANGE", label: "ORANGE", icon: Smartphone, color: "bg-orange-500" },
+                                    { id: "NON_PAYE", label: "DETTE", icon: CreditCard, color: "bg-red-500" },
                                 ].map(m => (
                                     <button 
                                         key={m.id}
                                         onClick={() => setPaymentMethod(m.id)}
                                         className={cn(
-                                            "flex flex-col items-center gap-3 p-5 rounded-2xl border transition-all duration-500 group relative overflow-hidden",
+                                            "flex flex-col items-center gap-2 p-3 rounded-xl border transition-all",
                                             paymentMethod === m.id 
-                                                ? (m.color + " text-white border-transparent " + m.glow + " scale-105 shadow-xl") 
-                                                : "bg-background border-border text-muted-foreground hover:border-primary/30"
+                                                ? (m.color + " text-white border-transparent shadow-lg scale-105") 
+                                                : "bg-background border-border text-muted-foreground hover:bg-muted"
                                         )}
                                     >
-                                        <m.icon className="w-5 h-5 relative z-10" />
-                                        <span className="text-[8px] font-black tracking-[0.2em] uppercase relative z-10">{m.label}</span>
+                                        <m.icon className="w-4 h-4" />
+                                        <span className="text-[8px] font-bold tracking-wider uppercase">{m.label}</span>
                                     </button>
                                 ))}
                             </div>
 
-                            {/* Money Inputs */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 ml-2 italic">Encaissé</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 ml-1">Encaissé</p>
                                     <input 
                                         type="number"
                                         value={amountPaid}
                                         onChange={(e) => setAmountPaid(e.target.value)}
                                         placeholder="0"
-                                        className="w-full bg-muted/10 border border-transparent focus:border-primary focus:bg-background rounded-xl py-3 px-4 text-xl font-black text-foreground transition-all text-center shadow-inner outline-none"
+                                        className="w-full bg-muted/20 border border-border focus:ring-2 focus:ring-primary/10 rounded-xl py-3 px-4 text-xl font-bold text-foreground transition-all text-center outline-none"
                                     />
                                 </div>
-                                <div className="space-y-1.5">
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 ml-2 italic">Reliquat</p>
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40 ml-1">Reliquat</p>
                                     <div className={cn(
-                                        "w-full rounded-xl py-3 px-4 flex items-center justify-center border transition-all duration-500 shadow-inner",
-                                        rest < 0 
-                                            ? "bg-red-500/5 border-red-500/20" 
-                                            : "bg-muted/5 border-transparent opacity-30"
+                                        "w-full rounded-xl py-3 px-4 flex items-center justify-center border transition-all",
+                                        rest < 0 ? "bg-red-500/5 border-red-500/20" : "bg-muted/30 border-transparent opacity-60"
                                     )}>
-                                        <p className={cn("text-xl font-black text-center italic tracking-tighter", rest < 0 ? "text-red-500 animate-pulse" : "text-foreground")}>
-                                            {rest < 0 ? Math.abs(rest).toLocaleString() : 0} <span className="text-xs italic not-italic opacity-20">F</span>
+                                        <p className={cn("text-xl font-bold tracking-tight", rest < 0 ? "text-red-500" : "text-foreground")}>
+                                            {rest < 0 ? Math.abs(rest).toLocaleString() : 0} <span className="text-xs opacity-40">F</span>
                                         </p>
                                     </div>
                                 </div>
@@ -338,10 +316,10 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
                                 onClick={handleFinalize}
                                 disabled={cart.length === 0 || isSubmitting}
                                 className={cn(
-                                    "w-full py-5 rounded-2xl text-[12px] font-black uppercase tracking-[0.4em] transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 italic",
+                                    "w-full py-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3",
                                     (cart.length > 0 && !isSubmitting) 
-                                        ? "bg-primary text-white hover:brightness-110 shadow-primary/30" 
-                                        : "bg-muted text-muted-foreground opacity-10 cursor-not-allowed"
+                                        ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/20" 
+                                        : "bg-muted text-muted-foreground opacity-20 cursor-not-allowed"
                                 )}
                             >
                                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Valider la Vente"}

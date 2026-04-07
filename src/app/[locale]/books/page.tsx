@@ -13,12 +13,12 @@ import { Book as BookType } from "@/types/books";
 // Loading Skeleton Component
 const BookSkeleton = () => (
     <div className="flex flex-col gap-3">
-        <div className="aspect-[2/3] w-full rounded-r-xl rounded-l-sm bg-white/5 animate-pulse border-l-4 border-l-white/10" />
+        <div className="aspect-[2/3] w-full rounded-r-xl rounded-l-sm bg-foreground/5 animate-pulse border-l-4 border-l-white/10" />
         <div className="space-y-2">
-            <div className="h-4 w-3/4 bg-white/10 rounded animate-pulse" />
+            <div className="h-4 w-3/4 bg-foreground/10 rounded animate-pulse" />
             <div className="flex justify-between">
-                <div className="h-3 w-1/4 bg-white/5 rounded animate-pulse" />
-                <div className="h-3 w-1/4 bg-white/5 rounded animate-pulse" />
+                <div className="h-3 w-1/4 bg-foreground/5 rounded animate-pulse" />
+                <div className="h-3 w-1/4 bg-foreground/5 rounded animate-pulse" />
             </div>
         </div>
     </div>
@@ -185,7 +185,7 @@ export default function BooksPage() {
                                     <div className="flex flex-wrap gap-3">
                                         {[
                                             { id: 'red', class: 'bg-red-600' },
-                                            { id: 'orange', class: 'bg-orange-600' },
+                                            { id: 'orange', class: 'bg-primary' },
                                             { id: 'green', class: 'bg-green-600' },
                                             { id: 'amber', class: 'bg-amber-600' },
                                             { id: 'stone', class: 'bg-stone-600' },
@@ -257,7 +257,7 @@ export default function BooksPage() {
                                     {/* Book Cover */}
                                     <div className="relative aspect-[2/3] w-full rounded-r-xl rounded-l-sm bg-card shadow-2xl transition-all duration-500 ease-out group-hover:-translate-y-2 group-hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] overflow-hidden border-l-4 border-l-border">
                                         {/* Spine effect */}
-                                        <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-white/10 z-20" />
+                                        <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-foreground/10 z-20" />
                                         <div className="absolute left-[3px] top-0 bottom-0 w-[1px] bg-black/30 z-20" />
 
                                         {/* Badge Status */}
@@ -266,7 +266,7 @@ export default function BooksPage() {
                                                 "px-2 py-0.5 rounded text-[8px] font-bold border backdrop-blur-md uppercase tracking-wider",
                                                 book.status === 'published'
                                                     ? "border-green-500/50 text-green-400 bg-green-500/10"
-                                                    : "border-orange-500/20 text-orange-500 bg-orange-500/10"
+                                                    : "border-primary/20 text-primary bg-primary/10"
                                             )}>
                                                 {book.status === 'published' ? 'Publié' : 'Brouillon'}
                                             </span>
@@ -287,13 +287,13 @@ export default function BooksPage() {
                                                 <h3 className="text-xl font-black font-sans text-foreground/90 leading-tight uppercase tracking-wider line-clamp-4 break-words">
                                                     {book.title}
                                                 </h3>
-                                                <div className="w-8 h-[2px] bg-white/50" />
+                                                <div className="w-8 h-[2px] bg-foreground/50" />
                                             </div>
                                         )}
 
                                         {/* Hover Overlay */}
                                         <div className="absolute inset-0 bg-black/60 opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
-                                            <span className="px-4 py-2 rounded-full border border-white/20 text-white text-[10px] md:text-xs font-medium bg-black/20 backdrop-blur-md">
+                                            <span className="px-4 py-2 rounded-full border border-border text-foreground text-[10px] md:text-xs font-medium bg-black/20 backdrop-blur-md">
                                                 Ouvrir le livre
                                             </span>
                                         </div>
@@ -301,10 +301,10 @@ export default function BooksPage() {
 
                                     {/* Info */}
                                     <div className="space-y-1">
-                                        <h3 className="text-white font-medium leading-tight group-hover:text-[#F97316] transition-colors line-clamp-1">
+                                        <h3 className="text-foreground font-medium leading-tight group-hover:text-[hsl(var(--primary))] transition-colors line-clamp-1">
                                             {book.title}
                                         </h3>
-                                        <div className="flex items-center justify-between text-xs text-gray-500">
+                                        <div className="flex items-center justify-between text-xs text-muted-foreground">
                                             <span className="flex items-center gap-1">
                                                 <BookOpen className="w-3 h-3" />
                                                 {book.chapters?.[0]?.count || 0} chaps
@@ -320,8 +320,8 @@ export default function BooksPage() {
                             {sortedAndFilteredBooks.length === 0 && searchQuery && (
                                 <div className="col-span-full py-20 text-center space-y-4">
                                     <div className="text-gray-600 text-5xl">🔭</div>
-                                    <p className="text-gray-500">Aucun manuscrit trouvé pour &quot;<span className="text-white font-medium">{searchQuery}</span>&quot;</p>
-                                    <button onClick={() => setSearchQuery("")} className="text-[#F97316] text-sm hover:underline">Effacer la recherche</button>
+                                    <p className="text-muted-foreground">Aucun manuscrit trouvé pour &quot;<span className="text-foreground font-medium">{searchQuery}</span>&quot;</p>
+                                    <button onClick={() => setSearchQuery("")} className="text-[hsl(var(--primary))] text-sm hover:underline">Effacer la recherche</button>
                                 </div>
                             )}
                         </>

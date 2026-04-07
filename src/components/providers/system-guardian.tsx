@@ -23,9 +23,9 @@ export function SystemGuardian({ children }: { children: React.ReactNode }) {
             try {
                 // We find an admin profile to get global settings
                 const { data, error } = await supabase
-                    .from('profiles')
-                    .select('settings')
-                    .eq('role', 'admin')
+                    .from('User')
+                    .select('storeId')
+                    .eq('role', 'ADMIN')
                     .limit(1)
                     .maybeSingle();
 
@@ -34,10 +34,9 @@ export function SystemGuardian({ children }: { children: React.ReactNode }) {
                     return;
                 }
 
-                if (data?.settings) {
-                    const settings = data.settings as unknown as SystemSettings;
-                    setMaintenanceMode(settings.maintenance_mode || false);
-                    setBroadcast(settings.broadcast_message || "");
+                if (data) {
+                    setMaintenanceMode(false);
+                    setBroadcast("");
                 }
             } catch (err) {
                 console.error("Guardian check failed:", err);

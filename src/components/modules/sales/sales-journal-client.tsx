@@ -1,15 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { 
     Search, TrendingUp, 
     Calendar, Package, 
     ArrowUpRight,
-    Trash2, Printer, Filter
+    Trash2, Printer, Filter,
+    ChevronLeft, ChevronRight,
+    Plus
 } from "lucide-react";
 import { deleteSale } from "@/lib/actions/sales";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { NewSaleSheet } from "./new-sale-sheet";
 
 interface SaleItem {
     id: string;
@@ -26,230 +30,224 @@ interface Sale {
     status: string;
     paymentMethod: string;
     items?: SaleItem[];
+    createdAt: string;
 }
 
-export default function SalesJournalClient({ initialSales = [], dailyMetrics }: { initialSales: Sale[], dailyMetrics: { totalSales: number } }) {
+export default function SalesJournalClient({ 
+    initialSales = [], 
+    dailyMetrics,
+    currentDate
+}: { 
+    initialSales: Sale[], 
+    dailyMetrics: { totalSales: number },
+    currentDate?: string 
+}) {
+    const router = useRouter();
     const [sales, setSales] = useState<Sale[]>(initialSales || []);
     const [search, setSearch] = useState("");
+
+    useEffect(() => { setSales(initialSales || []); }, [initialSales]);
+
+    const dateObj = currentDate ? new Date(currentDate) : new Date();
+    const isToday = new Date().toDateString() === dateObj.toDateString();
+
+    const handlePrevDay = () => {
+        const prev = new Date(dateObj);
+        prev.setDate(prev.getDate() - 1);
+        router.push(`?date=${prev.toISOString().split('T')[0]}`);
+    };
+
+    const handleNextDay = () => {
+        const next = new Date(dateObj);
+        next.setDate(next.getDate() + 1);
+        router.push(`?date=${next.toISOString().split('T')[0]}`);
+    };
 
     const formatMoney = (amount: number) => {
         return new Intl.NumberFormat('fr-FR').format(amount || 0);
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("⚠️ Annuler cette vente ? Les stocks seront remis à jour et l'argent retiré du journal.")) return;
-        
+        if (!confirm("⚠️ Confirmer l'annulation de cette vente ?")) return;
         try {
             const res = await deleteSale(id);
             if (res.success) {
-                toast.success("Vente annulée avec succès ! ✨");
-                setSales(prev => (prev || []).filter(s => s.id !== id));
+                toast.success("Vente annulée !");
+                setSales((prev: Sale[]) => (prev || []).filter((s: Sale) => s.id !== id));
             } else {
                 toast.error(res.error);
             }
         } catch (error) {
-            console.error(error);
-            toast.error("Erreur lors de la suppression");
+            toast.error("Erreur système");
         }
     };
 
-    const filteredSales = (sales || []).filter(s => 
+    const handlePrint = (id: string) => {
+        window.open(`/r/${id}`, "_blank");
+    };
+
+    const filteredSales = (sales || []).filter((s: Sale) => 
         (s.customerName || "").toLowerCase().includes(search.toLowerCase()) ||
         (s.id || "").toLowerCase().includes(search.toLowerCase())
     );
 
     return (
-        <div className="min-h-screen bg-background text-foreground p-4 md:p-6 pb-20 font-sans transition-colors duration-500 overflow-y-auto">
-            <div className="max-w-[1400px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                
-                {/* --- COMPACT HEADER --- */}
-                <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-border/50 pb-6">
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                             <div className="w-6 h-0.5 bg-primary rounded-full" />
-                             <span className="text-[8px] font-black uppercase tracking-[0.4em] text-muted-foreground/40 leading-none italic">Commerce Journal Protocol</span>
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8">
+            
+            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-border/50">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center bg-card border border-border rounded-xl p-1 shadow-sm">
+                        <button onClick={handlePrevDay} className="p-2 hover:bg-muted rounded-lg transition-colors"><ChevronLeft className="w-5 h-5 text-muted-foreground hover:text-primary" /></button>
+                        <div className="px-4 flex flex-col items-center min-w-[140px]">
+                            <span className="text-xs font-bold text-primary uppercase tracking-tight">
+                                {isToday ? "Aujourd'hui" : dateObj.toLocaleDateString('fr-FR', { weekday: 'long' })}
+                            </span>
+                            <span className="text-sm font-semibold">{dateObj.toLocaleDateString('fr-FR')}</span>
                         </div>
-                        <div className="space-y-0.5">
-                            <h1 className="text-2xl md:text-3xl font-black italic tracking-tighter uppercase leading-none">
-                                Journal des <span className="text-primary italic">Ventes</span>
-                            </h1>
-                            <p className="text-[9px] font-black opacity-10 tracking-[0.2em] uppercase italic">Operations Registry Alpha</p>
-                        </div>
+                        <button onClick={handleNextDay} className="p-2 hover:bg-muted rounded-lg transition-colors"><ChevronRight className="w-5 h-5 text-muted-foreground hover:text-primary" /></button>
                     </div>
-
-                    <div className="flex items-center gap-3 p-1.5 bg-muted/20 border border-border/50 rounded-xl">
-                         <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg shadow-sm">
-                            <Calendar className="w-3.5 h-3.5 text-primary" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Aujourd&apos;hui</span>
-                         </div>
-                         <button className="p-2.5 bg-muted/30 hover:bg-primary hover:text-white rounded-lg transition-all active:scale-95 text-muted-foreground">
-                            <Filter className="w-4 h-4" />
-                         </button>
-                    </div>
-                </header>
-
-                {/* --- COMPACT DAILY METRICS --- */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-card border border-border rounded-2xl p-6 shadow-sm relative overflow-hidden group">
-                        <div className="space-y-4 relative z-10">
-                            <div className="flex justify-between items-center text-primary">
-                                <p className="text-[9px] font-black uppercase tracking-[0.3em]">Chiffre d&apos;Affaire</p>
-                                <TrendingUp className="w-4 h-4" />
-                            </div>
-                            <h2 className="text-3xl font-black text-foreground italic tracking-tighter leading-none">
-                                {formatMoney(dailyMetrics?.totalSales || 0)} <span className="text-sm opacity-20 italic ml-1">F</span>
-                            </h2>
-                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Encaissé Aujourd&apos;hui</p>
-                        </div>
-                    </div>
-
-                    <div className="bg-card border border-border rounded-2xl p-6 shadow-sm relative overflow-hidden group">
-                        <div className="space-y-4 relative z-10">
-                            <div className="flex justify-between items-center text-amber-500">
-                                <p className="text-[9px] font-black uppercase tracking-[0.3em]">Volume Ventes</p>
-                                <Package className="w-4 h-4" />
-                            </div>
-                            <h2 className="text-3xl font-black text-foreground tracking-tighter italic leading-none">
-                                {(sales || []).length} <span className="text-sm opacity-20 italic ml-1 uppercase">Factures</span>
-                            </h2>
-                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Transactions Validées</p>
-                        </div>
-                    </div>
-
-                    <div className="bg-muted/10 border border-border rounded-2xl p-6 flex flex-col justify-between">
-                         <div className="space-y-2">
-                             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground">Performance Jour</p>
-                             <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
-                                <div className="h-full bg-primary" style={{ width: '65%' }} />
-                             </div>
-                         </div>
-                         <div className="flex items-end justify-between mt-2">
-                            <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest leading-none">65% de l&apos;objectif</span>
-                            <ArrowUpRight className="w-4 h-4 text-emerald-500" />
-                         </div>
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Journal des Ventes</h1>
+                        <p className="text-xs text-muted-foreground">Registre quotidien des transactions commerciales.</p>
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
-                    <div className="space-y-1">
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground leading-none">Registre des Opérations</p>
-                        <h3 className="text-[11px] font-black text-foreground italic uppercase tracking-[0.1em]">{filteredSales.length} Transactions détectées</h3>
-                    </div>
-                    <div className="relative group w-full md:w-96">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/30 group-focus-within:text-primary transition-all" />
+                <div className="flex items-center gap-3">
+                    <NewSaleSheet 
+                        trigger={
+                            <button className="bg-primary text-primary-foreground h-11 px-6 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary/90 active:scale-95 transition-all shadow-lg shadow-primary/20">
+                                <Plus className="w-5 h-5 stroke-[3]" /> Nouvelle Vente
+                            </button>
+                        }
+                    />
+                    <div className="relative group w-64">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <input 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            placeholder="RECHERCHER CLIENT OU #INV..."
-                            className="w-full bg-card border border-border rounded-xl py-3.5 l-12 pr-6 text-[10px] font-black uppercase tracking-widest focus:ring-1 focus:ring-primary/40 outline-none transition-all placeholder:text-muted-foreground/20"
+                            placeholder="Rechercher Client / ID..."
+                            className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
                         />
                     </div>
+                    <button className="p-2.5 bg-card border border-border rounded-xl hover:bg-muted transition-colors shadow-sm"><Filter className="w-4 h-4 text-muted-foreground" /></button>
                 </div>
+            </header>
 
-                {/* --- RESPONSIVE SALES LIST --- */}
-                <div className="bg-card rounded-xl border border-border/50 overflow-hidden shadow-xl">
-                    {/* View Table (Hidden on Mobile) */}
-                    <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full text-left text-[11px]">
-                            <thead>
-                                <tr className="border-b border-muted/10 text-muted-foreground uppercase opacity-40 bg-muted/5">
-                                    <th className="px-6 py-4 text-[8px] font-black tracking-widest italic">Facture ID / Client</th>
-                                    <th className="px-6 py-4 text-[8px] font-black tracking-widest italic">Détails Panier</th>
-                                    <th className="px-6 py-4 text-[8px] font-black tracking-widest italic">Montant Total</th>
-                                    <th className="px-6 py-4 text-[8px] font-black tracking-widest italic">Payé / Statut</th>
-                                    <th className="px-6 py-4 text-[8px] font-black tracking-widest italic text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredSales.length === 0 ? (
-                                    <tr><td colSpan={5} className="py-20 text-center font-black text-muted-foreground opacity-20 italic uppercase tracking-[0.4em]">Journal vierge ✨🛒</td></tr>
-                                ) : filteredSales.map((sale: Sale) => (
-                                    <tr key={sale.id} className="group hover:bg-muted/5 transition-all border-b border-muted/5 last:border-0 relative">
-                                        <td className="px-6 py-3">
-                                            <div className="flex flex-col gap-0.5">
-                                                <span className="text-[11px] font-black uppercase tracking-tight text-foreground italic leading-none">{sale.customerName || "CLIENT PASSANT"}</span>
-                                                <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest opacity-20">#MDS-{sale.id.slice(-6).toUpperCase()}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-7 h-7 rounded-md bg-muted/20 flex items-center justify-center border border-border/30 group-hover:bg-primary group-hover:text-white transition-all text-muted-foreground/40 font-black text-[9px]">
-                                                    {sale.items?.length || 0}
-                                                </div>
-                                                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest italic truncate max-w-[120px]">
-                                                    {sale.items?.map((i: SaleItem) => i.product.name).join(", ") || "Détails indisponibles"}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-3 font-black text-[11px] italic">{formatMoney(sale.totalAmount)} <span className="opacity-20 ml-1">F</span></td>
-                                        <td className="px-6 py-3">
-                                            <div className="flex flex-col items-start gap-1">
-                                                <span className={cn(
-                                                    "px-2 py-0.5 rounded-md text-[7px] font-bold uppercase tracking-widest border",
-                                                    sale.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-sm italic" : "bg-amber-500/10 text-amber-500 border-amber-500/20 italic"
-                                                )}>
-                                                    {sale.status === 'COMPLETED' ? 'SOLDE' : 'PARTIEL'}
-                                                </span>
-                                                <span className="text-[8px] font-bold text-muted-foreground opacity-20 italic">{formatMoney(sale.amountPaid)} F Reçus</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-3 text-right">
-                                            <div className="flex items-center justify-end gap-1.5 translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                                <button className="p-2 bg-background border border-border/30 hover:bg-muted rounded-md transition-all text-muted-foreground hover:text-foreground">
-                                                    <Printer className="w-3 h-3" />
-                                                </button>
-                                                <button onClick={() => handleDelete(sale.id)} className="p-2 bg-red-500/5 text-red-500 border border-red-500/10 rounded-md hover:bg-red-500 hover:text-white transition-all">
-                                                    <Trash2 className="w-3 h-3" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* View Cards (Visible only on Mobile) */}
-                    <div className="md:hidden divide-y divide-border/50">
-                        {filteredSales.length === 0 ? (
-                            <div className="py-20 text-center font-black text-muted-foreground opacity-20 italic uppercase tracking-[0.4em]">Journal vierge ✨🛒</div>
-                        ) : filteredSales.map((sale: Sale) => (
-                            <div key={sale.id} className="p-5 space-y-4 active:bg-muted/10 transition-colors">
-                                <div className="flex justify-between items-start">
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-black uppercase text-foreground italic leading-none">{sale.customerName || "CLIENT PASSANT"}</p>
-                                        <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest opacity-30">#MDS-{sale.id.slice(-6).toUpperCase()}</p>
-                                    </div>
-                                    <span className={cn(
-                                        "px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border",
-                                        sale.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                                    )}>
-                                        {sale.status === 'COMPLETED' ? 'SOLDE' : 'PARTIEL'}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded bg-muted/20 border border-border flex items-center justify-center text-[9px] font-black text-muted-foreground">
-                                            {sale.items?.length || 0}
-                                        </div>
-                                        <p className="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-tight truncate max-w-[150px]">
-                                            {sale.items?.[0]?.product.name} { (sale.items?.length || 0) > 1 ? `+ ${sale.items!.length - 1}` : ''}
-                                        </p>
-                                    </div>
-                                    <p className="text-sm font-black italic text-foreground tracking-tighter">{formatMoney(sale.totalAmount)} F</p>
-                                </div>
-                                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/10">
-                                    <button className="flex-1 py-2 bg-muted/20 rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                                        <Printer className="w-3 h-3" /> Ticket
-                                    </button>
-                                    <button onClick={() => handleDelete(sale.id)} className="p-2 text-red-500 bg-red-500/10 rounded-lg">
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
+            {/* METRICS SUMMARY */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                    { label: "Chiffre d'Affaires", value: dailyMetrics?.totalSales || 0, icon: TrendingUp, color: "text-emerald-500", suffix: " FCFA" },
+                    { label: "Volume de Ventes", value: sales.length, icon: Package, color: "text-primary", suffix: " Transactions" },
+                ].map((m, i) => (
+                    <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className={cn("p-2 rounded-lg bg-muted/50 border border-border", m.color)}>
+                                <m.icon className="w-4 h-4" />
                             </div>
-                        ))}
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{m.label}</span>
+                        </div>
+                        <h2 className="text-xl font-bold text-foreground">
+                            {formatMoney(m.value)} <span className="text-[10px] text-muted-foreground font-normal tracking-normal">{m.suffix}</span>
+                        </h2>
                     </div>
+                ))}
+            </div>
+
+            {/* TABLES SECTION */}
+            <div className="bg-card border border-border shadow-sm rounded-xl overflow-hidden flex-1 flex flex-col min-h-[400px]">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-muted/10 text-muted-foreground text-xs font-semibold border-b border-border">
+                            <tr>
+                                <th className="px-6 py-4 uppercase tracking-wider">ID Vente</th>
+                                <th className="px-6 py-4 uppercase tracking-wider">Client / Mode</th>
+                                <th className="px-6 py-4 uppercase tracking-wider">Articles</th>
+                                <th className="px-6 py-4 uppercase tracking-wider text-center">Statut</th>
+                                <th className="px-6 py-4 uppercase tracking-wider text-right">Montant Total</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/50">
+                            {filteredSales.length === 0 ? (
+                                <tr><td colSpan={5} className="py-20 text-center text-muted-foreground">Aucune transaction trouvée pour cette période.</td></tr>
+                            ) : filteredSales.map((sale: Sale) => (
+                                <tr key={sale.id} className="hover:bg-muted/30 transition-colors group">
+                                    <td className="px-6 py-5 font-mono text-xs text-foreground font-bold">
+                                        #{sale.id.slice(-6).toUpperCase()}
+                                        <span className="block text-[10px] font-normal text-muted-foreground">{new Date(sale.createdAt).toLocaleTimeString()}</span>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <span className="block font-bold text-foreground text-sm uppercase tracking-tight">{sale.customerName || "CLIENT PASSANT"}</span>
+                                        <span className="text-[10px] text-muted-foreground font-medium uppercase">{sale.paymentMethod || 'CASH'}</span>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div className="flex flex-col gap-1">
+                                            {sale.items?.map((i: SaleItem) => (
+                                                <div key={i.id} className="flex items-center justify-between text-[11px] font-bold text-foreground bg-muted/20 px-2 py-1 rounded border border-border/50">
+                                                    <span className="uppercase truncate max-w-[140px]">{i.product.name}</span>
+                                                    <span className="text-primary ml-2">×{i.quantity}</span>
+                                                </div>
+                                            )) || <span className="text-xs italic text-muted-foreground">Aucun article</span>}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5 text-center">
+                                        <span className={cn(
+                                            "px-2 py-1 rounded text-[10px] font-bold border",
+                                            sale.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-orange-500/10 text-orange-600 border-orange-500/20"
+                                        )}>
+                                            {sale.status === 'COMPLETED' ? 'PAYÉ' : 'PARTIEL'}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-5 text-right">
+                                        <div className="flex items-center justify-end gap-4">
+                                            <div className="text-right">
+                                                <span className="block text-base font-bold text-foreground">{formatMoney(sale.totalAmount)} F</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button 
+                                                    className="p-2 border border-border rounded-lg bg-background hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
+                                                    onClick={() => handlePrint(sale.id)}
+                                                    title="Facture"
+                                                >
+                                                   <Printer className="w-3.5 h-3.5" />
+                                                </button>
+                                                {isToday && (
+                                                    <button 
+                                                        className="p-2 border border-border rounded-lg bg-background hover:bg-red-500/10 text-red-500 transition-colors" 
+                                                        onClick={() => handleDelete(sale.id)}
+                                                        title="Annuler"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
+            </div>
+            
+            {/* MOBILE VIEW */}
+            <div className="lg:hidden space-y-3">
+                {filteredSales.map((sale: Sale) => (
+                    <div key={sale.id} className="p-4 bg-card border border-border rounded-xl space-y-3">
+                        <div className="flex justify-between items-start">
+                            <span className="text-xs font-bold font-mono">#{sale.id.slice(-6).toUpperCase()}</span>
+                            <span className="text-[10px] text-muted-foreground">{new Date(sale.createdAt).toLocaleTimeString()}</span>
+                        </div>
+                        <div className="flex justify-between items-end">
+                            <div>
+                                <h4 className="text-sm font-bold uppercase">{sale.customerName || "CLIENT PASSANT"}</h4>
+                                <p className="text-[10px] text-muted-foreground uppercase">{sale.paymentMethod || 'CASH'}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-base font-bold text-foreground">{formatMoney(sale.totalAmount)} F</p>
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );

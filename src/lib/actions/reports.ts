@@ -2,13 +2,38 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import { startOfMonth, endOfMonth, subMonths, format, startOfDay, endOfDay, subDays } from "date-fns";
+import { startOfMonth, endOfMonth, format, startOfDay, endOfDay, subDays } from "date-fns";
+
+export interface FinancialSummary {
+    totalRevenue: number;
+    grossProfit: number;
+    totalExpenses: number;
+    netProfit: number;
+    inventoryValue: number;
+}
+
+export interface ChartPoint {
+    name: string;
+    total: number;
+}
+
+export interface FinancialReport {
+    summary: FinancialSummary;
+    chartData: ChartPoint[];
+    success: boolean;
+    error?: string;
+}
 
 export async function getFinancialReport() {
     const session = await auth();
     const storeId = session?.user?.storeId;
 
-    if (!storeId) return { error: "Non autorisé" };
+    if (!storeId) return { 
+        summary: { totalRevenue: 0, grossProfit: 0, totalExpenses: 0, netProfit: 0, inventoryValue: 0 },
+        chartData: [],
+        success: false, 
+        error: "Non autorisé" 
+    };
 
     try {
         const now = new Date();
@@ -58,24 +83,32 @@ export async function getFinancialReport() {
         const totalExpenses = expenses._sum.amount || 0;
         const netProfit = grossProfit - totalExpenses;
 
-        // 4. Données pour le graphique (7 derniers jours)
-        const last7Days = await Promise.all(
-            Array.from({ length: 7 }).map(async (_, i) => {
-                const date = subDays(now, 6 - i);
-                const daySales = await prisma.sale.aggregate({
-                    where: {
-                        storeId,
-                        status: "COMPLETED",
-                        createdAt: { gte: startOfDay(date), lte: endOfDay(date) }
-                    },
-                    _sum: { totalAmount: true }
-                });
-                return {
-                    name: format(date, "dd/MM"),
-                    total: daySales._sum.totalAmount || 0
-                };
-            })
-        );
+        const sevenDaysAgo = startOfDay(subDays(now, 6));
+        const recentSales = await prisma.sale.findMany({
+            where: {
+                storeId,
+                status: "COMPLETED",
+                createdAt: { gte: sevenDaysAgo, lte: endOfDay(now) }
+            },
+            select: {
+                totalAmount: true,
+                createdAt: true
+            }
+        });
+
+        // Grouping in memory (much faster than 7 separate DB calls)
+        const last7Days: ChartPoint[] = Array.from({ length: 7 }).map((_, i) => {
+            const date = subDays(now, 6 - i);
+            const dateStr = format(date, "yyyy-MM-dd");
+            const dayTotal = recentSales
+                .filter(s => format(new Date(s.createdAt), "yyyy-MM-dd") === dateStr)
+                .reduce((acc, s) => acc + s.totalAmount, 0);
+
+            return {
+                name: format(date, "dd/MM"),
+                total: dayTotal
+            };
+        });
 
         // 5. Valeur du Stock (Prix d'achat * Quantité)
         const stocks = await prisma.stock.findMany({
@@ -97,9 +130,14 @@ export async function getFinancialReport() {
             },
             chartData: last7Days,
             success: true
-        };
+        } as FinancialReport;
     } catch (error) {
         console.error("[REPORT_ACTION] Error:", error);
-        return { error: "Erreur lors de la génération du rapport." };
+        return { 
+            summary: { totalRevenue: 0, grossProfit: 0, totalExpenses: 0, netProfit: 0, inventoryValue: 0 },
+            chartData: [],
+            success: false,
+            error: "Erreur lors de la génération du rapport." 
+        };
     }
 }

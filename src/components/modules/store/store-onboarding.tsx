@@ -25,8 +25,11 @@ export function StoreOnboarding() {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [initialProducts, setInitialProducts] = useState<InitialProduct[]>([
-      { name: "Produit Alpha", price: "1000" }
+      { name: "Article Alpha", price: "7500" }
   ]);
+  const [logo, setLogo] = useState("");
+  const [slogan, setSlogan] = useState("Le futur de votre gestion.");
+  const [activity, setActivity] = useState("");
   
   const getInitialPlan = (): "STARTER" | "GROWTH" | "BUSINESS" => {
     if (typeof document !== 'undefined') {
@@ -58,7 +61,16 @@ export function StoreOnboarding() {
     if (!name) return toast.error("Le nom de l'entreprise est requis");
 
     setLoading(true);
-    const result = await createStore({ name, address, plan });
+    const result = await createStore({ 
+        name, 
+        address, 
+        plan,
+        config: {
+            logo,
+            slogan,
+            activity
+        }
+    });
 
     if (result.success) {
       const validProducts = initialProducts.filter(p => p.name && p.price);
@@ -106,7 +118,7 @@ export function StoreOnboarding() {
         <div className="bg-[#0A0A0B]/80 backdrop-blur-3xl border border-white/5 rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
           
           <div className="flex items-center gap-1.5 mb-8">
-              {[1, 2, 3, 4].map((s) => (
+              {[1, 2, 3, 4, 5].map((s) => (
                   <div 
                     key={s} 
                     className={cn(
@@ -124,30 +136,73 @@ export function StoreOnboarding() {
                         <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
                             <Building2 className="w-6 h-6 text-primary" />
                         </div>
-                        <h1 className="text-2xl font-black tracking-tight text-white leading-none uppercase italic">Identité <span className="text-primary italic">Empire.</span></h1>
-                        <p className="text-[11px] text-gray-500 font-medium uppercase tracking-widest opacity-60 italic">Protocole de fondation active</p>
+                        <h1 className="text-2xl font-black tracking-tight text-white leading-none uppercase italic">Votre <span className="text-primary italic">Empire.</span></h1>
+                        <p className="text-[11px] text-gray-500 font-medium uppercase tracking-widest opacity-60 italic">Quelle est l&apos;activité principale de votre hub ?</p>
                     </header>
                     <div className="space-y-4">
                         <div className="space-y-1">
-                            <label className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 ml-1">Nom Structure</label>
-                            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Mindos Corp" className="w-full bg-black/40 border border-white/5 rounded-xl px-5 py-3 text-sm font-black uppercase text-white focus:border-primary/50 outline-none transition-all" />
+                            <label className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 ml-1">Nom de la Boutique</label>
+                            <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Boutique Luxe Abidjan" className="w-full bg-black/40 border border-white/5 rounded-xl px-5 py-3 text-sm font-black uppercase text-white focus:border-primary/50 outline-none transition-all" />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 ml-1">Localisation Hub</label>
-                            <div className="relative">
-                                <Globe className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
-                                <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Abidjan" className="w-full bg-black/40 border border-white/5 rounded-xl px-12 py-3 text-[11px] font-black uppercase text-white focus:border-primary/50 outline-none transition-all" />
-                            </div>
+                            <label className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 ml-1">Secteur d&apos;Activité</label>
+                            <input value={activity} onChange={(e) => setActivity(e.target.value)} placeholder="Ex: Prêt-à-porter, Quincaillerie..." className="w-full bg-black/40 border border-white/5 rounded-xl px-5 py-3 text-[11px] font-black uppercase text-white focus:border-primary/50 outline-none transition-all" />
                         </div>
                     </div>
-                    <button onClick={handleNext} disabled={!name} className="w-full py-4 bg-primary text-black font-black uppercase tracking-widest text-[10px] rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50" >
-                        Choisir Stratégie <ArrowRight className="w-3 h-3" />
+                    <button onClick={handleNext} disabled={!name} className="w-full py-4 bg-primary text-black font-black uppercase tracking-widest text-[10px] rounded-xl flex items-center justify-center gap-2 shadow-lg hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50" >
+                        Étape Suivante <ArrowRight className="w-3 h-3" />
                     </button>
                 </motion.div>
             )}
 
             {step === 2 && (
                 <motion.div key="step-2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6" >
+                    <header className="space-y-3">
+                        <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                            <Sparkles className="w-6 h-6 text-orange-500" />
+                        </div>
+                        <h1 className="text-2xl font-black tracking-tight text-white leading-none uppercase italic">Signature <span className="text-primary italic">Alpha.</span></h1>
+                        <p className="text-[11px] text-gray-500 font-medium uppercase tracking-widest opacity-60 italic">Personnalisez vos futures factures</p>
+                    </header>
+                    <div className="space-y-4">
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 ml-1">Logo URL (Optionnel)</label>
+                            <input value={logo} onChange={(e) => setLogo(e.target.value)} placeholder="https://votre-site.com/logo.png" className="w-full bg-black/40 border border-white/5 rounded-xl px-5 py-3 text-[10px] font-black text-white focus:border-primary/50 outline-none transition-all" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 ml-1">Slogan Commercial</label>
+                            <input value={slogan} onChange={(e) => setSlogan(e.target.value)} placeholder="Le futur est ici." className="w-full bg-black/40 border border-white/5 rounded-xl px-5 py-3 text-[11px] font-black uppercase text-white focus:border-primary/50 outline-none transition-all" />
+                        </div>
+
+                        {/* LIVE RECEIPT PREVIEW */}
+                        <div className="pt-4 animate-in fade-in zoom-in duration-700">
+                             <div className="bg-white text-black p-6 rounded-2xl shadow-xl w-full max-w-[280px] mx-auto rotate-1 scale-90 origin-center border-t-8 border-primary">
+                                 <div className="text-center space-y-1 mb-4">
+                                     <div className="text-sm font-black uppercase tracking-tighter leading-none">{name || "Votre Boutique"}</div>
+                                     <div className="text-[7px] font-bold text-gray-400 uppercase tracking-widest">Reçu de paiement Alpha</div>
+                                 </div>
+                                 <div className="border-t border-dashed border-gray-200 py-3 space-y-2">
+                                     <div className="flex justify-between text-[8px] font-black"><span>Article Test</span><span>12.000 F</span></div>
+                                 </div>
+                                 <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
+                                     <span className="text-[10px] font-black italic">TOTAL</span>
+                                     <span className="text-lg font-black italic tracking-tighter">12.000 F</span>
+                                 </div>
+                                 <div className="mt-4 text-center">
+                                     <p className="text-[7px] font-bold text-gray-400 italic">"{slogan}"</p>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+                    <div className="flex gap-2 pt-2">
+                        <button onClick={handleBack} className="flex-1 py-4 bg-white/5 text-gray-500 font-black uppercase text-[10px] tracking-widest rounded-xl">Retour</button>
+                        <button onClick={handleNext} className="flex-[2] py-4 bg-primary text-black font-black uppercase tracking-widest text-[10px] rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary transition-all">Confirmer Style</button>
+                    </div>
+                </motion.div>
+            )}
+
+            {step === 3 && (
+                <motion.div key="step-3" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6" >
                     <header className="space-y-3">
                         <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
                             <ShieldCheck className="w-6 h-6 text-primary" />
@@ -157,7 +212,7 @@ export function StoreOnboarding() {
                     </header>
                     <div className="grid grid-cols-1 gap-2">
                         <PlanOption title="Starter" price="3.000" details="Solo / Entrée" active={plan === "STARTER"} onClick={() => setPlan("STARTER")} icon={Zap} />
-                        <PlanOption title="Growth" price="5.000" details="Optimisé 2 Staff" active={plan === "GROWTH"} onClick={() => setPlan("GROWTH")} icon={Sparkles} popular />
+                        <PlanOption title="Growth" price="5.000" details="Optimisée 2 Staff" active={plan === "GROWTH"} onClick={() => setPlan("GROWTH")} icon={Sparkles} popular />
                         <PlanOption title="Business" price="7.000" details="Power / 5 Staff" active={plan === "BUSINESS"} onClick={() => setPlan("BUSINESS")} icon={Crown} />
                     </div>
                     <div className="flex gap-2 pt-2">
@@ -167,8 +222,8 @@ export function StoreOnboarding() {
                 </motion.div>
             )}
 
-            {step === 3 && (
-                <motion.div key="step-3" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6" >
+            {step === 4 && (
+                <motion.div key="step-4" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6" >
                     <header className="space-y-3">
                         <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
                             <Package className="w-6 h-6 text-emerald-500" />
@@ -197,8 +252,8 @@ export function StoreOnboarding() {
                 </motion.div>
             )}
 
-            {step === 4 && (
-                <motion.div key="step-4" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6 text-center" >
+            {step === 5 && (
+                <motion.div key="step-5" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6 text-center" >
                     <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto opacity-80" />
                     <div className="space-y-1">
                         <h2 className="text-2xl font-black tracking-tight text-white uppercase italic">Déploiement <span className="text-primary italic">Actif.</span></h2>
@@ -211,8 +266,12 @@ export function StoreOnboarding() {
                             <span className="text-white font-black uppercase italic">{name}</span>
                         </div>
                         <div className="flex justify-between items-center text-[10px]">
-                            <span className="text-gray-500 font-black uppercase tracking-widest">Plan</span>
+                            <span className="text-gray-500 font-black uppercase tracking-widest">Plan sélectionné</span>
                             <span className="text-primary font-black uppercase italic">{plan}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px]">
+                            <span className="text-gray-500 font-black uppercase tracking-widest">Catalogue</span>
+                            <span className="text-white font-black uppercase italic">{initialProducts.length} Article(s)</span>
                         </div>
                     </div>
 

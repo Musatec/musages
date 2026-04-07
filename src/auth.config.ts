@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
+import { Role } from "@prisma/client";
 
 export const authConfig = {
   providers: [], // Providers are added in auth.ts for non-edge compatibility
@@ -8,7 +9,7 @@ export const authConfig = {
         session.user.id = token.sub;
       }
       if (token.role && session.user) {
-        session.user.role = token.role as any;
+        session.user.role = token.role as Role;
       }
       if (token.storeId && session.user) {
         session.user.storeId = token.storeId as string;

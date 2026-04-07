@@ -3,32 +3,25 @@
 import { useState, useMemo } from "react";
 import { 
     Search, Plus, Package, AlertTriangle, 
-    Trash2, Printer, Coins, X, Loader2, Sparkles
+    Trash2, Coins, Loader2, Sparkles,
+    BoxIcon, RefreshCw, Filter, MoreHorizontal
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { SafeImage } from "@/components/ui/safe-image";
 import { createProduct, updateStock, deleteProduct } from "@/lib/actions/inventory";
+import { 
+    Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
+} from "@/components/ui/sheet";
 
-interface Product {
-    id: string;
-    name: string;
-    price: number;
-    costPrice?: number | null;
-    category?: string | null;
-    image?: string | null;
-    stock: number;
-    minStock?: number | null;
-    sku?: string | null;
-}
+import { Product, ProductFormData } from "@/types/inventory";
 
 export function InventoryManager({ initialProducts }: { initialProducts: Product[] }) {
-    const [products, setProducts] = useState(initialProducts);
+    const [products, setProducts] = useState<Product[]>(initialProducts);
     const [search, setSearch] = useState("");
-    const [showAddModal, setShowAddModal] = useState(false);
+    const [openAdd, setOpenAdd] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({ name: "", price: "", costPrice: "", stock: "0", minStock: "5", category: "", sku: "", image: "" });
+    const [formData, setFormData] = useState<ProductFormData>({ name: "", price: "", costPrice: "", stock: "0", minStock: "5", category: "", sku: "", image: "" });
 
     const filteredProducts = useMemo(() => {
         return products.filter(p => 
@@ -45,27 +38,27 @@ export function InventoryManager({ initialProducts }: { initialProducts: Product
     }, [products]);
 
     const handleQuickStock = async (pId: string, name: string) => {
-        const amount = prompt(`📦 APPROVISIONNEMENT : ${name}\nQuantité reçue :`);
+        const amount = prompt(`Approvisionnement pour : ${name}\nSaisissez la quantité reçue :`);
         if (!amount || isNaN(Number(amount))) return;
         setLoading(true);
         try {
-            const res = await updateStock({ productId: pId, amount: Number(amount), reason: "Approvisionnement Manuel" });
+            const res = await updateStock({ productId: pId, amount: Number(amount), reason: "Réapprovisionnement manuel" });
             if (res.success) {
-                toast.success(`Stock mis à jour ! ✨`);
+                toast.success(`Quantité mise à jour !`);
                 setProducts(prev => prev.map(p => p.id === pId ? { ...p, stock: p.stock + Number(amount) } : p));
             } else toast.error(res.error);
         } finally { setLoading(false); }
     };
 
     const handleDelete = async (pId: string, name: string) => {
-        if (!confirm(`⚠️ Supprimer ${name} ?`)) return;
+        if (!confirm(`Supprimer définitivement "${name}" de l'inventaire ?`)) return;
         try {
             const res = await deleteProduct(pId);
             if (res.success) {
-                toast.success("Retiré ! ✨");
+                toast.success("Produit supprimé !");
                 setProducts(prev => prev.filter(p => p.id !== pId));
             } else toast.error(res.error);
-        } catch { toast.error("Erreur système"); }
+        } catch { toast.error("Une erreur est survenue."); }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -73,148 +66,204 @@ export function InventoryManager({ initialProducts }: { initialProducts: Product
         setLoading(true);
         const result = await createProduct({ ...formData, price: Number(formData.price), costPrice: Number(formData.costPrice), stock: Number(formData.stock), minStock: Number(formData.minStock) });
         if (result.success) {
-            toast.success("Produit ajouté ! 📦");
-            // @ts-expect-error type expected to be checked
+            toast.success("Nouveau produit enregistré !");
+            // @ts-expect-error type expected from server
             setProducts([result.product, ...products]);
-            setShowAddModal(false);
+            setOpenAdd(false);
             setFormData({ name: "", price: "", costPrice: "", stock: "0", minStock: "5", category: "", sku: "", image: "" });
         } else toast.error(result.error);
         setLoading(false);
     };
 
+    const formatMoney = (amount: number) => new Intl.NumberFormat('fr-FR').format(amount);
+
     return (
-        <div className="p-4 md:p-6 flex flex-col h-full space-y-6 bg-background text-foreground transition-all duration-500 overflow-y-auto custom-scrollbar">
-            
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 pb-4">
-                <div className="space-y-0.5">
-                    <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none text-foreground">
-                        Gestion <span className="text-primary italic">Stock.</span>
-                    </h1>
-                    <p className="text-[8px] text-muted-foreground/30 font-black tracking-[0.2em] uppercase">Logistique Alpha | {products.length} Articles</p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 p-1 bg-muted/20 border border-border rounded-lg group focus-within:ring-1 ring-primary/20 h-9">
-                        <Search className="w-3.5 h-3.5 ml-2 text-muted-foreground/20 group-focus-within:text-primary transition-colors" />
-                        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="FILTRER STOCK..." className="bg-transparent border-none outline-none py-1.5 px-0.5 w-32 text-[8px] uppercase font-black tracking-widest placeholder:text-muted-foreground/20" />
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8">
+            <div className="max-w-[1600px] mx-auto w-full space-y-8">
+                
+                {/* --- PROFESSIONAL HEADER --- */}
+                <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/50 text-foreground">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Gestion de l'Inventaire</h1>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            {products.length} articles répertoriés dans votre logistique.
+                        </p>
                     </div>
-                    <button onClick={() => setShowAddModal(true)} className="bg-primary text-black px-4 py-2.5 rounded-lg font-black uppercase text-[9px] tracking-widest flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-md italic">
-                        <Plus className="w-3.5 h-3.5 stroke-[3]" />
-                        Ajouter
-                    </button>
-                    <button className="p-2.5 bg-muted/30 border border-border rounded-lg hover:bg-primary transition-all"><Printer className="w-3.5 h-3.5" /></button>
-                </div>
-            </header>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                    { label: "Valeur Achat", value: metrics.totalValue, icon: Coins, color: "text-primary" },
-                    { label: "Alertes Seuil", value: metrics.lowStockCount, icon: AlertTriangle, color: "text-amber-500", anim: true },
-                    { label: "Rupture Stock", value: metrics.outOfStockCount, icon: Package, color: "text-red-500" }
-                ].map((m, i) => (
-                    <div key={i} className="bg-secondary/5 border border-border/10 rounded-xl p-4 relative overflow-hidden group">
-                        <div className="relative z-10 flex flex-col gap-1.5">
-                            <div className={cn("inline-flex items-center gap-1.5 opacity-50 font-black", m.color)}>
-                                <AlertTriangle className={cn("w-3.5 h-3.5", m.anim && "animate-pulse")} />
-                                <p className="text-[8px] uppercase tracking-widest leading-none">{m.label}</p>
-                            </div>
-                            <h2 className="text-xl font-black text-foreground italic tracking-tight leading-none uppercase">
-                                {typeof m.value === 'number' ? new Intl.NumberFormat('fr-FR').format(m.value) : m.value}
-                                <span className="text-[9px] opacity-20 ml-1 font-black uppercase">{i === 0 ? 'F' : 'Units'}</span>
-                            </h2>
+                    <div className="flex items-center gap-3">
+                        <div className="relative group w-full md:w-72">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                            <input 
+                                value={search} 
+                                onChange={(e) => setSearch(e.target.value)} 
+                                placeholder="Rechercher un article..." 
+                                className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
+                            />
                         </div>
-                    </div>
-                ))}
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {filteredProducts.map((p) => {
-                    const isLow = p.stock <= (p.minStock || 5);
-                    const isOut = p.stock === 0;
-                    return (
-                        <div key={p.id} className="bg-card border border-border rounded-xl p-4 hover:shadow-lg hover:border-primary/20 transition-all group relative overflow-hidden flex flex-col justify-between h-full min-h-[170px]">
-                            <div>
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="w-8 h-8 rounded-lg bg-muted/30 border border-border/50 flex items-center justify-center overflow-hidden">
-                                        {p.image ? <SafeImage src={p.image} alt={p.name} className="w-full h-full object-cover" /> : <Package className="w-3.5 h-3.5 opacity-10" />}
-                                    </div>
-                                    <div className={cn("px-1.5 py-0.5 rounded text-[6px] font-black uppercase tracking-widest border", isOut ? "bg-red-500/10 border-red-500/20 text-red-500" : isLow ? "bg-amber-500/10 border-amber-500/20 text-amber-500" : "bg-emerald-500/10 border-emerald-500/20 text-emerald-500")}>
-                                        {isOut ? "OUT" : isLow ? "LOW" : "OK"}
-                                    </div>
-                                </div>
-                                <div className="space-y-0.5">
-                                    <p className="text-[7px] font-black text-muted-foreground/30 italic uppercase tracking-widest">{p.category || "GENERAL"}</p>
-                                    <h3 className="text-[11px] font-black text-foreground tracking-tighter uppercase leading-tight truncate">{p.name}</h3>
-                                    <p className="text-[12px] font-black text-primary italic leading-none pt-0.5">{p.price.toLocaleString()} <span className="text-[7px] opacity-20 ml-0.5 uppercase">F</span></p>
-                                </div>
-                            </div>
-                            <div className="pt-2 border-t border-border/10 mt-3 flex items-center justify-between">
-                                <div className="flex flex-col">
-                                    <span className="text-[7px] font-black text-muted-foreground/30 uppercase opacity-20">Stock Unit</span>
-                                    <span className={cn("text-base font-black leading-none italic", isLow ? "text-red-500" : "text-foreground")}>{p.stock}</span>
-                                </div>
-                                <div className="flex gap-1">
-                                    <button onClick={() => handleQuickStock(p.id, p.name)} className="w-7 h-7 rounded-lg bg-emerald-500/5 text-emerald-500 hover:bg-emerald-500 hover:text-black transition-all flex items-center justify-center"><Plus className="w-3.5 h-3.5 stroke-[3]" /></button>
-                                    <button onClick={() => handleDelete(p.id, p.name)} className="w-7 h-7 rounded-lg bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-black transition-all flex items-center justify-center"><Trash2 className="w-3 h-3" /></button>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-
-            <AnimatePresence>
-                {showAddModal && (
-                    <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center md:justify-end p-0 md:p-6 lg:p-8">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAddModal(false)} className="absolute inset-0 bg-background/60 backdrop-blur-md" />
-                        <motion.div 
-                            initial={{ y: "100%", x: 0 }} 
-                            animate={{ y: 0, x: 0 }} 
-                            exit={{ y: "100%", x: 0 }} 
-                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="relative w-full md:max-w-md h-[85vh] md:h-[90vh] bg-card border-t md:border border-border shadow-2xl rounded-t-[2.5rem] md:rounded-2xl p-6 md:p-8 flex flex-col overflow-hidden"
-                        >
-                            <div className="w-12 h-1.5 bg-muted/20 rounded-full mx-auto mb-6 md:hidden" />
-                            <header className="flex justify-between items-center mb-6">
-                                <div className="space-y-0.5 text-left w-full">
-                                    <h2 className="text-lg font-black italic tracking-tighter uppercase text-foreground leading-none">Nouveau <span className="text-primary italic">Article.</span></h2>
-                                    <p className="text-[7px] text-muted-foreground/30 font-black uppercase tracking-widest">Registre Logistique Alpha</p>
-                                </div>
-                                <button onClick={() => setShowAddModal(false)} className="p-2 rounded-lg bg-muted/20 border border-border text-foreground hover:bg-primary transition-all"><X className="w-4 h-4" /></button>
-                            </header>
-                            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto space-y-5 pr-1 custom-scrollbar pb-10">
-                                <div className="space-y-1.5">
-                                    <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 ml-1 italic">Désignation Produit</label>
-                                    <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-muted/5 border border-border/50 focus:border-primary rounded-xl px-5 py-4 text-xs font-black text-foreground outline-none uppercase italic" placeholder="EX: IPHONE 15 PRO..." />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                     <div className="space-y-1.5">
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-primary/60 ml-1 italic">P.A (Achat)</label>
-                                        <input required type="number" value={formData.costPrice} onChange={e => setFormData({...formData, costPrice: e.target.value})} className="w-full bg-muted/5 border border-border/50 focus:border-primary rounded-xl px-5 py-4 text-xs font-black text-white outline-none" placeholder="0" />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-primary ml-1 italic">P.V (Vente)</label>
-                                        <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full bg-muted/5 border border-border/50 focus:border-primary rounded-xl px-5 py-4 text-xs font-black text-white outline-none" placeholder="0" />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                     <div className="space-y-1.5">
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 ml-1 italic">Stock Initial</label>
-                                        <input required type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full bg-muted/5 border border-border/50 rounded-xl px-5 py-4 text-xs font-black text-white outline-none" />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-red-500/60 ml-1 italic">Seuil Alerte</label>
-                                        <input required type="number" value={formData.minStock} onChange={e => setFormData({...formData, minStock: e.target.value})} className="w-full bg-red-500/5 border border-red-500/10 rounded-xl px-5 py-4 text-xs font-black text-red-500 outline-none" />
-                                    </div>
-                                </div>
-                                <button type="submit" disabled={loading} className="w-full py-5 bg-primary text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-xl shadow-primary/10 active:scale-95 transition-all flex items-center justify-center gap-3 italic mt-8">
-                                    {loading ? <Loader2 className="animate-spin w-5 h-5" /> : [<Sparkles key="s" className="w-4 h-4" />, "Enregistrer l'Article"]}
+                        <Sheet open={openAdd} onOpenChange={setOpenAdd}>
+                            <SheetTrigger asChild>
+                                <button className="bg-primary text-primary-foreground h-10 px-5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-primary/90 active:scale-95 transition-all shadow-md shadow-primary/10">
+                                    <Plus className="w-4 h-4" /> Ajouter
                                 </button>
-                            </form>
-                        </motion.div>
+                            </SheetTrigger>
+                            <SheetContent className="sm:max-w-md bg-card border-l border-border p-8 flex flex-col shadow-2xl">
+                                <SheetHeader className="mb-8 text-left">
+                                    <SheetTitle className="text-2xl font-bold">Nouveau Produit</SheetTitle>
+                                    <p className="text-sm text-muted-foreground mt-1">Remplissez les informations de base pour enregistrer l'article.</p>
+                                </SheetHeader>
+                                <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto pr-2">
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold text-muted-foreground ml-1">Dégnisation de l'article</label>
+                                        <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-muted/30 border-border border rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none" placeholder="Ex: Montre de luxe..." />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                         <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-muted-foreground ml-1">Prix Achat (F)</label>
+                                            <input required type="number" value={formData.costPrice} onChange={e => setFormData({...formData, costPrice: e.target.value})} className="w-full bg-muted/30 border-border border rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none" placeholder="0" />
+                                         </div>
+                                         <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-primary ml-1">Prix Vente (F)</label>
+                                            <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full bg-primary/5 border-primary/20 border rounded-xl px-4 py-3 text-sm font-bold text-primary focus:ring-1 focus:ring-primary/20 outline-none" placeholder="0" />
+                                         </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                         <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-muted-foreground ml-1">Stock Initial</label>
+                                            <input required type="number" value={formData.stock} onChange={e => setFormData({...formData, stock: e.target.value})} className="w-full bg-muted/30 border-border border rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none" />
+                                         </div>
+                                         <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-red-500/80 ml-1">Alerte Seuil</label>
+                                            <input required type="number" value={formData.minStock} onChange={e => setFormData({...formData, minStock: e.target.value})} className="w-full bg-red-500/5 border-red-500/20 border rounded-xl px-4 py-3 text-sm font-bold text-red-500 outline-none" />
+                                         </div>
+                                    </div>
+                                    <button disabled={loading} className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/10 active:scale-95 transition-all flex items-center justify-center gap-3">
+                                        {loading ? <Loader2 className="animate-spin w-5 h-5" /> : "Enregistrer le produit"}
+                                    </button>
+                                </form>
+                            </SheetContent>
+                        </Sheet>
                     </div>
-                )}
-            </AnimatePresence>
+                </header>
+
+                {/* --- METRICS GRID --- */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                        { label: "Valeur du Stock", value: metrics.totalValue, icon: Coins, color: "text-primary", sub: "Au prix d'achat" },
+                        { label: "Alertes Seuil", value: metrics.lowStockCount, icon: AlertTriangle, color: "text-amber-500", sub: "À réapprovisionner" },
+                        { label: "Ruptures", value: metrics.outOfStockCount, icon: BoxIcon, color: "text-red-500", sub: "En attente" },
+                        { label: "Indice Disponibilité", value: "98%", icon: RefreshCw, color: "text-emerald-500", sub: "Taux de service" }
+                    ].map((m, i) => (
+                        <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className={cn("p-2 rounded-lg bg-muted/50 border border-border shadow-sm", m.color)}>
+                                    <m.icon className="w-4 h-4" />
+                                </div>
+                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{m.label}</span>
+                            </div>
+                            <h2 className="text-2xl font-bold text-foreground">
+                                {typeof m.value === 'number' && i === 0 ? formatMoney(m.value) : m.value} 
+                                <span className="text-xs font-medium ml-1">{i === 0 ? ' FCFA' : ''}</span>
+                            </h2>
+                            <p className="text-[11px] text-muted-foreground mt-1">{m.sub}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* --- STOCK TABLE --- */}
+                <div className="bg-card border border-border shadow-sm rounded-xl overflow-hidden min-h-[500px] flex flex-col">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm border-separate border-spacing-0">
+                            <thead className="bg-muted/10 text-muted-foreground text-xs font-semibold border-b border-border">
+                                <tr>
+                                    <th className="px-6 py-4">Article</th>
+                                    <th className="px-6 py-4">Catégorie</th>
+                                    <th className="px-6 py-4">P. Achat</th>
+                                    <th className="px-6 py-4">P. Vente</th>
+                                    <th className="px-6 py-4">Stock Réel</th>
+                                    <th className="px-6 py-4 text-center">État</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border/50">
+                                {filteredProducts.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={7} className="py-20 text-center text-muted-foreground italic">Aucun produit trouvé dans l'inventaire.</td>
+                                    </tr>
+                                ) : filteredProducts.map((p) => {
+                                    const isLow = p.stock <= (p.minStock || 5);
+                                    const isOut = p.stock === 0;
+                                    return (
+                                        <tr key={p.id} className="group hover:bg-muted/20 transition-all">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+                                                        {p.image ? (
+                                                            <SafeImage src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <Package className="w-4 h-4 text-muted-foreground/30" />
+                                                        )}
+                                                    </div>
+                                                    <div className="overflow-hidden">
+                                                        <h3 className="font-bold text-foreground text-sm uppercase truncate mb-0.5">{p.name}</h3>
+                                                        <p className="text-[10px] text-muted-foreground font-mono uppercase truncate opacity-60">REF: {p.id.slice(-6).toUpperCase()}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-xs font-medium text-muted-foreground">
+                                                {p.category || "Standard"}
+                                            </td>
+                                            <td className="px-6 py-4 text-xs font-semibold text-muted-foreground opacity-60">
+                                                {p.costPrice ? formatMoney(p.costPrice) : "—"} F
+                                            </td>
+                                            <td className="px-6 py-4 text-sm font-bold text-foreground">
+                                                {formatMoney(p.price)} F
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-1 w-32">
+                                                    <div className="flex justify-between items-end mb-1">
+                                                        <span className={cn("text-base font-bold leading-none", isLow ? "text-red-500" : "text-foreground")}>{p.stock}</span>
+                                                        <span className="text-[9px] text-muted-foreground uppercase">En stock</span>
+                                                    </div>
+                                                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                                                        <div 
+                                                            className={cn("h-full transition-all duration-700", isOut ? "bg-red-500" : isLow ? "bg-amber-500" : "bg-primary")} 
+                                                            style={{ width: `${Math.min(100, (p.stock / 50) * 100)}%` }} 
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={cn(
+                                                    "px-3 py-1 rounded-md text-[10px] font-bold border block w-fit mx-auto shadow-sm",
+                                                    isOut ? "bg-red-500/10 text-red-500 border-red-500/20" : 
+                                                    isLow ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : 
+                                                    "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                                )}>
+                                                    {isOut ? "Rupture" : isLow ? "Seuil" : "Certifié"}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => handleQuickStock(p.id, p.name)} className="p-2 bg-background border border-border rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors shadow-sm" title="Réapprovisionner">
+                                                        <Plus className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button onClick={() => handleDelete(p.id, p.name)} className="p-2 bg-background border border-border rounded-lg hover:bg-red-500 hover:text-white transition-colors shadow-sm" title="Supprimer">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                                <div className="group-hover:hidden text-muted-foreground">
+                                                    <MoreHorizontal className="w-4 h-4 ml-auto" />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

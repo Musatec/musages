@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit } from "next/font/google";
+import { Inter } from "next/font/google";
 import "../globals.css";
+
 import AppLayout from "@/components/layout/app-layout";
 import AuthProvider from "@/components/providers/auth-provider";
 import { SystemGuardian } from "@/components/providers/system-guardian";
@@ -11,8 +12,13 @@ import { SidebarProvider } from "@/components/providers/sidebar-provider";
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing, type Locale } from '@/i18n/routing';
+import { SessionProvider } from "next-auth/react";
 
-const font = Outfit({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   themeColor: "#09090b",
@@ -62,12 +68,10 @@ export const metadata: Metadata = {
     other: {
       rel: 'mask-icon',
       url: '/icon.svg?v=6',
-      color: '#f97316',
+      color: 'hsl(var(--primary))',
     },
   },
 };
-
-import { SessionProvider } from "next-auth/react";
 
 export default async function RootLayout({
   children,
@@ -88,7 +92,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${font.className} bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary`}>
+      <body className={`${inter.variable} bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary font-sans`}>
         <SessionProvider>
           <ThemeProvider
             attribute="class"

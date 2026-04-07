@@ -228,8 +228,8 @@ export default function StudioPage() {
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-6 md:mb-8 mt-2 md:mt-4 border-b border-border/50 pb-4 md:pb-6">
                         <div className="space-y-1 text-center md:text-left" >
                             <div className="flex items-center gap-3 justify-center md:justify-start">
-                                <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20 md:hidden">
-                                    <FlaskConical className="w-4 h-4 text-orange-500" />
+                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 md:hidden">
+                                    <FlaskConical className="w-4 h-4 text-primary" />
                                 </div>
                                 <h1 className="text-3xl md:text-5xl font-black tracking-tight text-foreground leading-none">
                                     {t('title')}
@@ -281,7 +281,7 @@ export default function StudioPage() {
                                     <cat.icon className={cn("w-3.5 h-3.5", activeFilter === cat.id ? "text-primary-foreground" : "opacity-50")} />
                                     {t('category_' + cat.id)}
                                     {activeFilter === cat.id && (
-                                        <span className="ml-1 px-1 py-0.5 rounded-md bg-white/20 text-[8px] font-extrabold">{projects.filter(p => p.category === cat.id).length}</span>
+                                        <span className="ml-1 px-1 py-0.5 rounded-md bg-foreground/20 text-[8px] font-extrabold">{projects.filter(p => p.category === cat.id).length}</span>
                                     )}
                                 </button>
                             ))}
@@ -337,7 +337,7 @@ export default function StudioPage() {
                                     </div>
 
                                     {/* Action Buttons Row */}
-                                    <div className={cn("flex items-center gap-2 shrink-0 self-end transition-all", isExpanded ? "mt-1 justify-end w-full border-t border-white/5 pt-2 px-2" : "")}>
+                                    <div className={cn("flex items-center gap-2 shrink-0 self-end transition-all", isExpanded ? "mt-1 justify-end w-full border-t border-border/50 pt-2 px-2" : "")}>
                                         <div className="relative">
                                             <button
                                                 type="button"
@@ -358,7 +358,7 @@ export default function StudioPage() {
                                             </button>
 
                                             {showCategoryMenu && (
-                                                <div className="absolute top-full right-0 mt-2 w-[280px] bg-[#1C1C1E] border border-white/10 rounded-xl shadow-2xl p-1.5 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 slide-in-from-top-2 z-[60]">
+                                                <div className="absolute top-full right-0 mt-2 w-[280px] bg-[#1C1C1E] border border-border/50 rounded-xl shadow-2xl p-1.5 flex flex-col gap-0.5 animate-in fade-in zoom-in-95 slide-in-from-top-2 z-[60]">
                                                     {CATEGORIES.map(cat => (
                                                         <button
                                                             key={cat.id}
@@ -371,10 +371,10 @@ export default function StudioPage() {
                                                                 }
                                                             }}
                                                             className={cn(
-                                                                "flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left sm:py-1.5 group outline-none focus:bg-white/10",
+                                                                "flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left sm:py-1.5 group outline-none focus:bg-foreground/10",
                                                                 selectedCategory === cat.id
-                                                                    ? "bg-white/10 text-white"
-                                                                    : "hover:bg-white/5 text-gray-400 hover:text-white"
+                                                                    ? "bg-foreground/10 text-foreground"
+                                                                    : "hover:bg-foreground/5 text-muted-foreground hover:text-foreground"
                                                             )}
                                                         >
                                                             <cat.icon className={cn("w-4 h-4 shrink-0", selectedCategory === cat.id ? "text-primary" : "group-hover:text-primary transition-colors")} />
@@ -391,12 +391,12 @@ export default function StudioPage() {
 
                                         {selectedCategory === 'image' && (
                                             <>
-                                                <div className="w-[1px] h-8 bg-white/10 mx-1 animate-in fade-in" />
+                                                <div className="w-[1px] h-8 bg-foreground/10 mx-1 animate-in fade-in" />
                                                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={e => e.target.files?.[0] && setImageFile(e.target.files[0])} />
                                                 <button
                                                     type="button"
                                                     onClick={() => fileInputRef.current?.click()}
-                                                    className={cn("w-10 h-10 flex items-center justify-center rounded-xl transition-all border animate-in zoom-in-50", imageFile ? "bg-[#F97316]/10 text-[#F97316] border-[#F97316]/20" : "border-transparent text-gray-400 hover:text-white hover:bg-white/5")}
+                                                    className={cn("w-10 h-10 flex items-center justify-center rounded-xl transition-all border animate-in zoom-in-50", imageFile ? "bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] border-[hsl(var(--primary))]/20" : "border-transparent text-muted-foreground hover:text-foreground hover:bg-foreground/5")}
                                                     title="Ajouter une image"
                                                 >
                                                     <ImageIcon className="w-5 h-5" />
@@ -407,7 +407,7 @@ export default function StudioPage() {
                                         <button
                                             type="submit"
                                             disabled={!captureText && !imageFile}
-                                            className="h-10 w-10 flex items-center justify-center bg-orange-500 text-white rounded-xl hover:bg-orange-600 disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-orange-500/20"
+                                            className="h-10 w-10 flex items-center justify-center bg-primary text-foreground rounded-xl hover:bg-primary disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-primary/20"
                                         >
                                             <Send className="w-5 h-5 ml-0.5" />
                                         </button>
@@ -418,14 +418,14 @@ export default function StudioPage() {
 
                         {projects.length === 0 && !loading ? (
                             <div className="flex flex-col items-center justify-center py-20 opacity-30 mt-10">
-                                <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6 animate-pulse">
+                                <div className="w-24 h-24 rounded-full bg-foreground/5 flex items-center justify-center mb-6 animate-pulse">
                                     <Search className="w-10 h-10 text-gray-600" />
                                 </div>
-                                <p className="text-xl font-light text-gray-500">{t('empty_studio')}</p>
+                                <p className="text-xl font-light text-muted-foreground">{t('empty_studio')}</p>
                             </div>
                         ) : loading ? (
                             <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-                                {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-72 bg-[#1C1C1E] rounded-3xl animate-pulse mb-6 border border-white/5" />)}
+                                {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="h-72 bg-[#1C1C1E] rounded-3xl animate-pulse mb-6 border border-border/50" />)}
                             </div>
                         ) : (
                             <div className="space-y-12 min-h-[40vh]">

@@ -2,17 +2,22 @@
 
 import { useState } from "react";
 import { 
-    TrendingUp, TrendingDown, 
+    TrendingUp, 
     DollarSign, Package, 
-    ArrowUpRight, ArrowDownRight, 
-    Filter, RefreshCcw, 
-    ChevronRight, CreditCard,
-    PieChart, Activity,
+    RefreshCcw, 
+    CreditCard,
+    Activity,
     Calendar,
-    Target
+    Target,
+    Brain,
+    Sparkles,
+    Zap,
+    Loader2,
+    Lightbulb
 } from "lucide-react";
+import { getMindInsights } from "@/lib/actions/ai-insights";
 import { 
-    LineChart, Line, XAxis, YAxis, 
+    XAxis, YAxis, 
     CartesianGrid, Tooltip, ResponsiveContainer,
     AreaChart, Area 
 } from "recharts";
@@ -36,6 +41,26 @@ interface ReportsClientProps {
 
 export function ReportsClient({ initialData }: ReportsClientProps) {
     const { summary, chartData } = initialData;
+    const [loadingAI, setLoadingAI] = useState(false);
+    const [insights, setInsights] = useState<string[]>([]);
+    const [aiError, setAiError] = useState<string | null>(null);
+
+    const handleFetchAI = async () => {
+        setLoadingAI(true);
+        setAiError(null);
+        try {
+            const res = await getMindInsights();
+            if (res.success && res.insights) {
+                setInsights(res.insights);
+            } else {
+                setAiError(res.error || "Erreur de connexion");
+            }
+        } catch (error) {
+            setAiError("Système IA temporairement indisponible");
+        } finally {
+            setLoadingAI(false);
+        }
+    };
 
     const formatMoney = (amount: number) => {
         return new Intl.NumberFormat('fr-FR').format(amount || 0);
@@ -45,140 +70,189 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
         { 
             label: "Chiffre d'Affaires", 
             value: formatMoney(summary.totalRevenue), 
-            sub: "Total Ventes (Mois)", 
+            sub: "Ventes mensuelles cumulées", 
             icon: DollarSign, 
-            color: "text-emerald-500", 
-            bg: "bg-emerald-500/5",
-            trend: "+15.2%"
+            color: "text-primary", 
+            bg: "bg-primary/5",
+            trend: "+12.4%"
         },
         { 
             label: "Bénéfice Net", 
             value: formatMoney(summary.netProfit), 
-            sub: "Revenu - Coût - Frais", 
+            sub: "Après coûts et dépenses", 
             icon: Target, 
-            color: summary.netProfit >= 0 ? "text-primary" : "text-red-500", 
-            bg: "bg-primary/5",
-            trend: "En Temps Réel"
+            color: summary.netProfit >= 0 ? "text-emerald-500" : "text-red-500", 
+            bg: summary.netProfit >= 0 ? "bg-emerald-500/5" : "bg-red-500/5",
+            trend: "En Direct"
         },
         { 
-            label: "Valeur du Stock", 
+            label: "Valeur Initiale Stock", 
             value: formatMoney(summary.inventoryValue), 
-            sub: "Au Prix d'Achat", 
+            sub: "Total immobilisé (Achat)", 
             icon: Package, 
             color: "text-blue-500", 
             bg: "bg-blue-500/5",
-            trend: "Immobilisé"
+            trend: "Logistique"
         },
         { 
-            label: "Total Dépenses", 
+            label: "Dépenses Totales", 
             value: formatMoney(summary.totalExpenses), 
-            sub: "Salaires & Charges", 
+            sub: "Charges d'exploitation", 
             icon: CreditCard, 
-            color: "text-red-500", 
-            bg: "bg-red-500/5",
+            color: "text-orange-500", 
+            bg: "bg-orange-500/5",
             trend: "Opérationnel"
         }
     ];
 
     return (
-        <div className="p-6 md:p-10 space-y-10 bg-background min-h-screen overflow-y-auto custom-scrollbar">
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8 text-foreground">
             
-            {/* Header Strategy */}
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-border/40 pb-10">
-                <div className="space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
-                        <Activity className="w-3 h-3 text-primary" />
-                        <span className="text-[8px] font-black uppercase tracking-[0.3em] text-primary">Alpha Analytics Protocol • v2.0</span>
-                    </div>
-                    <div className="space-y-1">
-                        <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase leading-none">
-                            Intelligence <span className="text-primary italic">Financière.</span>
-                        </h1>
-                        <p className="text-[10px] text-muted-foreground/40 font-black tracking-[0.2em] uppercase">Diagnostic global du cycle d&apos;exploitation Alpha</p>
-                    </div>
+            <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-border/50">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-bold tracking-tight">Rapports & Analytics</h1>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Analyse approfondie de la performance financière et opérationnelle.
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-6 py-3 bg-card border border-border/50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-all active:scale-95 shadow-sm">
-                        <Calendar className="w-4 h-4 text-primary" /> Mois En Cours
-                    </button>
-                    <button onClick={() => window.location.reload()} className="p-3 bg-primary text-black rounded-2xl hover:scale-110 active:scale-90 transition-all shadow-xl shadow-primary/20">
-                        <RefreshCcw className="w-5 h-5 stroke-[2.5]" />
+                    <div className="flex items-center gap-2 px-4 py-2.5 bg-card border border-border rounded-xl text-sm font-bold shadow-sm">
+                        <Calendar className="w-4 h-4 text-primary" /> 
+                        <span className="hidden sm:inline">Période :</span> Mois en cours
+                    </div>
+                    <button onClick={() => window.location.reload()} className="p-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-sm">
+                        <RefreshCcw className="w-5 h-5" />
                     </button>
                 </div>
             </header>
 
-            {/* Matrix KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+            {/* --- PRIMARY METRICS GRID --- */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {cards.map((card, i) => (
-                    <motion.div
-                        key={card.label}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="group relative bg-card border border-border/50 p-6 rounded-[2rem] hover:border-primary/30 hover:shadow-2xl transition-all overflow-hidden"
-                    >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] -translate-y-1/2 translate-x-1/2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                        
-                        <div className="flex justify-between items-start mb-6">
-                            <div className={cn("p-4 rounded-2xl border border-border/40 shadow-sm transition-all group-hover:scale-110", card.bg, card.color)}>
-                                <card.icon className="w-6 h-6" />
-                            </div>
-                            <span className={cn("px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border border-border pb-1.5", card.color)}>
-                                {card.trend}
-                            </span>
+                    <div key={card.label} className="bg-card border border-border rounded-xl p-5 shadow-sm transition-all hover:border-primary/20 group">
+                        <div className="flex items-center gap-3 mb-4">
+                             <div className={cn("p-2 rounded-lg border border-border shadow-sm transition-colors", card.bg, card.color)}>
+                                <card.icon className="w-4 h-4" />
+                             </div>
+                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">{card.label}</span>
                         </div>
-
                         <div className="space-y-1">
-                            <p className="text-[9px] font-black text-muted-foreground uppercase opacity-40 tracking-[0.2em] leading-none">{card.label}</p>
-                            <h2 className="text-3xl font-black text-foreground tracking-tighter italic">{card.value} <span className="text-xs opacity-20 ml-0.5 uppercase">F</span></h2>
-                            <p className="text-[9px] font-bold text-muted-foreground/60 italic uppercase tracking-wider">{card.sub}</p>
+                            <h2 className="text-2xl font-bold text-foreground">
+                                {card.value} <span className="text-xs font-medium text-muted-foreground/40 ml-1">FCFA</span>
+                            </h2>
+                            <div className="flex items-center gap-2">
+                                <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-bold border", card.color, "bg-muted/30 border-border")}>
+                                    {card.trend}
+                                </span>
+                                <p className="text-[11px] font-medium text-muted-foreground/50 opacity-60 uppercase">{card.sub}</p>
+                            </div>
                         </div>
-                    </motion.div>
+                    </div>
                 ))}
             </div>
 
-            {/* Central Chart & Distribution */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-20">
+            {/* --- AI INSIGHTS ENGINE --- */}
+            <div className="bg-card border border-primary/20 rounded-2xl p-8 relative overflow-hidden shadow-sm group/ai transition-all hover:border-primary/40">
+                <div className="absolute top-0 right-0 w-[500px] h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
+                
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-10">
+                    <div className="space-y-4 max-w-2xl text-center lg:text-left">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
+                            <Brain className="w-3.5 h-3.5 text-primary" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-primary">Analyse Prédictive IA</span>
+                        </div>
+                        <h2 className="text-3xl font-bold tracking-tight text-foreground">
+                            Intelligence Stratégique
+                        </h2>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                            L'IA analyse vos transactions pour identifier les leviers de croissance, optimiser vos flux de trésorerie et prévenir les ruptures de stock.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-4">
+                        <button 
+                            onClick={handleFetchAI}
+                            disabled={loadingAI}
+                            className={cn(
+                                "group relative px-8 py-4 rounded-xl font-bold text-sm transition-all shadow-md active:scale-95 flex items-center gap-3",
+                                insights.length > 0 ? "bg-foreground text-background" : "bg-primary text-primary-foreground"
+                            )}
+                        >
+                            {loadingAI ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />}
+                            {insights.length > 0 ? "Actualiser l'analyse" : "Générer les Insights"}
+                        </button>
+                        {aiError && <p className="text-[10px] font-bold text-red-500">{aiError}</p>}
+                    </div>
+                </div>
+
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {insights.length > 0 ? (
+                        insights.map((insight, idx) => (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                key={idx} 
+                                className="bg-muted/30 border border-border p-6 rounded-xl space-y-4 hover:border-primary/30 transition-all relative group/card"
+                            >
+                                <div className="absolute top-4 right-4 text-primary/10 group-hover/card:text-primary/30 transition-colors">
+                                    <Lightbulb className="w-8 h-8" />
+                                </div>
+                                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                                    <Zap className="w-4 h-4 text-primary" />
+                                </div>
+                                <p className="text-xs font-semibold text-foreground leading-relaxed uppercase tracking-tight">
+                                    {insight}
+                                </p>
+                            </motion.div>
+                        ))
+                    ) : !loadingAI && (
+                        <div className="col-span-3 py-12 flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl opacity-30">
+                             <Activity className="w-8 h-8 mb-3 text-muted-foreground animate-pulse" />
+                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">En attente de commande analytique</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* --- VISUALIZATIONS SECTION --- */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-12">
                 
                 {/* Main Trend Chart */}
-                <div className="lg:col-span-2 bg-card border border-border/50 rounded-[2.5rem] p-8 space-y-8 shadow-sm">
+                <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6 space-y-6 shadow-sm">
                     <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <h3 className="text-sm font-black uppercase tracking-widest text-foreground italic flex items-center gap-3">
-                                Courbe de Flux <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded text-[8px]">Direct 7J</span>
+                        <div>
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+                                Courbe d'Activité <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded text-[9px]">Calcul Temps Réel</span>
                             </h3>
-                            <p className="text-[9px] text-muted-foreground uppercase tracking-widest opacity-40">Analyse de la fréquentation transactionnelle</p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <div className="w-3 h-3 bg-primary rounded-full blur-[4px] animate-pulse" />
-                            <span className="text-[10px] font-black text-primary uppercase">Alpha Live</span>
+                            <p className="text-[10px] text-muted-foreground mt-0.5 uppercase font-medium opacity-60">Volume transactionnel des derniers jours</p>
                         </div>
                     </div>
 
-                    <div className="h-[350px] w-full mt-4 -ml-4">
+                    <div className="h-[300px] w-full mt-4">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData}>
+                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
                                         <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.2} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.3} />
                                 <XAxis 
                                     dataKey="name" 
                                     stroke="hsl(var(--muted-foreground))" 
-                                    fontSize={9} 
-                                    fontWeight={900} 
+                                    fontSize={10} 
+                                    fontWeight={700} 
                                     tickLine={false} 
                                     axisLine={false}
                                     dy={10}
                                 />
                                 <YAxis 
                                     stroke="hsl(var(--muted-foreground))" 
-                                    fontSize={9} 
-                                    fontWeight={900} 
+                                    fontSize={10} 
+                                    fontWeight={700} 
                                     tickLine={false} 
                                     axisLine={false}
                                     tickFormatter={(value) => `${value / 1000}k`}
@@ -187,10 +261,9 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
                                     contentStyle={{ 
                                         backgroundColor: 'hsl(var(--card))', 
                                         border: '1px solid hsl(var(--border))',
-                                        borderRadius: '16px',
-                                        fontSize: '10px',
-                                        fontFamily: 'inherit',
-                                        fontWeight: 900,
+                                        borderRadius: '12px',
+                                        fontSize: '11px',
+                                        fontWeight: 800,
                                         textTransform: 'uppercase'
                                     }} 
                                 />
@@ -198,7 +271,7 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
                                     type="monotone" 
                                     dataKey="total" 
                                     stroke="hsl(var(--primary))" 
-                                    strokeWidth={4}
+                                    strokeWidth={3}
                                     fillOpacity={1} 
                                     fill="url(#colorTotal)" 
                                 />
@@ -207,33 +280,31 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
                     </div>
                 </div>
 
-                {/* Profit Analysis Block (Static Mock Data for Viz) */}
-                <div className="bg-muted/10 border border-border/50 rounded-[2.5rem] p-8 flex flex-col justify-between overflow-hidden relative group">
-                    <div className="space-y-8 relative z-10">
-                        <div className="space-y-1">
-                            <h3 className="text-sm font-black uppercase tracking-widest text-foreground italic flex items-center gap-3">
-                                Structure Rentabilité
-                            </h3>
-                            <p className="text-[9px] text-muted-foreground uppercase opacity-40">Marge vs Opérations</p>
+                {/* Profit Structure */}
+                <div className="bg-muted/10 border border-border rounded-xl p-6 flex flex-col justify-between shadow-sm">
+                    <div className="space-y-6">
+                        <div>
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground italic">Structure de Profitabilité</h3>
+                            <p className="text-[10px] text-muted-foreground uppercase font-medium opacity-50">Répartition des marges</p>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-5">
                             {[
-                                { label: "Marge brute", val: Math.round((summary.grossProfit / summary.totalRevenue || 0) * 100), color: "bg-primary" },
-                                { label: "Taux Dépenses", val: Math.round((summary.totalExpenses / summary.totalRevenue || 0) * 100), color: "bg-red-500" },
+                                { label: "Marge Brute", val: Math.round((summary.grossProfit / summary.totalRevenue || 0) * 100), color: "bg-primary" },
+                                { label: "Taux Dépenses", val: Math.round((summary.totalExpenses / summary.totalRevenue || 0) * 100), color: "bg-orange-500" },
                                 { label: "Marge Nette", val: Math.round((summary.netProfit / summary.totalRevenue || 0) * 100), color: "bg-emerald-500" }
                             ].map(item => (
-                                <div key={item.label} className="space-y-2">
-                                    <div className="flex justify-between text-[10px] font-black uppercase">
+                                <div key={item.label} className="space-y-1.5">
+                                    <div className="flex justify-between text-[11px] font-bold uppercase tracking-tight">
                                         <span className="text-muted-foreground">{item.label}</span>
                                         <span className="text-foreground">{item.val}%</span>
                                     </div>
-                                    <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                                    <div className="h-1.5 w-full bg-muted border border-border/50 rounded-full overflow-hidden">
                                         <motion.div 
                                             initial={{ width: 0 }}
                                             animate={{ width: `${item.val}%` }}
-                                            transition={{ duration: 1, ease: "easeOut" }}
-                                            className={cn("h-full rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)]", item.color)} 
+                                            transition={{ duration: 1.5, ease: "easeOut" }}
+                                            className={cn("h-full rounded-full", item.color)} 
                                         />
                                     </div>
                                 </div>
@@ -241,17 +312,15 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
                         </div>
                     </div>
 
-                    <div className="mt-12 bg-card/60 p-6 rounded-3xl border border-border/50 shadow-sm relative z-10 backdrop-blur-md">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Target className="w-4 h-4 text-primary" />
-                            <span className="text-[10px] font-black uppercase text-foreground italic">Point Mort Alpha</span>
+                    <div className="mt-8 bg-card border border-border/50 p-4 rounded-xl shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Target className="w-3.5 h-3.5 text-primary" />
+                            <span className="text-[10px] font-bold uppercase text-foreground">Indice de Rentabilité</span>
                         </div>
-                        <p className="text-[8px] text-muted-foreground font-medium uppercase tracking-widest leading-loose">
-                            Le cycle actuel suggère une rentabilité stabilisée à <span className="text-foreground font-black">{Math.round((summary.netProfit / summary.totalRevenue || 0) * 100)}%</span> du volume global traité.
+                        <p className="text-[10px] text-muted-foreground font-medium uppercase leading-relaxed opacity-70">
+                            Votre cycle d'exploitation génère actuellement une marge nette de <span className="font-bold text-foreground">{Math.round((summary.netProfit / summary.totalRevenue || 0) * 100)}%</span>.
                         </p>
                     </div>
-
-                    <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/5 blur-[60px] rounded-full pointer-events-none" />
                 </div>
 
             </div>

@@ -4,30 +4,46 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
-export function ThemeToggle() {
+export function ThemeToggle({ collapsed }: { collapsed?: boolean }) {
     const { theme, setTheme } = useTheme();
 
     return (
-        <div className="flex bg-[#F8F9FA] dark:bg-white/5 p-1.5 rounded-2xl border border-[#E9ECEF] dark:border-white/10 w-full group overflow-hidden">
+        <div 
+            className={cn(
+                "flex bg-black/5 dark:bg-black/5 p-1 rounded-2xl border border-black/10 dark:border-black/10 transition-all duration-500",
+                collapsed ? "w-10 flex-col gap-1" : "w-full"
+            )} 
+            style={{ backgroundColor: 'hsla(var(--sidebar-foreground) / 0.05)', borderColor: 'hsla(var(--sidebar-foreground) / 0.1)' }}
+        >
             <button 
                 onClick={() => setTheme("light")}
                 className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-500",
-                    theme === "light" ? "bg-white text-primary shadow-lg shadow-black/5" : "text-zinc-400 hover:text-zinc-600"
+                    "flex items-center justify-center py-2 rounded-xl transition-all duration-500 relative",
+                    collapsed ? "w-8 h-8" : "flex-1 gap-2",
+                    theme === "light" ? "text-primary shadow-lg" : "hover:opacity-80"
                 )}
+                style={{
+                    backgroundColor: theme === "light" ? 'hsla(var(--sidebar-foreground) / 0.1)' : 'transparent',
+                    color: theme !== "light" ? 'hsla(var(--sidebar-foreground) / 0.5)' : undefined
+                }}
             >
                 <Sun className={cn("w-4 h-4", theme === "light" && "animate-spin-slow")} />
-                <span className="text-[10px] font-black uppercase tracking-widest">Clair</span>
+                {!collapsed && <span className="text-[10px] font-black uppercase tracking-widest">Clair</span>}
             </button>
             <button 
                 onClick={() => setTheme("dark")}
                 className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-500",
-                    theme === "dark" ? "bg-zinc-800 text-white shadow-lg" : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                    "flex items-center justify-center py-2 rounded-xl transition-all duration-500 relative",
+                    collapsed ? "w-8 h-8" : "flex-1 gap-2",
+                    theme === "dark" ? "text-primary shadow-lg" : "hover:opacity-80"
                 )}
+                style={{
+                    backgroundColor: theme === "dark" ? 'hsla(var(--sidebar-foreground) / 0.1)' : 'transparent',
+                    color: theme !== "dark" ? 'hsla(var(--sidebar-foreground) / 0.5)' : undefined
+                }}
             >
                 <Moon className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Sombre</span>
+                {!collapsed && <span className="text-[10px] font-black uppercase tracking-widest">Sombre</span>}
             </button>
         </div>
     );

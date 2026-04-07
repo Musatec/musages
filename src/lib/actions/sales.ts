@@ -169,15 +169,15 @@ export async function deleteSale(saleId: string) {
 /**
  * Calculer les statistiques du jour pour le Journal des Ventes et le Dashboard
  */
-export async function getDailyMetrics() {
+export async function getDailyMetrics(targetDate?: Date) {
     const session = await auth();
-    if (!session?.user?.storeId) return { totalSales: 0, salesCount: 0 };
+    if (!session?.user?.storeId) return { totalSales: 0, salesCount: 0, totalExpenses: 0, productCount: 0, stockAlerts: 0 };
 
     const storeId = session.user.storeId;
-    const todayStart = new Date();
+    const todayStart = targetDate ? new Date(targetDate) : new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const todayEnd = new Date();
+    const todayEnd = targetDate ? new Date(targetDate) : new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
     try {
@@ -215,5 +215,39 @@ export async function getDailyMetrics() {
         const message = error instanceof Error ? error.message : "Erreur inconnue";
         console.error("[SALES_METRICS] Error:", message);
         return { totalSales: 0, salesCount: 0, totalExpenses: 0, productCount: 0, stockAlerts: 0 };
+    }
+}
+
+/**
+ * Récupère les données d'une vente pour l'affichage du reçu public
+ */
+export async function getSalePublicData(saleId: string) {
+    try {
+        const sale = await prisma.sale.findUnique({
+            where: { id: saleId },
+            include: {
+                items: {
+                    include: {
+                        product: {
+                            select: { name: true }
+                        }
+                    }
+                },
+                store: {
+                    select: {
+                        name: true,
+                        address: true,
+                        config: true
+                    }
+                }
+            }
+        });
+
+        if (!sale) return { error: "Facture introuvable." };
+
+        return { success: true, sale };
+    } catch (error) {
+        console.error("[SALE_PUBLIC] Error:", error);
+        return { error: "Erreur lors de la récupération." };
     }
 }
