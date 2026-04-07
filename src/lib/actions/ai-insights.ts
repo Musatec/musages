@@ -43,7 +43,7 @@ export async function getMindInsights() {
         const totalRev = sales.reduce((acc, s) => acc + s.totalAmount, 0);
         const topProducts = sales.flatMap(s => s.items)
             .reduce((acc: any, item) => {
-                const name = item.product.name;
+                const name = (item.product as any)?.name || "Article Manuel";
                 acc[name] = (acc[name] || 0) + item.quantity;
                 return acc;
             }, {});
