@@ -4,6 +4,8 @@ import {
     ShoppingCart, Package, AlertTriangle, Zap,
     ArrowUpRight, ArrowDownRight, Activity
 } from "lucide-react";
+import { DashboardMetrics, SerializedSale } from "@/types/dashboard";
+import React from "react";
 import { OnboardingWizard } from "./onboarding-wizard";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -12,7 +14,7 @@ interface DashboardMetric {
     label: string;
     value: string;
     subValue: string;
-    icon: any;
+    icon: React.ElementType;
     trend: string;
     isPositive: boolean;
 }
@@ -24,8 +26,8 @@ export function DashboardClient({
     userRole,
     userSubscription
 }: { 
-    metrics: any, 
-    recentSales: any[], 
+    metrics: DashboardMetrics, 
+    recentSales: SerializedSale[], 
     metadata?: { userName: string, enterpriseName: string },
     userRole: string,
     userSubscription?: { status: string, daysRemaining: number, isTrialOver: boolean }

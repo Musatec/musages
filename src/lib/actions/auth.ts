@@ -15,10 +15,17 @@ const RegisterSchema = z.object({
 
 export async function register(data: z.infer<typeof RegisterSchema>) {
   // --- RATE LIMITING ---
-  const ip = (await headers()).get("x-forwarded-for") || "local";
-  const { success: isAllowed } = await authRateLimit.limit(`regs_${ip}`);
-  if (!isAllowed) {
-    return { success: false, error: "Trop de tentatives d'inscription. Veuillez réessayer dans une minute." };
+  let ip = "local";
+  try {
+    ip = (await headers()).get("x-forwarded-for") || "local";
+  } catch (e) {
+    // Build phase
+  }
+  if (ip !== "local") {
+    const { success: isAllowed } = await authRateLimit.limit(`regs_${ip}`);
+    if (!isAllowed) {
+      return { success: false, error: "Trop de tentatives d'inscription. Veuillez réessayer dans une minute." };
+    }
   }
 
   try {

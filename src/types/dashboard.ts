@@ -1,4 +1,6 @@
 import { Sale, AuditLog } from "@prisma/client";
+import { LucideIcon } from "lucide-react";
+import React from "react";
 
 export interface DashboardMetrics {
   totalSales: number;
@@ -23,7 +25,7 @@ export interface DashboardMetricItem {
   label: string;
   value: string;
   subValue: string;
-  icon: any;
+  icon: LucideIcon | React.ElementType;
   color: string;
   trend: string;
 }

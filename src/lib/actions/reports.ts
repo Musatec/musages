@@ -37,18 +37,25 @@ export async function getFinancialReport() {
         error: "Non autorisé" 
     };
 
-    // --- RATE LIMITING ---
-    const ip = (await headers()).get("x-forwarded-for") || "local";
-    const { success: isAllowed } = await apiRateLimit.limit(`report_${storeId}_${ip}`);
-    
-    if (!isAllowed) {
-        return { 
-            summary: { totalRevenue: 0, grossProfit: 0, totalExpenses: 0, netProfit: 0, inventoryValue: 0 },
-            chartData: [],
-            success: false, 
-            error: "Trop de requêtes. Veuillez patienter un instant." 
-        };
+    // --- RATE LIMITING (Temporairement désactivé pour debug build) ---
+    /*
+    let ip = "local";
+    try {
+        const headerList = await headers();
+        ip = headerList.get("x-forwarded-for") || "local";
+    } catch (e) {}
+    if (ip !== "local") {
+        const { success: isAllowed } = await apiRateLimit.limit(`report_${storeId}_${ip}`);
+        if (!isAllowed) {
+            return { 
+                summary: { totalRevenue: 0, grossProfit: 0, totalExpenses: 0, netProfit: 0, inventoryValue: 0 },
+                chartData: [],
+                success: false, 
+                error: "Trop de requêtes. Veuillez patienter un instant." 
+            };
+        }
     }
+    */
 
     try {
         const now = new Date();

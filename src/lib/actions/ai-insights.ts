@@ -42,14 +42,14 @@ export async function getMindInsights() {
         // 2. DATA AGGREGATION FOR AI
         const totalRev = sales.reduce((acc, s) => acc + s.totalAmount, 0);
         const topProducts = sales.flatMap(s => s.items)
-            .reduce((acc: any, item) => {
-                const name = (item.product as any)?.name || "Article Manuel";
+            .reduce((acc: Record<string, number>, item) => {
+                const name = item.product?.name || "Article Manuel";
                 acc[name] = (acc[name] || 0) + item.quantity;
                 return acc;
             }, {});
         
         const topSelling = Object.entries(topProducts)
-            .sort(([, a]: any, [, b]: any) => b - a)
+            .sort(([, a], [, b]) => b - a)
             .slice(0, 5)
             .map(([name, qty]) => `${name} (${qty} unités)`);
 

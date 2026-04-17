@@ -1,4 +1,3 @@
-
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getFinancialReport, FinancialReport } from "@/lib/actions/reports";

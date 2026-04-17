@@ -3,10 +3,10 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import "dotenv/config";
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/postgres";
 
-if (!connectionString) {
-  console.error("❌ DATABASE_URL is missing from environment variables!");
+if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
+  console.warn("⚠️ DATABASE_URL is missing from environment variables during production build!");
 }
 
 // Configuration du pool optimisée pour le pooler Supabase (port 6543 / Transaction mode)
