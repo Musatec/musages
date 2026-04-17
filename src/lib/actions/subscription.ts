@@ -74,7 +74,7 @@ export async function initiatePayment(plan: "STARTER" | "GROWTH" | "BUSINESS") {
         return { 
             success: true, 
             paymentId: payment.id,
-            paymentUrl: `https://paytech.sn/placeholder-payment-link?ref=${payment.id}`, 
+            url: `https://paytech.sn/placeholder-payment-link?ref=${payment.id}`, 
             message: "Redirection vers la plateforme de paiement..." 
         };
     } catch (error) {

@@ -86,36 +86,11 @@ import { withSentryConfig } from "@sentry/nextjs";
 export default withSentryConfig(
   withNextIntl(pwaConfig(nextConfig)),
   {
-    // For all available options, see:
-    // https://github.com/getsentry/sentry-javascript/blob/master/packages/nextjs/src/config/types.ts
-
-    // Suppresses source map uploading logs during bundling
     silent: true,
     org: "musatec",
     project: "musages",
-  },
-  {
-    // For all available options, see:
-    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-    // Upload a larger set of source maps for prettier stack traces (increases build time)
+    // SDK options
     widenClientFileUpload: true,
-
-    // Transpiles SDK to be compatible with IE11 (increases bundle size)
-    transpileClientSDK: true,
-
-    // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers (increases server load)
     tunnelRoute: "/monitoring",
-
-    // Hides source maps from visitors
-    hideSourceMaps: true,
-
-    // Automatically tree-shake Sentry logger statements to reduce bundle size
-    disableLogger: true,
-
-    // Enables automatic instrumentation of Vercel Cron Monitors.
-    // See the following for more information:
-    // https://docs.sentry.io/product/crons/
-    automaticVercelMonitors: true,
   }
 );

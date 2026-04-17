@@ -49,7 +49,7 @@ export function CheckoutForm({ plan }: CheckoutFormProps) {
             
             // Simulation d'une redirection PayTech
             setTimeout(() => {
-                window.location.href = result.paymentUrl || "#";
+                window.location.href = result.url || "#";
             }, 1500);
 
         } catch (error) {

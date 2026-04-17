@@ -282,7 +282,7 @@ export default function StoreSettingsPage() {
                                         type="button"
                                         onClick={async () => {
                                             const res = await initiatePayment(subData?.plan || "STARTER");
-                                            if (res.success) window.location.href = res.paymentUrl;
+                                            if (res.success && res.url) window.location.href = res.url;
                                         }}
                                         className="bg-primary text-black px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all w-full md:w-auto italic"
                                     >
