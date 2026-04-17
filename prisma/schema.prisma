@@ -111,6 +111,7 @@ model Store {
 
   ownerId     String?
   owner       User?     @relation("StoreOwner", fields: [ownerId], references: [id])
+  feedbacks   Feedback[]
 }
 
 enum SubscriptionStatus {
@@ -152,6 +153,7 @@ model User {
   auditLogs     AuditLog[]
   stockMovements StockMovement[]
   ownedStores   Store[]   @relation("StoreOwner")
+  feedbacks     Feedback[]
 }
 
 model Payment {
@@ -324,4 +326,18 @@ model AuditLog {
   action    String   // (e.g., "DELETE_SALE", "UPDATE_STOCK")
   details   Json?
   createdAt DateTime @default(now())
+}
+
+// --- FEEDBACK & SURVEYS ---
+model Feedback {
+  id        String    @id @default(cuid())
+  storeId   String?
+  store     Store?    @relation(fields: [storeId], references: [id])
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  rating    Int       // 1 to 5
+  category  String    // BUG, FEATURE, SUGGESTION, GENERAL
+  comment   String?   @db.Text
+  isResolved Boolean  @default(false)
+  createdAt DateTime  @default(now())
 }

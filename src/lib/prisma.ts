@@ -13,9 +13,9 @@ if (!connectionString) {
 const pool = new Pool({ 
   connectionString,
   // Indispensable pour le Transaction Mode de Supavisor/PgBouncer
-  max: 10,
+  max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  connectionTimeoutMillis: 15000,
 });
 
 const adapter = new PrismaPg(pool);

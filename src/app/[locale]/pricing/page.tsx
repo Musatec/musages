@@ -53,7 +53,7 @@ export default function PricingPage() {
                                 <FeatureItem text="Accès Gérants" />
                             </div>
                         </div>
-                        <Link href="/setup" className="mt-10 w-full py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl text-center text-[11px] font-black uppercase tracking-widest transition-all italic flex items-center justify-center gap-2">
+                        <Link href="/checkout/starter" className="mt-10 w-full py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl text-center text-[11px] font-black uppercase tracking-widest transition-all italic flex items-center justify-center gap-2">
                             Démarrer Solo
                             <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
@@ -85,7 +85,7 @@ export default function PricingPage() {
                                 <FeatureItem text="Support Prioritaire" active />
                             </div>
                         </div>
-                        <Link href="/setup" className="mt-10 w-full py-4 bg-primary text-black rounded-2xl text-center text-[11px] font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
+                        <Link href="/checkout/growth" className="mt-10 w-full py-4 bg-primary text-black rounded-2xl text-center text-[11px] font-black uppercase tracking-widest transition-all shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
                             Activer l'Expansion
                             <Zap className="w-3.5 h-3.5" />
                         </Link>
@@ -114,7 +114,7 @@ export default function PricingPage() {
                                 <FeatureItem text="Hautes Performances" active />
                             </div>
                         </div>
-                        <Link href="/setup" className="mt-10 w-full py-4 bg-white text-black hover:bg-gray-200 rounded-2xl text-center text-[11px] font-black uppercase tracking-widest transition-all italic flex items-center justify-center gap-2">
+                        <Link href="/checkout/business" className="mt-10 w-full py-4 bg-white text-black hover:bg-gray-200 rounded-2xl text-center text-[11px] font-black uppercase tracking-widest transition-all italic flex items-center justify-center gap-2">
                             Lancer l'Empire
                             <Building2 className="w-3.5 h-3.5" />
                         </Link>

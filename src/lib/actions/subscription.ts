@@ -54,19 +54,31 @@ export async function initiatePayment(plan: "STARTER" | "GROWTH" | "BUSINESS") {
     const amount = prices[plan];
 
     try {
+        // 1. Création de l'enregistrement de paiement en attente
+        const payment = await prisma.payment.create({
+            data: {
+                userId: session.user.id,
+                amount: amount,
+                plan: plan,
+                status: "PENDING",
+                provider: "PAYTECH",
+            }
+        });
+
+        console.log(`[PAYMENT] Initiated ${plan} payment of ${amount} FCFA (Ref: ${payment.id})`);
+        
         // simulation PayTech / PayDunya
         // En production, ici on appellerait l'API du provider pour obtenir un lien de paiement
+        // En passant payment.id comme 'ref_command'
         
-        console.log(`[PAYMENT] Initiating ${plan} payment of ${amount} FCFA for user ${session.user.id}`);
-        
-        // Simuler une redirection vers un lien de paiement externe
-        // Pour l'instant on retourne juste un succès fictif
         return { 
             success: true, 
-            paymentUrl: "https://paytech.sn/placeholder-payment-link", // URL de test
+            paymentId: payment.id,
+            paymentUrl: `https://paytech.sn/placeholder-payment-link?ref=${payment.id}`, 
             message: "Redirection vers la plateforme de paiement..." 
         };
     } catch (error) {
+        console.error("[PAYMENT_ERROR]", error);
         return { error: "Erreur lors de l'initialisation du paiement" };
     }
 }

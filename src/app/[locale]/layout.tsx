@@ -14,6 +14,12 @@ import { notFound } from 'next/navigation';
 import { routing, type Locale } from '@/i18n/routing';
 import { SessionProvider } from "next-auth/react";
 import { PwaRegistrar } from "@/components/providers/pwa-registrar";
+import { PostHogProvider } from 'posthog-js/react'
+import { CSPostHogProvider } from "@/components/providers/posthog-provider";
+import PostHogPageView from "@/components/providers/posthog-pageview";
+import { CrispProvider } from "@/components/providers/crisp-provider";
+import { FeedbackButton } from "@/components/modules/feedback-button";
+import { Suspense } from "react";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,10 +37,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "MINDOS | The Creator OS",
+    default: "MINDOS | L'ERP Nouvelle Génération pour l'Afrique",
     template: "%s | MINDOS"
   },
-  description: "Le système d'exploitation ultime pour les créateurs. Organisez votre esprit, vos finances et vos contenus au même endroit.",
+  description: "Le système d'exploitation ultime pour les boutiques, créateurs et entrepreneurs. Gérez votre stock, vos ventes et votre trésorerie avec l'intelligence artificielle.",
+  keywords: ["ERP Afrique", "Logiciel de caisse Sénégal", "Gestion de stock mobile", "MINDOS", "Musages", "Point de vente Wave"],
   metadataBase: new URL('https://musages.vercel.app'),
   manifest: "/manifest.json",
   alternates: {
@@ -45,8 +52,8 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "MINDOS | The Creator OS",
-    description: "Organisez votre génie. Maîtrisez votre temps.",
+    title: "MINDOS | Gérez votre Business comme un Pro",
+    description: "Structurez votre génie. Maîtrisez votre temps et vos profits.",
     url: 'https://musages.vercel.app',
     siteName: 'MINDOS',
     locale: 'fr_FR',
@@ -55,28 +62,12 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'MINDOS | The Creator OS',
-    description: 'Le centre de commandement pour les créateurs modernes.',
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "MINDOS",
-    startupImage: [
-      {
-        url: '/icon.svg?v=6',
-        media: '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)',
-      },
-    ],
+    description: 'Le centre de commandement pour les entrepreneurs modernes.',
   },
   icons: {
     icon: '/icon.svg?v=6',
     shortcut: '/icon.svg?v=6',
     apple: '/icon.svg?v=6',
-    other: {
-      rel: 'mask-icon',
-      url: '/icon.svg?v=6',
-      color: '#ea580c',
-    },
   },
   applicationName: "MINDOS",
   formatDetection: {
@@ -111,11 +102,17 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <NextIntlClientProvider messages={messages}>
+            <CSPostHogProvider>
+              <Suspense fallback={null}>
+                <PostHogPageView />
+              </Suspense>
+              <NextIntlClientProvider messages={messages}>
               <AuthProvider>
                 <SystemGuardian>
                   <SidebarProvider>
                     <PwaRegistrar />
+                    <CrispProvider />
+                    <FeedbackButton />
                     <AppLayout>
                       {children}
                     </AppLayout>
@@ -124,6 +121,7 @@ export default async function RootLayout({
                 <Toaster richColors position="bottom-right" />
               </AuthProvider>
             </NextIntlClientProvider>
+            </CSPostHogProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>

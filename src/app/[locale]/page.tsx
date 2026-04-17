@@ -9,7 +9,9 @@ import {
     Layers,
     ChevronRight,
     Sparkles,
-    Users
+    Users,
+    ShieldCheck,
+    CreditCard
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -128,6 +130,28 @@ export default function LandingPage() {
                             >
                                 Lancer mon Workspace <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </Link>
+                            <button className="w-full sm:w-auto px-8 py-4 md:px-10 md:py-5 bg-white/5 border border-white/10 rounded-2xl font-black text-base md:text-lg hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase italic">
+                                <Play className="w-4 h-4 fill-current" /> Voir la Démo
+                            </button>
+                        </motion.div>
+
+                        {/* TRUST ELEMENTS */}
+                        <motion.div 
+                            variants={fadeInUp}
+                            className="pt-16 flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700"
+                        >
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck className="w-5 h-5" />
+                                <span className="text-[10px] font-black uppercase tracking-widest italic">Sécurisé par Supabase</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <CreditCard className="w-5 h-5" />
+                                <span className="text-[10px] font-black uppercase tracking-widest italic">Paiements Wave & Mobile Money</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Zap className="w-5 h-5" />
+                                <span className="text-[10px] font-black uppercase tracking-widest italic">Vitesse Warp 1.0</span>
+                            </div>
                         </motion.div>
                     </motion.div>
 
@@ -137,6 +161,13 @@ export default function LandingPage() {
 
                 {/* 3. SECTION FONCTIONNALITÉS (Bento Grid) */}
                 <section className="py-24 px-6 max-w-7xl mx-auto">
+                    <div className="text-center mb-16 space-y-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-muted-foreground italic mb-2">
+                            Infrastructure Professionnelle
+                        </div>
+                        <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">Conçu pour la <span className="text-primary italic">Performance.</span></h2>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* VENTES & POS */}
                         <motion.div
@@ -147,9 +178,9 @@ export default function LandingPage() {
                                 <Zap className="w-7 h-7 text-emerald-500" />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-xl font-black uppercase tracking-tight text-foreground group-hover:text-emerald-500 transition-colors">VENTES & POS</h3>
+                                <h3 className="text-xl font-black uppercase tracking-tight text-foreground group-hover:text-emerald-500 transition-colors">VENTES & CAISSE</h3>
                                 <p className="text-muted-foreground text-sm leading-relaxed font-medium">
-                                    Encaissement ultra-rapide, gestion des tickets et calcul automatique de la TVA.
+                                    Encaissement ultra-rapide optimisé pour le terrain. Compatible Wave, Mobile Money et Cash.
                                 </p>
                             </div>
                         </motion.div>
@@ -163,9 +194,9 @@ export default function LandingPage() {
                                 <BarChart3 className="w-7 h-7 text-primary" />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-xl font-black uppercase tracking-tight text-foreground group-hover:text-primary transition-colors">STOCKS 360°</h3>
+                                <h3 className="text-xl font-black uppercase tracking-tight text-foreground group-hover:text-primary transition-colors">INVENTAIRE IA</h3>
                                 <p className="text-muted-foreground text-sm leading-relaxed font-medium">
-                                    Suivi en temps réel des inventaires, alertes de rupture et calcul des marges bénéficiaires.
+                                    Alertes intelligentes de rupture de stock et valorisation de votre patrimoine commercial en temps réel.
                                 </p>
                             </div>
                         </motion.div>
@@ -179,12 +210,51 @@ export default function LandingPage() {
                                 <Users className="w-7 h-7 text-blue-500" />
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-xl font-black uppercase tracking-tight text-foreground group-hover:text-blue-500 transition-colors">MULTI-COMPTES</h3>
+                                <h3 className="text-xl font-black uppercase tracking-tight text-foreground group-hover:text-blue-500 transition-colors">CONTRÔLE TOTAL</h3>
                                 <p className="text-muted-foreground text-sm leading-relaxed font-medium">
-                                    Gérez vos employés et leurs accès. Déléguez les ventes tout en gardant le contrôle total.
+                                    Gestion fine des permissions pour vos employés. Suivez chaque action via nos rapports d&apos;audit.
                                 </p>
                             </div>
                         </motion.div>
+                    </div>
+                </section>
+
+                {/* --- WHY MINDOS (COMPARISON) --- */}
+                <section className="py-24 px-6 bg-white/[0.01] border-y border-white/5">
+                    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                        <div className="space-y-8">
+                            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none italic">
+                                Arrêtez de deviner. <br />
+                                <span className="text-primary">Commencez à savoir.</span>
+                            </h2>
+                            <p className="text-muted-foreground text-lg italic leading-relaxed">
+                                Les systèmes manuels vous font perdre 15% de votre CA en erreurs et oublis. MINDOS automatise la rigueur.
+                            </p>
+                            <ul className="space-y-4">
+                                {[
+                                    "Zéro oubli de facturation",
+                                    "Calcul de marge millimeter-accurate",
+                                    "Réconciliation automatique des paiements mobiles",
+                                    "Accessibilité 24/7 sur mobile et PC"
+                                ].map((item, i) => (
+                                    <li key={i} className="flex items-center gap-3 text-sm font-black uppercase tracking-widest text-foreground">
+                                        <div className="w-1.5 h-1.5 bg-primary rounded-full" /> {item}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="relative group p-1 bg-gradient-to-br from-primary/20 to-transparent rounded-[3rem]">
+                            <div className="bg-card border border-white/5 rounded-[2.9rem] overflow-hidden shadow-2xl transition-transform group-hover:scale-[1.01]">
+                                <PricingCard 
+                                    title="Business Elite"
+                                    price="7.000"
+                                    planId="BUSINESS"
+                                    description="Pour ceux qui ne font aucun compromis sur la gestion."
+                                    features={["Multi-Boutiques", "IA Prédictive", "Audit Premium", "Support 24/7"]}
+                                    color="orange"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -270,6 +340,25 @@ export default function LandingPage() {
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
             </footer>
 
+            {/* JSON-LD Structured Data */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "SoftwareApplication",
+                        "name": "MINDOS",
+                        "operatingSystem": "Web, Android, iOS",
+                        "applicationCategory": "BusinessApplication",
+                        "offers": {
+                            "@type": "Offer",
+                            "price": "3000",
+                            "priceCurrency": "XOF"
+                        },
+                        "description": "Système d'exploitation ultime pour les créateurs et entrepreneurs. Gestion de stock, POS, et analyses financières automatisées."
+                    })
+                }}
+            />
             {/* Cinematic Noise Overlay */}
             <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
         </div>

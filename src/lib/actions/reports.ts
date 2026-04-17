@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { startOfMonth, endOfMonth, format, startOfDay, endOfDay, subDays } from "date-fns";
+import { apiRateLimit } from "@/lib/ratelimit";
+import { headers } from "next/headers";
 
 export interface FinancialSummary {
     totalRevenue: number;
@@ -35,6 +37,19 @@ export async function getFinancialReport() {
         error: "Non autorisé" 
     };
 
+    // --- RATE LIMITING ---
+    const ip = (await headers()).get("x-forwarded-for") || "local";
+    const { success: isAllowed } = await apiRateLimit.limit(`report_${storeId}_${ip}`);
+    
+    if (!isAllowed) {
+        return { 
+            summary: { totalRevenue: 0, grossProfit: 0, totalExpenses: 0, netProfit: 0, inventoryValue: 0 },
+            chartData: [],
+            success: false, 
+            error: "Trop de requêtes. Veuillez patienter un instant." 
+        };
+    }
+
     try {
         const now = new Date();
         const monthStart = startOfMonth(now);
@@ -63,7 +78,7 @@ export async function getFinancialReport() {
         sales.forEach(sale => {
             totalRevenue += sale.totalAmount;
             sale.items.forEach(item => {
-                const cost = item.product.costPrice || 0;
+                const cost = item.product?.costPrice || 0;
                 totalCostOfGoodsSold += (cost * item.quantity);
             });
         });

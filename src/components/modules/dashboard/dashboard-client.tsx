@@ -4,6 +4,7 @@ import {
     ShoppingCart, Package, AlertTriangle, Zap,
     ArrowUpRight, ArrowDownRight, Activity
 } from "lucide-react";
+import { OnboardingWizard } from "./onboarding-wizard";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -104,6 +105,8 @@ export function DashboardClient({
                     </Link>
                 </div>
             )}
+
+            <OnboardingWizard metrics={metrics} />
 
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div className="space-y-2">

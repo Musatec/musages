@@ -16,7 +16,8 @@ import {
     FileText,
     CreditCard,
     Server,
-    Truck
+    Truck,
+    ShieldCheck
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -67,6 +68,13 @@ const NAV_SECTIONS: NavSection[] = [
             { label: "Gestion Équipe", icon: Users, href: "/hr", roles: ["ADMIN", "MANAGER"] },
             { label: "Centrale Réseau", icon: Server, href: "/admin/stores", roles: ["ADMIN"] },
             { label: "Paramètres Globaux", icon: Settings, href: "/settings", roles: ["ADMIN"] },
+        ]
+    },
+    {
+        title: "LÉGAL",
+        items: [
+            { label: "Conditions (CGU)", icon: FileText, href: "/terms" },
+            { label: "Confidentialité", icon: ShieldCheck, href: "/privacy" },
         ]
     }
 ];
