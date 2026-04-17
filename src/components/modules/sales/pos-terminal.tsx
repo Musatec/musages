@@ -154,20 +154,6 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
         }
     };
 
-    // GLOBAL HOTKEYS FOR PHYSICAL POS
-    useEffect(() => {
-        const handleGlobalKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'F12' || (e.ctrlKey && e.key === 'Enter')) {
-                e.preventDefault();
-                if (cart.length > 0 && !isCheckingOut && !showReceipt) {
-                    handleProcessSale();
-                }
-            }
-        };
-        window.addEventListener('keydown', handleGlobalKeyDown);
-        return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-    }, [cart, isCheckingOut, showReceipt]);
-
     const handleProcessSale = async () => {
         if (cart.length === 0) return;
         setIsCheckingOut(true);
@@ -201,6 +187,20 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
         
         setIsCheckingOut(false);
     };
+
+    // GLOBAL HOTKEYS FOR PHYSICAL POS
+    useEffect(() => {
+        const handleGlobalKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'F12' || (e.ctrlKey && e.key === 'Enter')) {
+                e.preventDefault();
+                if (cart.length > 0 && !isCheckingOut && !showReceipt) {
+                    handleProcessSale();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleGlobalKeyDown);
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+    }, [cart, isCheckingOut, showReceipt]);
 
     return (
         <div className="flex flex-col md:flex-row h-full bg-background text-foreground transition-all duration-500 overflow-hidden font-sans">

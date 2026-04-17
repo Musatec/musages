@@ -41,9 +41,17 @@ export async function getSubscriptionData() {
     }
 }
 
-export async function initiatePayment(plan: "STARTER" | "GROWTH" | "BUSINESS") {
+export type PaymentResponse = {
+    success: boolean;
+    paymentId?: string;
+    url?: string;
+    message?: string;
+    error?: string;
+};
+
+export async function initiatePayment(plan: "STARTER" | "GROWTH" | "BUSINESS"): Promise<PaymentResponse> {
     const session = await auth();
-    if (!session?.user?.id) return { error: "Non autorisé" };
+    if (!session?.user?.id) return { success: false, error: "Non autorisé" };
 
     const prices = {
         STARTER: 3000,
@@ -79,6 +87,6 @@ export async function initiatePayment(plan: "STARTER" | "GROWTH" | "BUSINESS") {
         };
     } catch (error) {
         console.error("[PAYMENT_ERROR]", error);
-        return { error: "Erreur lors de l'initialisation du paiement" };
+        return { success: false, error: "Erreur lors de l'initialisation du paiement" };
     }
 }

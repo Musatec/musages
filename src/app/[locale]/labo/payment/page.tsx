@@ -178,7 +178,7 @@ export default function PaymentSimulator() {
                             <div className="bg-black/40 border border-white/5 rounded-2xl p-6 space-y-3">
                                 <div className="flex justify-between items-center text-xs">
                                     <span className="text-white/30 font-bold uppercase tracking-widest">ID Transaction</span>
-                                    <span className="font-mono text-primary">#TXN-9824{Math.floor(Math.random()*1000)}</span>
+                                    <span className="font-mono text-primary">#TXN-9824777</span>
                                 </div>
                                 <div className="flex justify-between items-center text-xs">
                                     <span className="text-white/30 font-bold uppercase tracking-widest">Méthode</span>

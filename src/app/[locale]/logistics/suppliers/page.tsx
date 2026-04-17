@@ -23,14 +23,24 @@ export default function SuppliersPage() {
     });
 
     const fetchData = async () => {
-        setLoading(true);
         const res = await getSuppliers();
         if (res.success) setSuppliers(res.suppliers || []);
         else toast.error(res.error);
         setLoading(false);
     };
 
-    useEffect(() => { fetchData(); }, []);
+    useEffect(() => {
+        let isMounted = true;
+        (async () => {
+            const res = await getSuppliers();
+            if (isMounted) {
+                if (res.success) setSuppliers(res.suppliers || []);
+                else toast.error(res.error);
+                setLoading(false);
+            }
+        })();
+        return () => { isMounted = false; };
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
 
 export async function getUserStores() {
     const session = await auth();
@@ -147,8 +148,7 @@ export async function createSubStoreManager(data: {
         if (!isOwner) return { success: false, error: "Vous ne possédez pas ce magasin." };
 
         // Create the manager account
-        // Note: Password should be hashed. Using placeholder for now or bcrypt.
-        const bcrypt = require("bcryptjs");
+        // Note: Password should be hashed.
         const hashedPassword = await bcrypt.hash(data.password || "Mindos123!", 10);
 
         const newManager = await prisma.user.create({

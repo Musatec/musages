@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "test-db.js",
+    "tmp/**",
+    "scripts/**",
+    "docs/**",
+    "*.js"
   ]),
   {
     rules: {

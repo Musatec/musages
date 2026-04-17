@@ -46,7 +46,7 @@ export default function SalesJournalClient({
     const [sales, setSales] = useState<Sale[]>(initialSales || []);
     const [search, setSearch] = useState("");
 
-    useEffect(() => { setSales(initialSales || []); }, [initialSales]);
+
 
     const dateObj = currentDate ? new Date(currentDate) : new Date();
     const isToday = new Date().toDateString() === dateObj.toDateString();

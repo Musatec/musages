@@ -18,7 +18,7 @@ export async function register(data: z.infer<typeof RegisterSchema>) {
   const ip = (await headers()).get("x-forwarded-for") || "local";
   const { success: isAllowed } = await authRateLimit.limit(`regs_${ip}`);
   if (!isAllowed) {
-    return { error: "Trop de tentatives d'inscription. Veuillez réessayer dans une minute." };
+    return { success: false, error: "Trop de tentatives d'inscription. Veuillez réessayer dans une minute." };
   }
 
   try {
@@ -31,7 +31,7 @@ export async function register(data: z.infer<typeof RegisterSchema>) {
     });
 
     if (existingUser) {
-      return { error: "Cet email est déjà utilisé." };
+      return { success: false, error: "Cet email est déjà utilisé." };
     }
 
     // Hash password
@@ -50,13 +50,11 @@ export async function register(data: z.infer<typeof RegisterSchema>) {
     });
 
     return { success: true };
-
-    return { success: true };
   } catch (error: any) {
     console.error("Registration error:", error);
     if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
-        return { error: "Délai de connexion à la base de données dépassé. Votre internet ou le pooler Supabase bloque." };
+        return { success: false, error: "Délai de connexion à la base de données dépassé. Votre internet ou le pooler Supabase bloque." };
     }
-    return { error: error.message || "Erreur lors de l'inscription." };
+    return { success: false, error: error.message || "Erreur lors de l'inscription." };
   }
 }

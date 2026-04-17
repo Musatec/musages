@@ -24,7 +24,6 @@ export default function StoreManagerPage() {
     const [empPass, setEmpPass] = useState("");
 
     const fetchData = async () => {
-        setLoading(true);
         const res = await getUserStores();
         if (res.success) {
             setData(res as any);
@@ -44,7 +43,18 @@ export default function StoreManagerPage() {
     const currentCount = data?.ownedStores?.length || 0;
     const canCreateMore = currentCount < currentLimit;
 
-    useEffect(() => { fetchData(); }, []);
+    useEffect(() => {
+        let isMounted = true;
+        (async () => {
+            const res = await getUserStores();
+            if (isMounted) {
+                if (res.success) setData(res as any);
+                else toast.error(res.error);
+                setLoading(false);
+            }
+        })();
+        return () => { isMounted = false; };
+    }, []);
 
     const handleCreateStore = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -81,7 +91,7 @@ export default function StoreManagerPage() {
         const res = await switchStore(id);
         if (res.success) {
             toast.success(`Connexion en cours à ${name}...`);
-            window.location.href = '/dashboard';
+            router.push('/dashboard');
         } else {
             toast.error(res.error);
         }

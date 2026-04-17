@@ -24,6 +24,32 @@ import {
 import { cn } from "@/lib/utils";
 import { getSubscriptionData, initiatePayment } from "@/lib/actions/subscription";
 
+interface TabButtonProps {
+    id: string;
+    activeTab: string;
+    setActiveTab: (id: any) => void;
+    label: string;
+    icon: LucideIcon;
+}
+
+const TabButton = ({ id, activeTab, setActiveTab, label, icon: Icon }: TabButtonProps) => (
+    <button
+        onClick={() => setActiveTab(id)}
+        className={cn(
+            "flex items-center justify-between w-full px-5 py-4 rounded-xl text-xs font-bold transition-all",
+            activeTab === id 
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]" 
+                : "text-muted-foreground hover:bg-muted/50"
+        )}
+    >
+        <div className="flex items-center gap-3">
+            <Icon className="w-4 h-4" />
+            <span className="uppercase tracking-wider">{label}</span>
+        </div>
+        {activeTab === id && <ChevronRight className="w-4 h-4" />}
+    </button>
+);
+
 export default function StoreSettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -50,10 +76,7 @@ export default function StoreSettingsPage() {
         setSubData(data);
     }, []);
 
-    useEffect(() => { fetchSubscription(); }, [fetchSubscription]);
-
     const fetchStore = useCallback(async () => {
-        setLoading(true);
         const data = await getStore() as any;
         if (data) {
             setStoreData({
@@ -69,10 +92,18 @@ export default function StoreSettingsPage() {
                 }
             });
         }
-        setLoading(false);
     }, []);
 
-    useEffect(() => { fetchStore(); }, [fetchStore]);
+    useEffect(() => {
+        let isMounted = true;
+        const init = async () => {
+            if (isMounted) setLoading(true);
+            await Promise.all([fetchStore(), fetchSubscription()]);
+            if (isMounted) setLoading(false);
+        };
+        init();
+        return () => { isMounted = false; };
+    }, [fetchStore, fetchSubscription]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -83,23 +114,6 @@ export default function StoreSettingsPage() {
         setSaving(false);
     };
 
-    const TabButton = ({ id, label, icon: Icon }: { id: typeof activeTab, label: string, icon: LucideIcon }) => (
-        <button
-            onClick={() => setActiveTab(id)}
-            className={cn(
-                "flex items-center justify-between w-full px-5 py-4 rounded-xl text-xs font-bold transition-all",
-                activeTab === id 
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]" 
-                    : "text-muted-foreground hover:bg-muted/50"
-            )}
-        >
-            <div className="flex items-center gap-3">
-                <Icon className="w-4 h-4" />
-                <span className="uppercase tracking-wider">{label}</span>
-            </div>
-            {activeTab === id && <ChevronRight className="w-4 h-4" />}
-        </button>
-    );
 
     return (
         <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8 text-foreground pb-20">
@@ -126,11 +140,11 @@ export default function StoreSettingsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Navigation Sidebar */}
                 <div className="flex flex-col gap-1">
-                    <TabButton id="general" label="Identité & Contact" icon={Building2} />
-                    <TabButton id="branding" label="Image de Marque" icon={Palette} />
-                    <TabButton id="taxes" label="Fiscalité & Taxes" icon={Percent} />
-                    <TabButton id="security" label="Sessions & Sécurité" icon={ShieldCheck} />
-                    <TabButton id="subscription" label="Mon Abonnement" icon={CreditCard} />
+                    <TabButton id="general" activeTab={activeTab} setActiveTab={setActiveTab} label="Identité & Contact" icon={Building2} />
+                    <TabButton id="branding" activeTab={activeTab} setActiveTab={setActiveTab} label="Image de Marque" icon={Palette} />
+                    <TabButton id="taxes" activeTab={activeTab} setActiveTab={setActiveTab} label="Fiscalité & Taxes" icon={Percent} />
+                    <TabButton id="security" activeTab={activeTab} setActiveTab={setActiveTab} label="Sessions & Sécurité" icon={ShieldCheck} />
+                    <TabButton id="subscription" activeTab={activeTab} setActiveTab={setActiveTab} label="Mon Abonnement" icon={CreditCard} />
                 </div>
 
                 {/* Content Area */}
@@ -282,7 +296,7 @@ export default function StoreSettingsPage() {
                                         type="button"
                                         onClick={async () => {
                                             const res = await initiatePayment(subData?.plan || "STARTER");
-                                            if (res.success && res.url) window.location.href = res.url;
+                                            if (res.success && res.url) window.location.assign(res.url);
                                         }}
                                         className="bg-primary text-black px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all w-full md:w-auto italic"
                                     >

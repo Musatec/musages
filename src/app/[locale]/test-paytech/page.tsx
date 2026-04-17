@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { initiatePayment } from "@/lib/actions/subscription";
+import { initiatePayment, type PaymentResponse } from "@/lib/actions/subscription";
 import { CreditCard, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export default function TestPaytechPage() {
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<{ success: boolean; url?: string; error?: string } | null>(null);
+    const [result, setResult] = useState<PaymentResponse | null>(null);
 
     const handleTestPayment = async () => {
         setLoading(true);

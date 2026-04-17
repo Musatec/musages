@@ -38,6 +38,7 @@ export default async function SalesJournalPage(props: PageProps) {
 
     return (
         <SalesJournalClient 
+            key={targetDate.toISOString()}
             initialSales={JSON.parse(JSON.stringify(initialSales))} 
             dailyMetrics={dailyMetrics} 
             currentDate={targetDate.toISOString()}

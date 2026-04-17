@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { DashboardClient } from "@/components/modules/dashboard/dashboard-client";
 import { getSubscriptionData } from "@/lib/actions/subscription";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage({
   params,
 }: {

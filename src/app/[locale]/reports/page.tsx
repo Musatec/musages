@@ -1,9 +1,10 @@
-"use server";
 
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getFinancialReport, FinancialReport } from "@/lib/actions/reports";
 import { ReportsClient } from "@/components/modules/reports/reports-client";
+
+export const dynamic = "force-dynamic";
 
 export default async function ReportsPage({ params }: { params: Promise<{ locale: string }> }) {
     const session = await auth();

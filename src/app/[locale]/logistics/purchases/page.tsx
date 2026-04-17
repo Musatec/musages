@@ -30,7 +30,6 @@ export default function PurchasePage() {
     const [cart, setCart] = useState<any[]>([]);
 
     const fetchData = async () => {
-        setLoading(true);
         const [supRes, prodRes] = await Promise.all([
             getSuppliers(),
             getProducts()
@@ -40,7 +39,22 @@ export default function PurchasePage() {
         setLoading(false);
     };
 
-    useEffect(() => { fetchData(); }, []);
+    useEffect(() => {
+        let isMounted = true;
+        (async () => {
+            if (isMounted) setLoading(true);
+            const [supRes, prodRes] = await Promise.all([
+                getSuppliers(),
+                getProducts()
+            ]);
+            if (isMounted) {
+                if (supRes.success) setSuppliers(supRes.suppliers || []);
+                if (prodRes) setProducts(prodRes);
+                setLoading(false);
+            }
+        })();
+        return () => { isMounted = false; };
+    }, []);
 
     const addToCart = (product: any) => {
         const existing = cart.find(item => item.id === product.id);
