@@ -12,11 +12,14 @@ if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
 // Configuration du pool optimisée pour le pooler Supabase (port 6543 / Transaction mode)
 const pool = new Pool({ 
   connectionString,
-  // Indispensable pour le Transaction Mode de Supavisor/PgBouncer
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 15000,
+  ssl: {
+    rejectUnauthorized: false // Permet la connexion SSL même si le certificat n'est pas vérifié (commun pour les cloud DB)
+  }
 });
+
 
 const adapter = new PrismaPg(pool);
 
