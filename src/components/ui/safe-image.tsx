@@ -28,7 +28,7 @@ export function SafeImage({
                     loading ? "scale-105 blur-lg" : "scale-100 blur-0",
                     className
                 )}
-                onLoadingComplete={() => setLoading(false)}
+                onLoad={() => setLoading(false)}
                 onError={() => setError(true)}
                 {...props}
             />

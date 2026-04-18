@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import { createPayTechPayment } from "@/lib/paytech";
 
 export async function getSubscriptionData() {
     const session = await auth();
@@ -75,18 +76,45 @@ export async function initiatePayment(plan: "STARTER" | "GROWTH" | "BUSINESS"): 
 
         console.log(`[PAYMENT] Initiated ${plan} payment of ${amount} FCFA (Ref: ${payment.id})`);
         
-        // simulation PayTech / PayDunya
-        // En production, ici on appellerait l'API du provider pour obtenir un lien de paiement
-        // En passant payment.id comme 'ref_command'
+        // 2. Initialisation du paiement réel via PayTech
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
         
-        return { 
-            success: true, 
-            paymentId: payment.id,
-            url: `https://paytech.sn/placeholder-payment-link?ref=${payment.id}`, 
-            message: "Redirection vers la plateforme de paiement..." 
+        const paytechData = {
+            item_name: `Abonnement Musages - ${plan}`,
+            item_price: amount,
+            command_name: `Abonnement ${plan} pour l'utilisateur ${session.user.id}`,
+            ref_command: payment.id,
+            env: process.env.NODE_ENV === "production" ? ("prod" as const) : ("test" as const),
+            ipn_url: `${appUrl}/api/webhooks/paytech`,
+            success_url: `${appUrl}/dashboard?payment=success`,
+            cancel_url: `${appUrl}/dashboard/settings/billing?payment=cancel`,
         };
+
+        const result = await createPayTechPayment(paytechData);
+
+        if (result.success === 1 && result.redirect_url) {
+            // Mettre à jour le paiement avec la référence PayTech
+            await prisma.payment.update({
+                where: { id: payment.id },
+                data: { providerRef: result.token }
+            });
+
+            return { 
+                success: true, 
+                paymentId: payment.id,
+                url: result.redirect_url, 
+                message: "Redirection vers la plateforme de paiement..." 
+            };
+        } else {
+            console.error("[PAYTECH_ERROR]", result.error);
+            return { 
+                success: false, 
+                error: result.error?.[0] || "Erreur lors de la création du paiement chez PayTech" 
+            };
+        }
     } catch (error) {
         console.error("[PAYMENT_ERROR]", error);
         return { success: false, error: "Erreur lors de l'initialisation du paiement" };
     }
 }
+
