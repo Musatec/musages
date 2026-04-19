@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { Upload, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, X, Plus } from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 import { bulkCreateProducts } from "@/lib/actions/inventory";
