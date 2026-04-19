@@ -23,3 +23,11 @@ export const registerRateLimit = new Ratelimit({
   analytics: true,
   prefix: "@upstash/ratelimit",
 });
+
+// Limiteur générique pour les rapports et API (10 requêtes par minute)
+export const apiRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, "1 m"),
+  analytics: true,
+  prefix: "@upstash/ratelimit",
+});
