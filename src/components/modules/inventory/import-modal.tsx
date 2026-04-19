@@ -38,15 +38,25 @@ export function ImportModal() {
         setLoading(true);
 
         // Mapping des colonnes (flexibilité sur les noms de colonnes)
-        const mappedProducts = preview.map(row => ({
-            name: row.Nom || row.name || row.Désignation || "Produit sans nom",
-            price: Number(row.Prix || row.price || row.PV || 0),
-            costPrice: Number(row.Achat || row.costPrice || row.PA || 0),
-            stock: Number(row.Stock || row.quantity || row.Quantité || 0),
-            minStock: Number(row.Alerte || row.minStock || 5),
-            sku: row.SKU || row.Référence || "",
-            category: row.Catégorie || row.category || "Standard"
-        }));
+        const mappedProducts = preview.map(row => {
+            // Fonction pour trouver une valeur dans la ligne sans se soucier de la casse ou des espaces
+            const getVal = (possibleNames: string[]) => {
+                const foundKey = Object.keys(row).find(key => 
+                    possibleNames.includes(key.trim().toLowerCase())
+                );
+                return foundKey ? row[foundKey] : null;
+            };
+
+            return {
+                name: getVal(["nom", "name", "désignation", "article", "produit"]) || "Produit sans nom",
+                price: Number(getVal(["prix", "price", "pv", "prix de vente", "montant"]) || 0),
+                costPrice: Number(getVal(["achat", "costprice", "pa", "prix d'achat", "coût"]) || 0),
+                stock: Number(getVal(["stock", "quantity", "quantité", "qté", "disponible"]) || 0),
+                minStock: Number(getVal(["alerte", "minstock", "seuil", "minimum"]) || 5),
+                sku: getVal(["sku", "référence", "ref", "code"]) || "",
+                category: getVal(["catégorie", "category", "type", "classe"]) || "Standard"
+            };
+        });
 
         const result = await bulkCreateProducts(mappedProducts);
 
