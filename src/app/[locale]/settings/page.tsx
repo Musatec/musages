@@ -295,8 +295,19 @@ export default function StoreSettingsPage() {
                                     <button 
                                         type="button"
                                         onClick={async () => {
-                                            const res = await initiatePayment(subData?.plan || "STARTER");
-                                            if (res.success && res.url) window.location.assign(res.url);
+                                            const promise = initiatePayment(subData?.plan || "STARTER");
+                                            
+                                            toast.promise(promise, {
+                                                loading: 'Initialisation du paiement...',
+                                                success: (res) => {
+                                                    if (res.success && res.url) {
+                                                        window.location.assign(res.url);
+                                                        return "Redirection...";
+                                                    }
+                                                    throw new Error(res.error || "Erreur inconnue");
+                                                },
+                                                error: (err) => `Erreur : ${err.message}`
+                                            });
                                         }}
                                         className="bg-primary text-black px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all w-full md:w-auto italic"
                                     >
