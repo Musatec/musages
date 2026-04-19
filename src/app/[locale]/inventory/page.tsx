@@ -11,7 +11,10 @@ export default async function InventoryPage() {
 
     // Récupération complète de l'inventaire avec les stocks liés
     const products = await prisma.product.findMany({
-        where: { storeId: session.user.storeId },
+        where: { 
+            storeId: session.user.storeId,
+            deletedAt: null // On ignore les produits supprimés
+        },
         include: {
             stocks: {
                 where: { storeId: session.user.storeId }

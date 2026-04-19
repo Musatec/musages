@@ -127,8 +127,9 @@ export async function deleteProduct(productId: string) {
     if (!session?.user?.storeId) return { error: "Non autorisé" };
 
     try {
-        await prisma.product.delete({
-            where: { id: productId, storeId: session.user.storeId }
+        await prisma.product.update({
+            where: { id: productId, storeId: session.user.storeId },
+            data: { deletedAt: new Date() }
         });
 
         revalidatePath("/inventory");
@@ -136,8 +137,8 @@ export async function deleteProduct(productId: string) {
         return { success: true };
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Erreur inconnue";
-        console.error("[INVENTORY] Delete Error:", message);
-        return { error: "Erreur lors de la suppression" };
+        console.error("[INVENTORY] Soft Delete Error:", message);
+        return { error: "Erreur lors de la mise à jour (suppression)" };
     }
 }
 
@@ -149,8 +150,10 @@ export async function getProducts() {
         const storeId = session.user.storeId;
 
         const products = await prisma.product.findMany({
-            where: { storeId },
-            include: {
+            where: { 
+                storeId,
+                deletedAt: null // Filtrer les supprimés
+            },
                 stocks: {
                     where: { storeId },
                     select: { quantity: true }
