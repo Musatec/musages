@@ -1,33 +1,33 @@
-import { resend } from "./resend";
-import WelcomeEmail from "@/components/emails/welcome-email";
-import PaymentSuccessEmail from "@/components/emails/payment-success-email";
 
-const domain = process.env.NEXT_PUBLIC_APP_URL || "https://musages.com";
+import { Resend } from 'resend';
 
-export const sendWelcomeEmail = async (email: string, name: string) => {
-  await resend.emails.send({
-    from: "MINDOS <noreply@musages.com>",
-    to: email,
-    subject: "Bienvenue dans l'écosystème MINDOS",
-    react: WelcomeEmail({ userName: name }),
-  });
-};
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const sendPaymentSuccessEmail = async (
-  email: string,
-  name: string,
-  planName: string,
-  amount: string
-) => {
-  await resend.emails.send({
-    from: "MINDOS <payments@musages.com>",
-    to: email,
-    subject: "Confirmation de paiement - MINDOS",
-    react: PaymentSuccessEmail({
-      userName: name,
-      planName,
-      amount,
-      date: new Date().toLocaleDateString("fr-FR"),
-    }),
-  });
+export const sendEmail = async ({
+  to,
+  subject,
+  html,
+}: {
+  to: string | string[];
+  subject: string;
+  html: string;
+}) => {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'Musages <onboarding@resend.dev>',
+      to,
+      subject,
+      html,
+    });
+
+    if (error) {
+      console.error('[RESEND_ERROR]', error);
+      return { success: false, error };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('[MAIL_ERROR]', error);
+    return { success: false, error };
+  }
 };
