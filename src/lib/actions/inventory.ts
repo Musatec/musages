@@ -192,6 +192,7 @@ export async function bulkCreateProducts(products: CreateProductData[]) {
                         costPrice: data.costPrice ? Number(data.costPrice) : null,
                         minAlert: Math.floor(Number(data.minStock)) || 5,
                         sku: data.sku || null,
+                        category: data.category || "Standard",
                         storeId: storeId as string,
                     }
                 });
