@@ -29,26 +29,27 @@ export const {
             const user = await prisma.user.findUnique({ where: { email } });
             
             if (!user) {
-              console.log("[AUTH] Utilisateur non trouvé:", email);
+              console.log("[AUTH_DEBUG] User not found in DB:", email);
               return null;
             }
 
             if (!user.password) {
-              console.log("[AUTH] Mot de passe non défini pour:", email);
+              console.log("[AUTH_DEBUG] User has no password (OAuth?):", email);
               return null;
             }
 
+            console.log("[AUTH_DEBUG] Comparing passwords for:", email);
             const passwordsMatch = await bcrypt.compare(password, user.password);
 
             if (passwordsMatch) {
-              console.log("[AUTH] Connexion réussie pour:", email);
+              console.log("[AUTH_DEBUG] Passwords match. Success.");
               return user;
             } else {
-              console.log("[AUTH] Mot de passe incorrect pour:", email);
+              console.log("[AUTH_DEBUG] Passwords DO NOT match for:", email);
             }
-          } catch (error) {
-            console.error("[AUTH] Erreur de base de données:", error);
-            throw new Error("Erreur de connexion à la base de données");
+          } catch (error: any) {
+            console.error("[AUTH_CRITICAL_ERROR] Database or Bcrypt failure:", error.message);
+            throw new Error("Erreur technique d'authentification");
           }
         }
 

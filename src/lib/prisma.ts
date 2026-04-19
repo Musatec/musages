@@ -9,21 +9,25 @@ if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
   console.warn("⚠️ DATABASE_URL is missing from environment variables during production build!");
 }
 
-// Configuration du pool optimisée pour le pooler Supabase (port 6543 / Transaction mode)
-const pool = new Pool({ 
+const globalForPrisma = global as unknown as { 
+  prisma: PrismaClient | undefined,
+  pool: Pool | undefined 
+};
+
+// Singleton pour le Pool (évite de saturer Supabase en dev)
+const pool = globalForPrisma.pool || new Pool({ 
   connectionString,
-  max: 20,
+  max: 10, // Réduit pour laisser de la place aux autres processus
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 15000,
+  connectionTimeoutMillis: 30000, // Augmenté à 30s pour les connexions lentes
   ssl: {
-    rejectUnauthorized: false // Permet la connexion SSL même si le certificat n'est pas vérifié (commun pour les cloud DB)
+    rejectUnauthorized: false
   }
 });
 
+if (process.env.NODE_ENV !== "production") globalForPrisma.pool = pool;
 
 const adapter = new PrismaPg(pool);
-
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 export const prisma =
   globalForPrisma.prisma ||

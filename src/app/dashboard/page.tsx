@@ -30,56 +30,55 @@ export default async function DashboardPage({
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
-  const [
-    salesAggregate,
-    stockAlerts,
-    activeInventory,
-    incomeAggregate,
-    expenseAggregate,
-    totalEmployees,
-    recentSales,
-    auditLogs
-  ] = await Promise.all([
-    // 1. Total Sales (Aggregated)
-    prisma.sale.aggregate({
-        where: { storeId, createdAt: { gte: startOfMonth }, status: "COMPLETED" },
-        _sum: { totalAmount: true }
-    }),
-    // 2. Stock Alerts
-    prisma.stock.count({
-        where: { storeId, quantity: { lte: 5 } }
-    }),
-    // 3. Active Inventory
-    prisma.product.count({
-        where: { storeId, deletedAt: null }
-    }),
-    // 4. Income Aggregate
-    prisma.transaction.aggregate({
-        where: { storeId, type: "INCOME" },
-        _sum: { amount: true }
-    }),
-    // 5. Expense Aggregate
-    prisma.transaction.aggregate({
-        where: { storeId, type: "EXPENSE" },
-        _sum: { amount: true }
-    }),
-    // 6. Employees
-    prisma.employee.count({
-        where: { storeId, deletedAt: null }
-    }),
-    // 7. Recent Sales
-    prisma.sale.findMany({
-        where: { storeId, status: "COMPLETED" },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-    }),
-    // 8. Audit Logs
-    prisma.auditLog.findMany({
-        where: { storeId },
-        orderBy: { createdAt: "desc" },
-        take: 8,
-    })
-  ]);
+  // --- SAFE INDIVIDUAL FETCHING ---
+  // On utilise des fonctions anonymes auto-exécutées pour isoler les erreurs de chaque bloc
+  const fetchSafe = async (fn: () => Promise<any>, defaultValue: any) => {
+    try {
+      return await fn();
+    } catch (e) {
+      console.warn("[DASHBOARD_FETCH_ERROR]", e);
+      return defaultValue;
+    }
+  };
+
+  const salesAggregate = await fetchSafe(() => prisma.sale.aggregate({
+    where: { storeId, createdAt: { gte: startOfMonth }, status: "COMPLETED" },
+    _sum: { totalAmount: true }
+  }), { _sum: { totalAmount: 0 } });
+
+  const stockAlerts = await fetchSafe(() => prisma.stock.count({
+    where: { storeId, quantity: { lte: 5 } }
+  }), 0);
+
+  const activeInventory = await fetchSafe(() => prisma.product.count({
+    where: { storeId, deletedAt: null }
+  }), 0);
+
+  const incomeAggregate = await fetchSafe(() => prisma.transaction.aggregate({
+    where: { storeId, type: "INCOME" },
+    _sum: { amount: true }
+  }), { _sum: { amount: 0 } });
+
+  const expenseAggregate = await fetchSafe(() => prisma.transaction.aggregate({
+    where: { storeId, type: "EXPENSE" },
+    _sum: { amount: true }
+  }), { _sum: { amount: 0 } });
+
+  const totalEmployees = await fetchSafe(() => prisma.employee.count({
+    where: { storeId, deletedAt: null }
+  }), 0);
+
+  const recentSales = await fetchSafe(() => prisma.sale.findMany({
+    where: { storeId, status: "COMPLETED" },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  }), []);
+
+  const auditLogs = await fetchSafe(() => prisma.auditLog.findMany({
+    where: { storeId },
+    orderBy: { createdAt: "desc" },
+    take: 8,
+  }), []);
 
   const totalSalesValue = salesAggregate._sum.totalAmount || 0;
   const netCashflow = (incomeAggregate._sum.amount || 0) - (expenseAggregate._sum.amount || 0);

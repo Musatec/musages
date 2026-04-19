@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import "../globals.css";
+import "./globals.css";
 
 import AppLayout from "@/components/layout/app-layout";
 import AuthProvider from "@/components/providers/auth-provider";
@@ -46,10 +46,6 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   alternates: {
     canonical: '/',
-    languages: {
-      'fr': '/fr',
-      'en': '/en',
-    },
   },
   openGraph: {
     title: "MINDOS | Gérez votre Business comme un Pro",
@@ -77,17 +73,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-  params
 }: {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-
-  // Ensure that the incoming `locale` is valid
-  if (!routing.locales.includes(locale as Locale)) {
-    notFound();
-  }
+  const locale = 'fr';
 
   // Receiving messages provided in `i18n/request.ts`
   const messages = await getMessages();

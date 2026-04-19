@@ -8,7 +8,6 @@ import { NAV_ITEMS } from "@/config/nav";
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { useTranslations } from "next-intl";
 import { SafeImage } from "@/components/ui/safe-image";
-import { LanguageSwitcher } from "./language-switcher";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -188,17 +187,13 @@ export function MobileHeader() {
 
                 {/* Footer Section - Multi-tiered */}
                 <div className="p-6 pb-10 border-t border-white/5 bg-[#0D0D0E]/80 backdrop-blur-md space-y-3 z-20">
-                    <div className="grid grid-cols-2 gap-3">
                         <Link
                             href="/settings"
-                            className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/10 hover:bg-white/[0.05] transition-all group"
+                            className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/10 hover:bg-white/[0.05] transition-all group col-span-2"
                         >
                             <Settings2 className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                             <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-white uppercase">{t('settings')}</span>
                         </Link>
-
-                        <LanguageSwitcher />
-                    </div>
 
                     <button
                         onClick={() => signOut({ callbackUrl: '/' })}

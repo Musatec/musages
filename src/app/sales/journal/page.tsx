@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { getDailyMetrics } from "@/lib/actions/sales";
-import SalesJournalClient from "../../../../components/modules/sales/sales-journal-client";
+import SalesJournalClient from "@/components/modules/sales/sales-journal-client";
 
 interface PageProps {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

@@ -14,6 +14,9 @@ const RegisterSchema = z.object({
 });
 
 export async function register(data: z.infer<typeof RegisterSchema>) {
+  const start = Date.now();
+  console.log("[AUTH_TIMER] Starting registration...");
+
   // --- RATE LIMITING ---
   let ip = "local";
   try {
@@ -24,28 +27,36 @@ export async function register(data: z.infer<typeof RegisterSchema>) {
   if (ip !== "local") {
     const { success: isAllowed } = await authRateLimit.limit(`regs_${ip}`);
     if (!isAllowed) {
-      return { success: false, error: "Trop de tentatives d'inscription. Veuillez réessayer dans une minute." };
+      return { success: false, error: "Trop de tentatives d'inscription." };
     }
   }
+  console.log(`[AUTH_TIMER] Rate limit check: ${Date.now() - start}ms`);
+
+  const validated = RegisterSchema.safeParse(data);
+  if (!validated.success) return { success: false, error: "Données invalides." };
+  
+  const { email, password, name } = validated.data;
 
   try {
-    const validated = RegisterSchema.parse(data);
-    const { email, password, name, enterpriseName } = validated;
-
+    const dbStart = Date.now();
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
+    console.log(`[AUTH_TIMER] DB findUnique: ${Date.now() - dbStart}ms`);
 
     if (existingUser) {
       return { success: false, error: "Cet email est déjà utilisé." };
     }
 
     // Hash password
+    const hashStart = Date.now();
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log(`[AUTH_TIMER] Bcrypt hash: ${Date.now() - hashStart}ms`);
 
-    // Create user only
-    await (prisma.user as any).create({
+    // Create user in database
+    const createStart = Date.now();
+    await prisma.user.create({
         data: {
             email,
             name,
@@ -55,13 +66,25 @@ export async function register(data: z.infer<typeof RegisterSchema>) {
             trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         },
     });
+    console.log(`[AUTH_TIMER] DB create: ${Date.now() - createStart}ms`);
+    console.log(`[AUTH_TIMER] Total time: ${Date.now() - start}ms`);
 
+    console.log("[AUTH_ACTION] User created successfully:", email);
     return { success: true };
   } catch (error: any) {
-    console.error("Registration error:", error);
-    if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
+    console.error("[AUTH_ACTION] Registration error:", error);
+    
+    // Detailed error for debugging (only in development)
+    const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
+    
+    if (error.code === 'P2002') {
+        return { success: false, error: "Cet email est déjà utilisé (Contrainte DB)." };
+    }
+    
+    if (error.code === 'ETIMEDOUT' || errorMessage.includes('timeout')) {
         return { success: false, error: "Délai de connexion à la base de données dépassé. Votre internet ou le pooler Supabase bloque." };
     }
-    return { success: false, error: error.message || "Erreur lors de l'inscription." };
+    
+    return { success: false, error: `Erreur: ${errorMessage}` };
   }
 }

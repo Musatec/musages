@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: ['/api/', '/*/admin/', '/*/settings/'],
+            disallow: ['/api/', '/admin/', '/settings/'],
         },
         sitemap: 'https://musages.vercel.app/sitemap.xml', // Remplace avec ton URL réelle si différente
     };

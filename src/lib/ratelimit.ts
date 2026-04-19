@@ -3,14 +3,23 @@ import { Redis } from "@upstash/redis";
 
 // Création du client Redis pour le rate limiting
 // À configurer avec des variables Upstash
-const isConfigured = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+// Nettoyage des variables d'environnement (suppression des guillemets éventuels)
+const rawUrl = process.env.UPSTASH_REDIS_REST_URL?.replace(/^["']|["']$/g, '') || "";
+const rawToken = process.env.UPSTASH_REDIS_REST_TOKEN?.replace(/^["']|["']$/g, '') || "";
+
+// Vérification si la configuration est valide (pas un placeholder et commence par https)
+const isConfigured = !!(rawUrl && rawToken && rawUrl.startsWith("https://") && !rawUrl.includes("..."));
 
 const redis = isConfigured 
   ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL!,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+      url: rawUrl,
+      token: rawToken,
     })
   : null;
+
+if (!isConfigured && process.env.NODE_ENV === "development") {
+  console.warn("⚠️ Upstash Redis n'est pas configuré. Le rate limiting est désactivé.");
+}
 
 // Helper to bypass if not configured
 const bypassLimit = () => Promise.resolve({ success: true, limit: 0, remaining: 0, reset: 0 });
