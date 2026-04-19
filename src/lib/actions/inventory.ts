@@ -154,6 +154,7 @@ export async function getProducts() {
                 storeId,
                 deletedAt: null // Filtrer les supprimés
             },
+            include: {
                 stocks: {
                     where: { storeId },
                     select: { quantity: true }
