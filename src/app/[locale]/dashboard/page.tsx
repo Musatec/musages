@@ -97,14 +97,14 @@ export default async function DashboardPage({
   });
 
   // Serialize to avoid Date object issues
-  const serializedRecentSales = recentSales.map(sale => ({
+  const serializedRecentSales = (recentSales as any[]).map((sale: any) => ({
     ...sale,
-    createdAt: sale.createdAt.toISOString(),
+    createdAt: sale.createdAt instanceof Date ? sale.createdAt.toISOString() : sale.createdAt,
   }));
 
-  const serializedAuditLogs = auditLogs.map(log => ({
+  const serializedAuditLogs = (auditLogs as any[]).map((log: any) => ({
     ...log,
-    createdAt: log.createdAt.toISOString(),
+    createdAt: log.createdAt instanceof Date ? log.createdAt.toISOString() : log.createdAt,
   }));
 
   const metadata = {
