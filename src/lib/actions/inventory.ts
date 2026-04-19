@@ -172,3 +172,60 @@ export async function getProducts() {
         return [];
     }
 }
+
+export async function bulkCreateProducts(products: CreateProductData[]) {
+    try {
+        const session = await auth();
+        const storeId = session?.user?.storeId;
+        const userId = session?.user?.id;
+        
+        if (!storeId || !userId) return { error: "Non autorisé" };
+
+        const results = await prisma.$transaction(async (tx) => {
+            const created = [];
+            for (const data of products) {
+                // 1. Produit
+                const product = await tx.product.create({
+                    data: {
+                        name: data.name,
+                        price: Number(data.price) || 0,
+                        costPrice: data.costPrice ? Number(data.costPrice) : null,
+                        minAlert: Math.floor(Number(data.minStock)) || 5,
+                        sku: data.sku || null,
+                        storeId: storeId as string,
+                    }
+                });
+
+                // 2. Stock
+                await tx.stock.create({
+                    data: {
+                        storeId: storeId as string,
+                        productId: product.id,
+                        quantity: Math.floor(Number(data.stock)) || 0,
+                    }
+                });
+
+                // 3. Mouvement
+                await tx.stockMovement.create({
+                    data: {
+                        storeId: storeId as string,
+                        productId: product.id,
+                        quantity: Math.floor(Number(data.stock)) || 0,
+                        reason: "BULK_IMPORT",
+                        userId: userId as string,
+                    }
+                });
+                
+                created.push(product);
+            }
+            return created;
+        });
+
+        revalidatePath("/inventory");
+        return { success: true, count: results.length };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : "Erreur inconnue";
+        console.error("[INVENTORY] BULK CREATE ERROR:", message);
+        return { error: `Erreur lors de l'importation : ${message}` };
+    }
+}

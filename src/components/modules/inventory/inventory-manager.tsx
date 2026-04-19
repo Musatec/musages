@@ -16,6 +16,8 @@ import {
 
 import { Product, ProductFormData } from "@/types/inventory";
 
+import { ImportModal } from "./import-modal";
+
 export function InventoryManager({ initialProducts }: { initialProducts: Product[] }) {
     const [products, setProducts] = useState<Product[]>(initialProducts);
     const [search, setSearch] = useState("");
@@ -100,6 +102,8 @@ export function InventoryManager({ initialProducts }: { initialProducts: Product
                                 className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
                             />
                         </div>
+
+                        <ImportModal />
 
                         <Sheet open={openAdd} onOpenChange={setOpenAdd}>
                             <SheetTrigger asChild>

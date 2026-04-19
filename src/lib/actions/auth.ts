@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { authRateLimit } from "@/lib/ratelimit";
+import { registerRateLimit } from "@/lib/ratelimit";
 import { headers } from "next/headers";
 
 const RegisterSchema = z.object({
@@ -25,7 +25,7 @@ export async function register(data: z.infer<typeof RegisterSchema>) {
     // Build phase
   }
   if (ip !== "local") {
-    const { success: isAllowed } = await authRateLimit.limit(`regs_${ip}`);
+    const { success: isAllowed } = await registerRateLimit.limit(`regs_${ip}`);
     if (!isAllowed) {
       return { success: false, error: "Trop de tentatives d'inscription." };
     }
