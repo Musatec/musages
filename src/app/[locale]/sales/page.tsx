@@ -9,16 +9,30 @@ export default async function SalesPage() {
         redirect("/login");
     }
 
-    // Récupération des produits pour le terminal avec leurs stocks
-    const products = await prisma.product.findMany({
-        where: { storeId: session.user.storeId },
-        include: {
-            stocks: {
-                where: { storeId: session.user.storeId }
+    // Fonction de récupération avec mécanisme de retry (Backoff exponentiel) pour la stabilité du Terminal
+    async function getProductsWithRetry(attempts = 3) {
+        try {
+            return await prisma.product.findMany({
+                where: { storeId: session.user.storeId as string },
+                include: {
+                    stocks: {
+                        where: { storeId: session.user.storeId as string }
+                    }
+                },
+                orderBy: { name: 'asc' }
+            });
+        } catch (error) {
+            if (attempts > 1) {
+                const delay = (4 - attempts) * 2000;
+                console.log(`[POS-DB] Timeout detected. Retrying in ${delay}ms... (${attempts - 1} attempts left)`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return getProductsWithRetry(attempts - 1);
             }
-        },
-        orderBy: { name: 'asc' }
-    });
+            throw error;
+        }
+    }
+
+    const products = await getProductsWithRetry();
 
     // Conversion pour le terminal (Calcul du stock réel et sérialisation)
     const serializedProducts = products.map(p => ({

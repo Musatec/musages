@@ -9,8 +9,8 @@ export default async function InventoryPage() {
         redirect("/login");
     }
 
-    // Fonction de récupération avec mécanisme de retry pour la stabilité
-    async function getProductsWithRetry(attempts = 2) {
+    // Fonction de récupération avec mécanisme de retry (Backoff exponentiel)
+    async function getProductsWithRetry(attempts = 3) {
         try {
             return await prisma.product.findMany({
                 where: { 
@@ -26,8 +26,9 @@ export default async function InventoryPage() {
             });
         } catch (error) {
             if (attempts > 1) {
-                console.log(`Retrying inventory fetch... (${attempts - 1} left)`);
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Petit délai avant retry
+                const delay = (4 - attempts) * 2000; // 2s, 4s, 6s...
+                console.log(`[DB] Timeout detected. Retrying in ${delay}ms... (${attempts - 1} attempts left)`);
+                await new Promise(resolve => setTimeout(resolve, delay));
                 return getProductsWithRetry(attempts - 1);
             }
             throw error;
