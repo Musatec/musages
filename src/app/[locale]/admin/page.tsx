@@ -110,32 +110,34 @@ export default async function AdminDashboardPage() {
             } 
         });
 
-        totalSales = await prisma.sale.findMany({
+        const salesAggregate = await prisma.sale.aggregate({
             where: { 
                 storeId: isSuperAdmin ? undefined : storeId as string, 
                 status: "COMPLETED", 
                 deletedAt: null 
             },
-            select: { totalAmount: true }
+            _sum: { totalAmount: true }
         });
+        totalSalesAmount = salesAggregate._sum.totalAmount || 0;
 
-        totalExpenses = await prisma.transaction.findMany({
+        const expensesAggregate = await prisma.transaction.aggregate({
             where: { 
                 storeId: isSuperAdmin ? undefined : storeId as string, 
                 type: "EXPENSE" 
             },
-            select: { amount: true }
+            _sum: { amount: true }
         });
+        totalExpensesAmount = expensesAggregate._sum.amount || 0;
 
-        // Global SaaS metrics
+        // --- GLOBAL SAAS METRICS ---
         globalStoresCount = await prisma.store.count({ where: { deletedAt: null } });
         globalUsersCount = await prisma.user.count({ where: { deletedAt: null } });
         
-        const allCompletedSales = await prisma.sale.findMany({
+        const globalRevenueAggregate = await prisma.sale.aggregate({
             where: { status: "COMPLETED", deletedAt: null },
-            select: { totalAmount: true }
+            _sum: { totalAmount: true }
         });
-        globalRevenue = allCompletedSales.reduce((acc, s) => acc + (s.totalAmount || 0), 0);
+        globalRevenue = globalRevenueAggregate._sum.totalAmount || 0;
 
         recentStores = await prisma.store.findMany({
             where: { deletedAt: null },
@@ -146,9 +148,6 @@ export default async function AdminDashboardPage() {
     } catch (e: any) {
         console.error("ADMIN DATA FETCH ERROR:", e.message);
     }
-
-    const totalSalesAmount = totalSales.reduce((acc, s) => acc + (s.totalAmount || 0), 0);
-    const totalExpensesAmount = totalExpenses.reduce((acc, e) => acc + (e.amount || 0), 0);
 
     const stats = [
         { label: "Masse Salariale", value: totalEmployees, icon: Users, color: "text-blue-500", desc: "Collaborateurs actifs" },

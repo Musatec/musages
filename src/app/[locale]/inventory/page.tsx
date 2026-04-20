@@ -9,19 +9,32 @@ export default async function InventoryPage() {
         redirect("/login");
     }
 
-    // Récupération complète de l'inventaire avec les stocks liés
-    const products = await prisma.product.findMany({
-        where: { 
-            storeId: session.user.storeId,
-            deletedAt: null // On ignore les produits supprimés
-        },
-        include: {
-            stocks: {
-                where: { storeId: session.user.storeId }
+    // Fonction de récupération avec mécanisme de retry pour la stabilité
+    async function getProductsWithRetry(attempts = 2) {
+        try {
+            return await prisma.product.findMany({
+                where: { 
+                    storeId: session.user.storeId as string,
+                    deletedAt: null 
+                },
+                include: {
+                    stocks: {
+                        where: { storeId: session.user.storeId as string }
+                    }
+                },
+                orderBy: { updatedAt: 'desc' }
+            });
+        } catch (error) {
+            if (attempts > 1) {
+                console.log(`Retrying inventory fetch... (${attempts - 1} left)`);
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Petit délai avant retry
+                return getProductsWithRetry(attempts - 1);
             }
-        },
-        orderBy: { updatedAt: 'desc' }
-    });
+            throw error;
+        }
+    }
+
+    const products = await getProductsWithRetry();
 
     // Conversion pour le terminal (Calcul du stock réel et sérialisation)
     const serializedProducts = products.map(p => ({

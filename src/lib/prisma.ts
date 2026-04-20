@@ -17,9 +17,9 @@ const globalForPrisma = global as unknown as {
 // Singleton pour le Pool (évite de saturer Supabase en dev)
 const pool = globalForPrisma.pool || new Pool({ 
   connectionString,
-  max: 10, // Réduit pour laisser de la place aux autres processus
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 30000, // Augmenté à 30s pour les connexions lentes
+  max: 15, // Légère augmentation pour plus de parallélisme
+  idleTimeoutMillis: 60000,
+  connectionTimeoutMillis: 60000, // Augmenté à 60s pour les connexions critiques
   ssl: {
     rejectUnauthorized: false
   }
