@@ -17,7 +17,9 @@ import {
     Info,
     Loader2
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
+import { EliteMetricCard } from "@/components/ui/metric-card";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 export default function PurchasePage() {
     const [loading, setLoading] = useState(true);
@@ -110,25 +112,51 @@ export default function PurchasePage() {
             {loading && <TopLoader />}
 
             {/* Left Section: Product Picker */}
-            <div className="flex-1 flex flex-col min-w-0 border-r border-border p-6 md:p-8 space-y-6 overflow-y-auto">
-                <header className="space-y-4">
-                     <div className="flex items-center gap-3">
-                         <div className="w-8 h-0.5 bg-primary rounded-full" />
-                         <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Logistique & Stocks</span>
-                     </div>
-                     <h1 className="text-3xl font-bold tracking-tight">Nouvel Arrivage</h1>
-                     <p className="text-sm text-muted-foreground">Sélectionnez les articles reçus pour mettre à jour votre inventaire.</p>
-                     
-                     <div className="relative pt-2">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
-                        <input 
-                            value={searchTerm}
-                            onChange={e=>setSearchTerm(e.target.value)}
-                            placeholder="Rechercher un produit dans l'inventaire..." 
-                            className="w-full bg-card border border-border rounded-xl py-3 pl-12 pr-4 text-sm font-bold outline-none focus:ring-1 focus:ring-primary/20 shadow-sm"
-                        />
-                    </div>
-                </header>
+            <div className="flex-1 flex flex-col min-w-0 border-r border-border p-6 md:p-8 space-y-4 overflow-y-auto">
+                <ElitePageHeader 
+                    title="Arrivages & Stocks."
+                    subtitle="Logistique Amont"
+                    description="Réceptionnez vos commandes, mettez à jour les prix d'achat et injectez de nouvelles unités dans votre inventaire."
+                    actions={
+                        <div className="relative group w-full md:w-80">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
+                            <input 
+                                value={searchTerm}
+                                onChange={e=>setSearchTerm(e.target.value)}
+                                placeholder="Rechercher un produit dans l'inventaire..." 
+                                className="w-full bg-card border border-border rounded-xl py-3 pl-12 pr-4 text-sm font-bold outline-none focus:ring-1 focus:ring-primary/20 shadow-sm"
+                            />
+                        </div>
+                    }
+                />
+
+                {/* --- STRATEGIC METRICS (Elite SaaS) --- */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <EliteMetricCard 
+                        label="Coût Arrivage" 
+                        value={`${formatMoney(total)} F`} 
+                        icon={ShoppingCart} 
+                        variant="blue"
+                    />
+                    <EliteMetricCard 
+                        label="Total Articles" 
+                        value={cart.reduce((acc, i) => acc + i.quantity, 0)} 
+                        icon={Package} 
+                        variant="purple"
+                    />
+                    <EliteMetricCard 
+                        label="Fournisseur" 
+                        value={suppliers.find(s => s.id === selectedSupplierId)?.name || "Non sélectionné"} 
+                        icon={Truck} 
+                        variant="amber"
+                    />
+                    <EliteMetricCard 
+                        label="Marge Est." 
+                        value={`${cart.length > 0 ? Math.round(((cart.reduce((acc, i) => acc + (i.price * i.quantity), 0) - total) / cart.reduce((acc, i) => acc + (i.price * i.quantity), 1)) * 100) : 0}%`} 
+                        icon={CheckCircle2} 
+                        variant="emerald"
+                    />
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                     {filteredProducts.map(p => (

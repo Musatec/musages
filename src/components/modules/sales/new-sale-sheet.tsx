@@ -10,7 +10,7 @@ import {
 import { 
     Sheet, SheetContent, SheetTrigger 
 } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 import { getProducts } from "@/lib/actions/inventory";
 import { processSale } from "@/lib/actions/sales";
 import { toast } from "sonner";
@@ -261,7 +261,7 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
                                             </div>
                                             <div className="flex items-center gap-4">
                                                 <p className="text-sm font-bold text-foreground">
-                                                    {p.price.toLocaleString()} F
+                                                    {formatMoney(p.price)} F
                                                 </p>
                                                 <button 
                                                     onClick={() => addToCart(p)}
@@ -306,7 +306,7 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
                                         <p className="text-[11px] font-bold uppercase tracking-tight text-foreground leading-none">
                                             {item.name} {item.isManual && <span className="text-[8px] opacity-40 italic ml-1">(MANUEL)</span>}
                                         </p>
-                                        <p className="text-[10px] font-bold text-primary leading-none">{item.price.toLocaleString()} F × {item.quantity}</p>
+                                        <p className="text-[10px] font-bold text-primary leading-none">{formatMoney(item.price)} F × {item.quantity}</p>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className="flex items-center gap-1.5 bg-background rounded-lg p-1 border border-border">
@@ -326,7 +326,7 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
                                     <p className="text-[10px] font-bold uppercase tracking-widest opacity-40">Total Net</p>
                                 </div>
                                 <h2 className="text-3xl font-bold tracking-tight relative z-10">
-                                    {total.toLocaleString()} <span className="text-sm opacity-40">F</span>
+                                    {formatMoney(total)} <span className="text-sm opacity-40">F</span>
                                 </h2>
                                 <div className="absolute top-0 right-0 w-32 h-full bg-primary/10 blur-[40px] pointer-events-none opacity-50" />
                             </div>
@@ -372,7 +372,7 @@ export function NewSaleSheet({ trigger }: { trigger: React.ReactNode }) {
                                         rest < 0 ? "bg-red-500/5 border-red-500/20" : "bg-muted/30 border-transparent opacity-60"
                                     )}>
                                         <p className={cn("text-xl font-bold tracking-tight", rest < 0 ? "text-red-500" : "text-foreground")}>
-                                            {rest < 0 ? Math.abs(rest).toLocaleString() : 0} <span className="text-xs opacity-40">F</span>
+                                            {rest < 0 ? formatMoney(Math.abs(rest)) : 0} <span className="text-xs opacity-40">F</span>
                                         </p>
                                     </div>
                                 </div>

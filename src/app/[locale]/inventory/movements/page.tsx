@@ -10,6 +10,7 @@ import {
     ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 export default async function InventoryMovementsPage() {
     const session = await auth();
@@ -28,26 +29,20 @@ export default async function InventoryMovementsPage() {
         take: 50
     });
 
-    const formatMoney = (amount: number) => new Intl.NumberFormat('fr-FR').format(amount);
-
     return (
-        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8 text-foreground">
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-4 text-foreground">
             
-            <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-border/50">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Audit & Flux Logistiques</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Historique détaillé des mouvements de stock et traçabilité opérationnelle.
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-card border border-border rounded-xl text-xs font-bold uppercase tracking-widest shadow-sm">
-                        <Activity className="w-4 h-4 text-primary" /> 
+            <ElitePageHeader 
+                title="Traçabilité & Flux Systèmes."
+                subtitle="Audit Logistique"
+                description="Historique détaillé des mouvements de stock, traçabilité des opérateurs et monitoring des flux opérationnels en temps réel."
+                actions={
+                    <div className="flex items-center gap-2 px-4 py-2.5 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm italic">
+                        <Activity className="w-4 h-4 text-primary animate-pulse" /> 
                         Monitoring Temps Réel
                     </div>
-                </div>
-            </header>
+                }
+            />
 
             {/* --- MAIN AUDIT LOG TABLE --- */}
             <div className="bg-card border border-border shadow-sm rounded-xl overflow-hidden min-h-[600px] flex flex-col">

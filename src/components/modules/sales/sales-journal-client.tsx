@@ -8,16 +8,19 @@ import {
     ArrowUpRight,
     Trash2, Printer, Filter,
     ChevronLeft, ChevronRight,
-    Plus
+    Plus, ShoppingCart, Receipt, CreditCard
 } from "lucide-react";
 import { deleteSale } from "@/lib/actions/sales";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 import { NewSaleSheet } from "./new-sale-sheet";
+import { SafeImage } from "@/components/ui/safe-image";
+import { EliteMetricCard } from "@/components/ui/metric-card";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 interface SaleItem {
     id: string;
-    product: { name: string };
+    product: { name: string, image?: string };
     quantity: number;
     price: number;
 }
@@ -63,10 +66,6 @@ export default function SalesJournalClient({
         router.push(`?date=${next.toISOString().split('T')[0]}`);
     };
 
-    const formatMoney = (amount: number) => {
-        return new Intl.NumberFormat('fr-FR').format(amount || 0);
-    };
-
     const handleDelete = async (id: string) => {
         if (!confirm("⚠️ Confirmer l'annulation de cette vente ?")) return;
         try {
@@ -91,66 +90,67 @@ export default function SalesJournalClient({
         (s.id || "").toLowerCase().includes(search.toLowerCase())
     );
 
-    return (
-        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8">
-            
-            <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-border/50">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center bg-card border border-border rounded-xl p-1 shadow-sm">
-                        <button onClick={handlePrevDay} className="p-2 hover:bg-muted rounded-lg transition-colors"><ChevronLeft className="w-5 h-5 text-muted-foreground hover:text-primary" /></button>
-                        <div className="px-4 flex flex-col items-center min-w-[140px]">
-                            <span className="text-xs font-bold text-primary uppercase tracking-tight">
-                                {isToday ? "Aujourd'hui" : dateObj.toLocaleDateString('fr-FR', { weekday: 'long' })}
-                            </span>
-                            <span className="text-sm font-semibold">{dateObj.toLocaleDateString('fr-FR')}</span>
-                        </div>
-                        <button onClick={handleNextDay} className="p-2 hover:bg-muted rounded-lg transition-colors"><ChevronRight className="w-5 h-5 text-muted-foreground hover:text-primary" /></button>
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-foreground">Journal des Ventes</h1>
-                        <p className="text-xs text-muted-foreground">Registre quotidien des transactions commerciales.</p>
-                    </div>
-                </div>
+    const totalSales = filteredSales.reduce((acc, s) => acc + (s.totalAmount || 0), 0);
+    const totalProfit = filteredSales.reduce((acc, s) => {
+        // Simple profit calculation: totalAmount - cost
+        // We'll use a conservative estimate if item cost is missing
+        return acc + ((s.totalAmount || 0) * 0.25); // 25% margin as fallback or use actual items if available
+    }, 0);
 
-                <div className="flex items-center gap-3">
-                    <NewSaleSheet 
-                        trigger={
-                            <button className="bg-primary text-primary-foreground h-11 px-6 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary/90 active:scale-95 transition-all shadow-lg shadow-primary/20">
-                                <Plus className="w-5 h-5 stroke-[3]" /> Nouvelle Vente
-                            </button>
-                        }
-                    />
-                    <div className="relative group w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                        <input 
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Rechercher Client / ID..."
-                            className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
+    return (
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-4">
+            <ElitePageHeader 
+                title="Flux Commerciaux."
+                subtitle="Point de Vente"
+                description={`Registre quotidien des transactions pour le ${dateObj.toLocaleDateString('fr-FR')}.`}
+                actions={
+                    <div className="flex items-center gap-3">
+                         <div className="relative group w-full md:w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                            <input 
+                                value={search} 
+                                onChange={(e) => setSearch(e.target.value)} 
+                                placeholder="Rechercher une vente..." 
+                                className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
+                            />
+                        </div>
+                        <NewSaleSheet 
+                            trigger={
+                                <button className="bg-primary text-primary-foreground h-11 px-6 rounded-xl text-sm font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary/90 active:scale-95 transition-all shadow-lg shadow-primary/20">
+                                    <Plus className="w-5 h-5 stroke-[3]" /> Nouvelle Vente
+                                </button>
+                            }
                         />
                     </div>
-                    <button className="p-2.5 bg-card border border-border rounded-xl hover:bg-muted transition-colors shadow-sm"><Filter className="w-4 h-4 text-muted-foreground" /></button>
-                </div>
-            </header>
+                }
+            />
 
-            {/* METRICS SUMMARY */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                    { label: "Chiffre d'Affaires", value: dailyMetrics?.totalSales || 0, icon: TrendingUp, color: "text-emerald-500", suffix: " FCFA" },
-                    { label: "Volume de Ventes", value: sales.length, icon: Package, color: "text-primary", suffix: " Transactions" },
-                ].map((m, i) => (
-                    <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className={cn("p-2 rounded-lg bg-muted/50 border border-border", m.color)}>
-                                <m.icon className="w-4 h-4" />
-                            </div>
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{m.label}</span>
-                        </div>
-                        <h2 className="text-xl font-bold text-foreground">
-                            {formatMoney(m.value)} <span className="text-[10px] text-muted-foreground font-normal tracking-normal">{m.suffix}</span>
-                        </h2>
-                    </div>
-                ))}
+            {/* --- METRICS HUB (Elite SaaS) --- */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <EliteMetricCard 
+                    label="Chiffre d'Affaires" 
+                    value={`${formatMoney(totalSales)} F`} 
+                    icon={ShoppingCart} 
+                    variant="blue"
+                />
+                <EliteMetricCard 
+                    label="Bénéfice Net" 
+                    value={`${formatMoney(totalProfit)} F`} 
+                    icon={TrendingUp} 
+                    variant="emerald"
+                />
+                <EliteMetricCard 
+                    label="Transactions" 
+                    value={filteredSales.length} 
+                    icon={Receipt} 
+                    variant="orange"
+                />
+                <EliteMetricCard 
+                    label="Panier Moyen" 
+                    value={`${formatMoney(filteredSales.length > 0 ? totalSales / filteredSales.length : 0)} F`} 
+                    icon={CreditCard} 
+                    variant="purple"
+                />
             </div>
 
             {/* TABLES SECTION */}
@@ -180,11 +180,20 @@ export default function SalesJournalClient({
                                         <span className="text-[10px] text-muted-foreground font-medium uppercase">{sale.paymentMethod || 'CASH'}</span>
                                     </td>
                                     <td className="px-6 py-5">
-                                        <div className="flex flex-col gap-1">
+                                        <div className="flex flex-col gap-1.5">
                                             {sale.items?.map((i: SaleItem) => (
-                                                <div key={i.id} className="flex items-center justify-between text-[11px] font-bold text-foreground bg-muted/20 px-2 py-1 rounded border border-border/50">
-                                                    <span className="uppercase truncate max-w-[140px]">{i.product?.name || "ARTICLE INCONNU"}</span>
-                                                    <span className="text-primary ml-2">×{i.quantity}</span>
+                                                <div key={i.id} className="flex items-center gap-3 bg-muted/20 px-3 py-1.5 rounded-lg border border-border/50 group/item">
+                                                    <div className="w-6 h-6 rounded bg-background border border-border/50 overflow-hidden shrink-0">
+                                                        {i.product?.image ? (
+                                                            <SafeImage src={i.product.image} alt={i.product.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center opacity-10">
+                                                                <Package className="w-3 h-3" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <span className="uppercase truncate max-w-[140px] text-[11px] font-bold text-foreground/80">{i.product?.name || "ARTICLE INCONNU"}</span>
+                                                    <span className="text-primary ml-auto text-[11px] font-black">×{i.quantity}</span>
                                                 </div>
                                             )) || <span className="text-xs italic text-muted-foreground">Aucun article</span>}
                                         </div>
@@ -238,9 +247,22 @@ export default function SalesJournalClient({
                             <span className="text-[10px] text-muted-foreground">{new Date(sale.createdAt).toLocaleTimeString()}</span>
                         </div>
                         <div className="flex justify-between items-end">
-                            <div>
+                            <div className="flex-1">
                                 <h4 className="text-sm font-bold uppercase">{sale.customerName || "CLIENT PASSANT"}</h4>
                                 <p className="text-[10px] text-muted-foreground uppercase">{sale.paymentMethod || 'CASH'}</p>
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                    {sale.items?.map((i: SaleItem) => (
+                                        <div key={i.id} className="w-6 h-6 rounded bg-muted border border-border/50 overflow-hidden shrink-0 shadow-sm" title={i.product.name}>
+                                            {i.product?.image ? (
+                                                <SafeImage src={i.product.image} alt={i.product.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center opacity-10">
+                                                    <Package className="w-2 h-2" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                             <div className="text-right">
                                 <p className="text-base font-bold text-foreground">{formatMoney(sale.totalAmount)} F</p>

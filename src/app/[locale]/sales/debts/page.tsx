@@ -13,8 +13,10 @@ import {
 import { FaWhatsapp } from "react-icons/fa";
 import { getDebts, registerDebtPayment } from "@/lib/actions/debts";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { EliteMetricCard } from "@/components/ui/metric-card";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 interface Debt {
     id: string;
@@ -96,57 +98,55 @@ export default function DebtsPage() {
         } catch (e) { toast.error("Erreur technique"); }
     };
 
-    const formatMoney = (amount: number) => new Intl.NumberFormat('fr-FR').format(amount);
-
     const filteredDebts = debts.filter(d => (d.customerName || "").toLowerCase().includes(search.toLowerCase()) || d.id.includes(search));
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8">
-            
-            <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-border/50 text-foreground">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Suivi des Recouvrements</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Gérez les créances clients et relancez les factures impayées.
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="relative group w-full md:w-72">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                        <input 
-                            value={search} 
-                            onChange={(e) => setSearch(e.target.value)} 
-                            placeholder="Rechercher Client / Facture..." 
-                            className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
-                        />
-                    </div>
-                    <button onClick={fetchData} className="p-2.5 bg-card border border-border rounded-xl hover:bg-muted transition-colors shadow-sm">
-                        <RefreshCcw className={cn("w-4 h-4 text-muted-foreground", loading && "animate-spin")} />
-                    </button>
-                </div>
-            </header>
-
-            {/* --- METRICS HUB --- */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[
-                    { label: "Total à Recouvrer", value: metrics.total, icon: Banknote, color: "text-primary", sub: "Cumul des dettes actives" },
-                    { label: "Dossiers Critiques", value: metrics.critical, icon: AlertCircle, color: "text-red-500", sub: "Plus de 3 jours de retard" },
-                    { label: "Nombre de Créances", value: metrics.count, icon: CreditCard, color: "text-muted-foreground", sub: "Dossiers en cours" }
-                ].map((m, i) => (
-                    <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className={cn("p-2 rounded-lg bg-muted/50 border border-border shadow-sm", m.color)}>
-                                <m.icon className="w-4 h-4" />
-                            </div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{m.label}</span>
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-4">
+            <ElitePageHeader 
+                title="Recouvrements & Créances."
+                subtitle="Suivi de Trésorerie"
+                description="Supervisez les factures impayées, gérez les relances clients et suivez l'évolution de vos créances en temps réel."
+                actions={
+                    <div className="flex items-center gap-3">
+                         <div className="relative group w-full md:w-72">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                            <input 
+                                value={search} 
+                                onChange={(e) => setSearch(e.target.value)} 
+                                placeholder="Rechercher #INV / Client..." 
+                                className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-bold focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
+                            />
                         </div>
-                        <h2 className="text-2xl font-bold text-foreground">
-                            {formatMoney(m.value)} <span className="text-xs font-medium ml-1">{i === 0 ? ' FCFA' : ''}</span>
-                        </h2>
-                        <p className="text-[11px] text-muted-foreground mt-1">{m.sub}</p>
+                        <button onClick={() => fetchData()} className="p-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                            <RefreshCcw className="w-5 h-5" />
+                        </button>
                     </div>
-                ))}
+                }
+            />
+
+            {/* --- STRATEGIC METRICS (Elite SaaS) --- */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <EliteMetricCard 
+                    label="Total à Recouvrer" 
+                    value={`${formatMoney(metrics.total)} F`} 
+                    icon={Banknote} 
+                    variant="blue"
+                    sub="Cumul des dettes actives"
+                />
+                <EliteMetricCard 
+                    label="Dossiers Critiques" 
+                    value={metrics.critical} 
+                    icon={AlertCircle} 
+                    variant="red"
+                    sub="Plus de 3 jours de retard"
+                />
+                <EliteMetricCard 
+                    label="Nombre de Créances" 
+                    value={metrics.count} 
+                    icon={CreditCard} 
+                    variant="purple"
+                    sub="Dossiers en cours"
+                />
             </div>
 
             {/* --- DEBT TABLE --- */}

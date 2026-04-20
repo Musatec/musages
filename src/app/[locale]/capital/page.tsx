@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 import {
     Wallet, TrendingUp, TrendingDown,
     Plus, ArrowUpRight, ArrowDownRight,
@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Transaction } from "@/types/capital";
 import { NewTransactionSheet } from "@/components/capital/new-transaction-sheet";
 import { getTransactions, getCapitalSummary } from "@/lib/actions/capital";
+import { EliteMetricCard } from "@/components/ui/metric-card";
 
 export default function CapitalPage() {
     const [loading, setLoading] = useState(true);
@@ -45,9 +46,6 @@ export default function CapitalPage() {
         fetchTransactions();
     }, [fetchTransactions]);
 
-    const formatMoney = (amount: number) => {
-        return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(amount);
-    };
 
     const handleEditTransaction = (tx: Transaction) => {
         setSelectedTransaction(tx);
@@ -81,53 +79,29 @@ export default function CapitalPage() {
                     </div>
                 </div>
 
-                {/* ZONE A: BILAN COMPACT */}
+                {/* --- BILAN GRID (Elite SaaS) --- */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gradient-to-br from-primary to-primary rounded-2xl p-4 relative overflow-hidden group shadow-xl shadow-orange-900/40 border border-t-white/20">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-foreground/10 blur-[60px] -translate-y-1/2 translate-x-1/2 rounded-full pointer-events-none" />
-                        <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-orange-100/60">Solde Total Alpha</span>
-                                <div className="p-1.5 rounded-lg bg-foreground/20 backdrop-blur-md text-foreground border border-border/50"><Wallet className="w-4 h-4" /></div>
-                            </div>
-                            <div>
-                                <h2 className="text-2xl md:text-3xl font-black text-foreground tracking-tighter italic leading-none">
-                                    {loading ? "..." : formatMoney(balance)}
-                                </h2>
-                                <p className="text-[8px] text-orange-100/40 font-black uppercase tracking-widest mt-1">Disponibilités globales</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-[#1C1C1E]/30 backdrop-blur-xl border border-emerald-500/10 rounded-2xl p-4 relative overflow-hidden group hover:bg-emerald-500/5 transition-all">
-                        <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
-                            <div className="flex items-center gap-2">
-                                <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"><TrendingUp className="w-4 h-4" /></div>
-                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-600">Entrées</span>
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-black text-foreground tracking-tight italic group-hover:text-emerald-400 transition-colors leading-none">
-                                    {loading ? "..." : formatMoney(incomeMonth)}
-                                </h2>
-                                <span className="text-[7px] text-emerald-500/40 font-black uppercase tracking-widest">Perf. Mensuelle</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-[#1C1C1E]/30 backdrop-blur-xl border border-red-500/10 rounded-2xl p-4 relative overflow-hidden group hover:bg-red-500/5 transition-all">
-                        <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
-                            <div className="flex items-center gap-2">
-                                <div className="p-1.5 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20"><TrendingDown className="w-4 h-4" /></div>
-                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-600">Sorties</span>
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-black text-foreground tracking-tight italic group-hover:text-red-400 transition-colors leading-none">
-                                    {loading ? "..." : formatMoney(expenseMonth)}
-                                </h2>
-                                <span className="text-[7px] text-red-500/40 font-black uppercase tracking-widest">Charges Alpha</span>
-                            </div>
-                        </div>
-                    </div>
+                    <EliteMetricCard 
+                        label="Solde Total Alpha" 
+                        value={`${loading ? "..." : formatMoney(balance)}`} 
+                        icon={Wallet} 
+                        variant="blue"
+                        sub="Disponibilités globales"
+                    />
+                    <EliteMetricCard 
+                        label="Entrées Mensuelles" 
+                        value={`${loading ? "..." : formatMoney(incomeMonth)}`} 
+                        icon={TrendingUp} 
+                        variant="emerald"
+                        sub="Performance de flux"
+                    />
+                    <EliteMetricCard 
+                        label="Sorties Mensuelles" 
+                        value={`${loading ? "..." : formatMoney(expenseMonth)}`} 
+                        icon={TrendingDown} 
+                        variant="red"
+                        sub="Charges opérationnelles"
+                    />
                 </div>
 
                 {/* ZONE B: TRANSACTIONS COMPACTES */}

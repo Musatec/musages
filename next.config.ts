@@ -15,6 +15,14 @@ const nextConfig: NextConfig = {
         hostname: 'ephsigjminwavcymicxa.supabase.co',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.**', // Permettre d'autres sources https
+      },
     ],
   },
   transpilePackages: ["react-icons", "@hello-pangea/dnd"],
@@ -45,7 +53,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://client.crisp.chat https://static.posthog.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co wss://client.crisp.chat https://eu.i.posthog.com https://*.sentry.io; img-src 'self' data: https://*.supabase.co https://client.crisp.chat https://grainy-gradients.vercel.app; style-src 'self' 'unsafe-inline' https://client.crisp.chat; font-src 'self' https://client.crisp.chat;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://client.crisp.chat https://static.posthog.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co wss://client.crisp.chat https://eu.i.posthog.com https://*.sentry.io; img-src 'self' data: https://*.supabase.co https://client.crisp.chat https://grainy-gradients.vercel.app https://images.unsplash.com https://*.unsplash.com; style-src 'self' 'unsafe-inline' https://client.crisp.chat; font-src 'self' https://client.crisp.chat;",
           },
         ],
       },

@@ -22,7 +22,9 @@ import {
     AreaChart, Area 
 } from "recharts";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
+import { EliteMetricCard } from "@/components/ui/metric-card";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 interface ReportsClientProps {
     initialData: {
@@ -60,10 +62,6 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
         } finally {
             setLoadingAI(false);
         }
-    };
-
-    const formatMoney = (amount: number) => {
-        return new Intl.NumberFormat('fr-FR').format(amount || 0);
     };
 
     const cards = [
@@ -106,50 +104,55 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
     ];
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8 text-foreground">
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-4 text-foreground">
             
-            <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-border/50">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Rapports & Analytics</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Analyse approfondie de la performance financière et opérationnelle.
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-4 py-2.5 bg-card border border-border rounded-xl text-sm font-bold shadow-sm">
-                        <Calendar className="w-4 h-4 text-primary" /> 
-                        <span className="hidden sm:inline">Période :</span> Mois en cours
+            <ElitePageHeader 
+                title="Analyse & Rentabilité."
+                subtitle="Supervision Financière"
+                description="Analyse approfondie de la performance financière et opérationnelle de votre établissement."
+                actions={
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 px-4 py-2.5 bg-card border border-border rounded-xl text-xs font-bold shadow-sm uppercase tracking-wider">
+                            <Calendar className="w-4 h-4 text-primary" /> 
+                            <span className="hidden sm:inline">Période :</span> Mois en cours
+                        </div>
+                        <button onClick={() => window.location.reload()} className="p-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-sm">
+                            <RefreshCcw className="w-5 h-5" />
+                        </button>
                     </div>
-                    <button onClick={() => window.location.reload()} className="p-2.5 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 transition-all shadow-sm">
-                        <RefreshCcw className="w-5 h-5" />
-                    </button>
-                </div>
-            </header>
+                }
+            />
 
-            {/* --- PRIMARY METRICS GRID --- */}
+            {/* --- PRIMARY METRICS GRID (Elite SaaS) --- */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {cards.map((card, i) => (
-                    <div key={card.label} className="bg-card border border-border rounded-xl p-5 shadow-sm transition-all hover:border-primary/20 group">
-                        <div className="flex items-center gap-3 mb-4">
-                             <div className={cn("p-2 rounded-lg border border-border shadow-sm transition-colors", card.bg, card.color)}>
-                                <card.icon className="w-4 h-4" />
-                             </div>
-                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">{card.label}</span>
-                        </div>
-                        <div className="space-y-1">
-                            <h2 className="text-2xl font-bold text-foreground">
-                                {card.value} <span className="text-xs font-medium text-muted-foreground/40 ml-1">FCFA</span>
-                            </h2>
-                            <div className="flex items-center gap-2">
-                                <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-bold border", card.color, "bg-muted/30 border-border")}>
-                                    {card.trend}
-                                </span>
-                                <p className="text-[11px] font-medium text-muted-foreground/50 opacity-60 uppercase">{card.sub}</p>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+                <EliteMetricCard 
+                    label="Chiffre d'Affaires" 
+                    value={`${formatMoney(summary.totalRevenue)} F`} 
+                    icon={DollarSign} 
+                    variant="blue"
+                    sub="Ventes mensuelles"
+                />
+                <EliteMetricCard 
+                    label="Bénéfice Net" 
+                    value={`${formatMoney(summary.netProfit)} F`} 
+                    icon={Target} 
+                    variant="emerald"
+                    sub="Après charges"
+                />
+                <EliteMetricCard 
+                    label="Valeur Stock" 
+                    value={`${formatMoney(summary.inventoryValue)} F`} 
+                    icon={Package} 
+                    variant="orange"
+                    sub="Total immobilisé"
+                />
+                <EliteMetricCard 
+                    label="Dépenses" 
+                    value={`${formatMoney(summary.totalExpenses)} F`} 
+                    icon={CreditCard} 
+                    variant="red"
+                    sub="Charges d'exploitation"
+                />
             </div>
 
             {/* --- AI INSIGHTS ENGINE --- */}

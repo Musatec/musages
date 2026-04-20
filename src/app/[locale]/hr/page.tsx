@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 import { 
     Users, Plus, Search, 
     Wallet, Banknote, 
@@ -21,6 +21,8 @@ import { getEmployees, createEmployee, giveAdvance, payRestSalary } from "@/lib/
 import { HRData, EmployeeFormData } from "@/types/hr";
 import { TopLoader } from "@/components/ui/top-loader";
 import { toast } from "sonner";
+import { EliteMetricCard } from "@/components/ui/metric-card";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 export default function HRPage() {
     const [loading, setLoading] = useState(true);
@@ -43,7 +45,6 @@ export default function HRPage() {
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    const formatMoney = (amount: number) => new Intl.NumberFormat('fr-FR').format(amount);
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -85,94 +86,135 @@ export default function HRPage() {
     }, [data, search]);
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8">
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-4">
             {loading && <TopLoader />}
 
-            <div className="max-w-[1600px] mx-auto w-full space-y-8">
+            <div className="max-w-[1600px] mx-auto w-full space-y-4">
                 
-                {/* --- PROFESSIONAL HEADER --- */}
-                <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border/50 text-foreground">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Gestion de l'Équipe</h1>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            {data?.metrics?.count || 0} collaborateurs enregistrés dans votre boutique.
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <div className="relative group w-full md:w-72">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                            <input 
-                                value={search} 
-                                onChange={(e) => setSearch(e.target.value)} 
-                                placeholder="Rechercher un employé..." 
-                                className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
-                            />
-                        </div>
-                        <Sheet open={openAdd} onOpenChange={setOpenAdd}>
-                            <SheetTrigger asChild>
-                                <button className="bg-primary text-primary-foreground h-10 px-5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-primary/90 active:scale-95 transition-all shadow-md shadow-primary/10">
-                                    <UserPlus className="w-4 h-4" /> Ajouter
-                                </button>
-                            </SheetTrigger>
-                            <SheetContent className="sm:max-w-md bg-card border-l border-border p-8 flex flex-col shadow-2xl">
-                                <SheetHeader className="mb-8 text-left">
-                                    <SheetTitle className="text-2xl font-bold">Inscrire un Personnel</SheetTitle>
-                                    <p className="text-sm text-muted-foreground mt-1">Enregistrez les informations contractuelles du nouveau talent.</p>
-                                </SheetHeader>
-                                <form onSubmit={handleCreate} className="space-y-6 overflow-y-auto pr-2">
-                                    <div className="grid grid-cols-2 gap-4">
-                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-muted-foreground ml-1">Prénom</label>
-                                            <input required value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full bg-muted/30 border-border border rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none" placeholder="Musa" />
-                                         </div>
-                                         <div className="space-y-1">
-                                            <label className="text-xs font-semibold text-muted-foreground ml-1">Nom</label>
-                                            <input required value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full bg-muted/30 border-border border rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none" placeholder="Tec" />
-                                         </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                         <label className="text-xs font-semibold text-muted-foreground ml-1">Téléphone / Contact</label>
-                                         <input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-muted/30 border-border border rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none" placeholder="+221 ..." />
-                                    </div>
-                                    <div className="p-6 bg-primary/5 border border-primary/20 rounded-2xl space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-tight text-primary text-center block">Salaire Mensuel Fixe</label>
-                                        <div className="flex items-center justify-center gap-2">
-                                            <input required type="number" value={formData.salary} onChange={e => setFormData({...formData, salary: e.target.value})} className="w-full bg-transparent border-none py-1 text-4xl font-bold text-primary text-center outline-none" placeholder="0" />
-                                            <span className="text-sm font-bold opacity-40">F</span>
-                                        </div>
-                                    </div>
-                                    <button disabled={isActionPending} className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/10 active:scale-95 transition-all flex items-center justify-center gap-3">
-                                        {isActionPending ? <Loader2 className="animate-spin w-5 h-5" /> : "Valider le recrutement"}
-                                    </button>
-                                </form>
-                            </SheetContent>
-                        </Sheet>
-                    </div>
-                </header>
-
-                {/* --- METRICS GRID --- */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                        { label: "Masse Salariale", value: data?.metrics?.totalPayroll || 0, icon: Users, color: "text-primary", sub: "Budget mensuel" },
-                        { label: "Acomptes (Total)", value: data?.metrics?.totalAdvances || 0, icon: Wallet, color: "text-amber-500", sub: "Dettes employés" },
-                        { label: "Solde à Verser", value: data?.metrics?.netToPay || 0, icon: ShieldCheck, color: "text-emerald-500", sub: "Restant mois en cours" },
-                        { label: "Effectif Total", value: data?.metrics?.count || 0, icon: UserIcon, color: "text-muted-foreground", sub: "Collaborateurs actifs" }
-                    ].map((m, i) => (
-                        <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className={cn("p-2 rounded-lg bg-muted/50 border border-border shadow-sm", m.color)}>
-                                    <m.icon className="w-4 h-4" />
-                                </div>
-                                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{m.label}</span>
+                <ElitePageHeader 
+                    title="Gestion de l'Équipe."
+                    subtitle="Capital Humain"
+                    description="Gérez vos collaborateurs, supervisez les acomptes et validez les salaires en un clic."
+                    actions={
+                        <div className="flex items-center gap-3">
+                            <div className="relative group w-full md:w-72">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                                <input 
+                                    value={search} 
+                                    onChange={(e) => setSearch(e.target.value)} 
+                                    placeholder="Rechercher un collaborateur..." 
+                                    className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
+                                />
                             </div>
-                            <h2 className="text-2xl font-bold text-foreground">
-                                {typeof m.value === 'number' ? formatMoney(m.value) : m.value} 
-                                <span className="text-xs font-medium ml-1">{typeof m.value === 'number' && i !== 3 ? ' FCFA' : ''}</span>
-                            </h2>
-                            <p className="text-[11px] text-muted-foreground mt-1">{m.sub}</p>
+
+                            <Sheet open={openAdd} onOpenChange={setOpenAdd}>
+                                <SheetTrigger asChild>
+                                    <button className="h-10 px-6 bg-primary text-primary-foreground rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center gap-2 shadow-lg shadow-primary/20">
+                                        <Plus className="w-4 h-4" /> Recruter
+                                    </button>
+                                </SheetTrigger>
+                                <SheetContent side="right" className="sm:max-w-md bg-card border-l border-border p-8 flex flex-col shadow-2xl">
+                                    <SheetHeader className="mb-10 text-left">
+                                        <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl w-fit mb-4">
+                                            <UserPlus className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <SheetTitle className="text-2xl font-black italic uppercase tracking-tighter">Nouveau <span className="text-primary">Collaborateur.</span></SheetTitle>
+                                    </SheetHeader>
+
+                                    <form onSubmit={handleCreate} className="space-y-6">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Prénom</label>
+                                                <input 
+                                                    required
+                                                    value={formData.firstName}
+                                                    onChange={e => setFormData({...formData, firstName: e.target.value})}
+                                                    className="w-full bg-muted/20 border border-border rounded-xl p-4 text-sm font-bold focus:border-primary/50 outline-none"
+                                                    placeholder="Jean"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Nom</label>
+                                                <input 
+                                                    required
+                                                    value={formData.lastName}
+                                                    onChange={e => setFormData({...formData, lastName: e.target.value})}
+                                                    className="w-full bg-muted/20 border border-border rounded-xl p-4 text-sm font-bold focus:border-primary/50 outline-none"
+                                                    placeholder="Dupont"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Téléphone</label>
+                                            <input 
+                                                required
+                                                value={formData.phone}
+                                                onChange={e => setFormData({...formData, phone: e.target.value})}
+                                                className="w-full bg-muted/20 border border-border rounded-xl p-4 text-sm font-bold focus:border-primary/50 outline-none"
+                                                placeholder="77 000 00 00"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Salaire Mensuel (NET)</label>
+                                            <div className="relative">
+                                                <input 
+                                                    required
+                                                    type="number"
+                                                    value={formData.salary}
+                                                    onChange={e => setFormData({...formData, salary: e.target.value})}
+                                                    className="w-full bg-muted/20 border border-border rounded-xl p-5 text-2xl font-black focus:border-primary/50 outline-none pr-12"
+                                                    placeholder="150000"
+                                                />
+                                                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">F</span>
+                                            </div>
+                                        </div>
+
+                                        <button 
+                                            disabled={isActionPending}
+                                            type="submit"
+                                            className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/10 hover:bg-primary/90 transition-all flex items-center justify-center gap-2 mt-4 active:scale-95"
+                                        >
+                                            {isActionPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><ShieldCheck className="w-4 h-4" /> Enregistrer le contrat</>}
+                                        </button>
+                                    </form>
+                                </SheetContent>
+                            </Sheet>
                         </div>
-                    ))}
+                    }
+                />
+
+                {/* --- METRICS GRID (Elite SaaS) --- */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <EliteMetricCard 
+                        label="Masse Salariale" 
+                        value={`${formatMoney(data?.metrics?.totalPayroll || 0)} F`} 
+                        icon={Users} 
+                        variant="blue"
+                        sub="Budget mensuel"
+                    />
+                    <EliteMetricCard 
+                        label="Acomptes (Total)" 
+                        value={`${formatMoney(data?.metrics?.totalAdvances || 0)} F`} 
+                        icon={Wallet} 
+                        variant="amber"
+                        sub="Dettes employés"
+                    />
+                    <EliteMetricCard 
+                        label="Solde à Verser" 
+                        value={`${formatMoney(data?.metrics?.netToPay || 0)} F`} 
+                        icon={ShieldCheck} 
+                        variant="emerald"
+                        sub="Restant à payer"
+                    />
+                    <EliteMetricCard 
+                        label="Effectif Total" 
+                        value={data?.metrics?.count || 0} 
+                        icon={UserPlus} 
+                        variant="purple"
+                        sub="Collaborateurs actifs"
+                    />
                 </div>
 
                 {/* --- STAFF DIRECTORY TABLE --- */}

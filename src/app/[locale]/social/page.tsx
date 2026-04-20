@@ -16,11 +16,13 @@ import { NewNetworkSheet } from "@/components/social/new-network-sheet";
 import { useSupabase } from "@/components/providers/supabase-provider";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
+import { EliteMetricCard } from "@/components/ui/metric-card";
 
 // Modules
 import { AccountsTab } from "@/components/social/accounts-tab";
 import { PlannerTab } from "@/components/social/planner-tab";
 import { GoalsTab } from "@/components/social/goals-tab";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 type SocialGroup = Database['public']['Tables']['social_groups']['Row'] & { banner_url?: string; website_url?: string };
 type SocialProfile = Database['public']['Tables']['social_profiles']['Row'] & { status?: string; tags?: string[] };
@@ -88,20 +90,54 @@ export default function SocialPage() {
         <div className="p-4 md:p-10 min-h-screen space-y-8 md:space-y-12 bg-background selection:bg-primary/30">
 
             {/* Header Section */}
+            <ElitePageHeader 
+                title="Croissance & Engagement."
+                subtitle="Stratégie Digitale"
+                description="Pilotez votre présence multi-plateforme, planifiez vos publications et suivez l'évolution de votre audience."
+                actions={
+                    activeTab === "accounts" && (
+                        <div className="relative group w-full md:w-80">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <input
+                                type="text"
+                                placeholder={t('filter_placeholder')}
+                                className="w-full bg-secondary/30 border border-border/50 rounded-xl pl-10 pr-4 py-2 text-[10px] text-foreground focus:border-primary/50 outline-none transition-all placeholder:text-muted-foreground/50 font-bold"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    )
+                }
+            />
+
             <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-top-4 duration-1000">
                 <div className="flex flex-col gap-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center shadow-2xl shadow-black/40 shrink-0">
-                                <Share2 className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl md:text-4xl font-black italic tracking-tighter uppercase text-foreground leading-none">
-                                    RÉSEAUX <span className="text-primary italic">SOCIAUX</span>
-                                </h1>
-                                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.3em] mt-1 hidden xs:block">{t('subtitle')}</p>
-                            </div>
-                        </div>
+                    {/* --- SOCIAL STRATEGY HUB (Elite SaaS) --- */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <EliteMetricCard 
+                            label="Réseaux" 
+                            value={groups.length} 
+                            icon={Share2} 
+                            variant="blue"
+                        />
+                        <EliteMetricCard 
+                            label="Profils" 
+                            value={profiles.length} 
+                            icon={Users} 
+                            variant="purple"
+                        />
+                        <EliteMetricCard 
+                            label="Planning" 
+                            value="Actif" 
+                            icon={Layout} 
+                            variant="amber"
+                        />
+                        <EliteMetricCard 
+                            label="Croissance" 
+                            value="85%" 
+                            icon={Target} 
+                            variant="emerald"
+                        />
                     </div>
 
                     {activeTab === "accounts" && (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 import { 
     FileText, Printer, Mail, Search, 
     TrendingUp, AlertCircle, CheckCircle2, 
@@ -11,6 +11,8 @@ import {
 import { getInvoices } from "@/lib/actions/invoices";
 import { TopLoader } from "@/components/ui/top-loader";
 import { toast } from "sonner";
+import { EliteMetricCard } from "@/components/ui/metric-card";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 import { SaleStatus } from "@prisma/client";
 
@@ -52,86 +54,55 @@ export default function InvoicesPage() {
         fetchData();
     }, [fetchData]);
 
-    const formatMoney = (amount: number) => {
-        return new Intl.NumberFormat('fr-FR').format(amount);
-    };
-
     return (
         <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#050505] text-[#1A1A1A] dark:text-foreground p-4 md:p-10 pb-32 font-sans selection:bg-primary/20">
             {loading && <TopLoader />}
 
             <div className="max-w-[1500px] mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 
-                {/* Header: Pro & Clean */}
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-border/40 pb-8">
-                    <div className="space-y-2">
-                        <h1 className="text-3xl font-black tracking-tighter text-foreground uppercase italic leading-none">
-                            Facturation & <span className="text-primary italic">Trésorerie.</span>
-                        </h1>
-                        <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground/40 uppercase tracking-widest">
-                            <div className="w-8 h-0.5 bg-primary/30 rounded-full" />
-                            <span>GESTION DES FLUX FINANCIERS PROTOCOL</span>
-                        </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                         <button className="flex items-center gap-3 px-6 py-3 bg-muted/20 border border-border rounded-xl text-xs font-black uppercase tracking-widest hover:bg-muted/40 transition-all">
+                <ElitePageHeader 
+                    title="Facturation & Trésorerie."
+                    subtitle="Gestion des Flux"
+                    description="Supervisez l'ensemble de vos documents commerciaux, analysez les créances et gérez les flux de trésorerie historiques."
+                    actions={
+                        <button className="flex items-center gap-3 px-6 py-3 bg-muted/20 border border-border rounded-xl text-xs font-black uppercase tracking-widest hover:bg-muted/40 transition-all">
                              <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
                              Export Excel
                         </button>
-                    </div>
-                </header>
-
-                {/* --- MENTOR METRICS: INTEGRATED PANEL --- */}
-                <div className="bg-card border border-border/50 rounded-[2.5rem] p-10 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-10 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/2 blur-[100px] rounded-full pointer-events-none" />
-                    
-                    {/* Outstanding (Debt) */}
-                    <div className="flex-1 flex flex-col items-center md:items-start gap-4 relative z-10 w-full md:border-r border-border/20 md:pr-10">
-                        <div className="flex items-center gap-3">
-                             <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500">
-                                <ShieldAlert className="w-4 h-4" />
-                             </div>
-                             <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/30 italic">Dettes Totales</span>
-                        </div>
-                        <div className="space-y-1 text-center md:text-left">
-                            <h2 className="text-4xl font-black text-foreground tracking-tighter italic leading-none">
-                                {formatMoney(data?.metrics?.totalOutstanding || 0)} <span className="text-xl opacity-20 not-italic ml-1">F</span>
-                            </h2>
-                            <p className="text-xs font-bold text-muted-foreground/20 uppercase tracking-widest">Balance Clients à recouvrer</p>
-                        </div>
-                    </div>
-
-                    {/* Total Billed */}
-                    <div className="flex-1 flex flex-col items-center md:items-start gap-4 relative z-10 w-full md:border-r border-border/20 md:pr-10">
-                        <div className="flex items-center gap-3">
-                             <div className="p-2 rounded-xl bg-muted/30 border border-border text-primary transition-all group-hover:bg-primary group-hover:text-black">
-                                <TrendingUp className="w-4 h-4" />
-                             </div>
-                             <span className="text-xs font-black uppercase tracking-widest text-muted-foreground/30 italic">Facturation Global</span>
-                        </div>
-                        <div className="space-y-1 text-center md:text-left">
-                            <h2 className="text-4xl font-black text-foreground tracking-tighter italic leading-none text-emerald-500">
-                                {formatMoney(data?.metrics?.totalBilled || 0)} <span className="text-xl opacity-20 not-italic ml-1">F</span>
-                            </h2>
-                            <p className="text-xs font-bold text-muted-foreground/20 uppercase tracking-widest">Volumes sur {data?.metrics?.invoiceCount || 0} factures</p>
-                        </div>
-                    </div>
-
-                    {/* Payment Progress */}
-                    <div className="w-full md:w-64 space-y-4 relative z-10">
-                        <div className="flex justify-between items-end">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Taux de Recouvrement</span>
-                            <span className="text-lg font-black italic text-primary">{data?.metrics?.recoveryRate || 0}%</span>
-                        </div>
-                        <div className="h-3 w-full bg-muted/20 border border-border/50 rounded-full overflow-hidden p-0.5 shadow-inner">
-                            <div 
-                                className="h-full bg-primary rounded-full shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all duration-1000" 
-                                style={{ width: `${data?.metrics?.recoveryRate || 0}%` }} 
-                            />
-                        </div>
-                    </div>
+                    }
+                />
+                {/* --- METRICS GRID (Elite SaaS) --- */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <EliteMetricCard 
+                        label="Dettes Totales" 
+                        value={`${formatMoney(data?.metrics?.totalOutstanding || 0)} F`} 
+                        icon={ShieldAlert} 
+                        variant="red"
+                        sub="Balance à recouvrer"
+                    />
+                    <EliteMetricCard 
+                        label="Facturation Totale" 
+                        value={`${formatMoney(data?.metrics?.totalBilled || 0)} F`} 
+                        icon={TrendingUp} 
+                        variant="blue"
+                        sub="Volumes historiques"
+                    />
+                    <EliteMetricCard 
+                        label="Taux Recouvrement" 
+                        value={`${data?.metrics?.recoveryRate || 0}%`} 
+                        icon={CheckCircle2} 
+                        variant="emerald"
+                        sub="Performance de paie"
+                    />
+                    <EliteMetricCard 
+                        label="Total Factures" 
+                        value={data?.metrics?.invoiceCount || 0} 
+                        icon={FileText} 
+                        variant="purple"
+                        sub="Documents générés"
+                    />
                 </div>
+
 
                 {/* --- INVOICE LEDGER: HIGH-DENSITY TABLE --- */}
                 <div className="bg-card border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl flex-1 flex flex-col min-h-[600px]">

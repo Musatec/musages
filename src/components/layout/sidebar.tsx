@@ -62,16 +62,42 @@ const NAV_SECTIONS: NavSection[] = [
     {
         title: "DIRECTION",
         items: [
-            { label: "Moniteur d'Audit", icon: Activity, href: "/admin", roles: ["ADMIN"] },
+            { label: "Moniteur d'Audit", icon: Activity, href: "/admin", roles: ["ADMIN", "SUPER_ADMIN"] },
             { label: "Caisse & Dépenses", icon: TrendingUp, href: "/expenses", roles: ["ADMIN", "MANAGER"] },
             { label: "Rapports & Analytics", icon: TrendingUp, href: "/reports", roles: ["ADMIN"] },
             { label: "Gestion Équipe", icon: Users, href: "/hr", roles: ["ADMIN", "MANAGER"] },
-            { label: "Centrale Réseau", icon: Server, href: "/admin/stores", roles: ["ADMIN"] },
+            { label: "Centrale Réseau", icon: Server, href: "/admin/stores", roles: ["ADMIN", "SUPER_ADMIN"] },
             { label: "Paramètres Globaux", icon: Settings, href: "/settings", roles: ["ADMIN"] },
         ]
     },
     {
         title: "LÉGAL",
+        items: [
+            { label: "Conditions (CGU)", icon: FileText, href: "/terms" },
+            { label: "Confidentialité", icon: ShieldCheck, href: "/privacy" },
+        ]
+    }
+];
+
+const SUPER_ADMIN_NAV: NavSection[] = [
+    {
+        title: "PILOTAGE PROPRIÉTAIRE",
+        items: [
+            { label: "Console SaaS", icon: LayoutDashboard, href: "/admin" },
+            { label: "Centrale Réseau", icon: Server, href: "/admin/stores" },
+            { label: "Audit Global", icon: Activity, href: "/admin/audit" },
+        ]
+    },
+    {
+        title: "INFRASTRUCTURE",
+        items: [
+            { label: "États des Systèmes", icon: ShieldCheck, href: "/admin/health" },
+            { label: "Rapports SaaS", icon: TrendingUp, href: "/admin/analytics" },
+            { label: "Paramètres Noyau", icon: Settings, href: "/settings" },
+        ]
+    },
+    {
+        title: "LÉGAL & COMPLIANCE",
         items: [
             { label: "Conditions (CGU)", icon: FileText, href: "/terms" },
             { label: "Confidentialité", icon: ShieldCheck, href: "/privacy" },
@@ -87,6 +113,7 @@ export function Sidebar() {
     const { theme } = useTheme();
 
     const logoSrc = theme === "dark" ? "/logo-black.svg" : "/logo.svg";
+    const currentNav = userRole === "SUPER_ADMIN" ? SUPER_ADMIN_NAV : NAV_SECTIONS;
 
     return (
         <aside 
@@ -100,7 +127,7 @@ export function Sidebar() {
             
             {/* Logo Section */}
             <div className="p-4 flex items-center justify-between overflow-hidden relative z-10 border-b border-white/5">
-                <Link href="/dashboard" className="flex items-center">
+                <Link href={userRole === "SUPER_ADMIN" ? "/admin" : "/dashboard"} className="flex items-center">
                     <div className={cn("transition-all duration-500 flex items-center gap-3", collapsed ? "w-10 overflow-hidden" : "w-40")}>
                         <div className={cn(
                             "relative transition-all duration-300",
@@ -124,17 +151,17 @@ export function Sidebar() {
                     <ChevronLeft className={cn("w-3.5 h-3.5 transition-transform duration-500 text-muted-foreground hover:text-white", collapsed ? "rotate-180" : "rotate-0")} />
                 </button>
             </div>
-
+ 
             {/* Navigation */}
             <nav className="flex-1 px-3 space-y-6 py-6 overflow-y-auto no-scrollbar relative z-10">
-                {NAV_SECTIONS.map((section) => {
+                {currentNav.map((section) => {
                     // Filter items based on user role
                     const visibleItems = section.items.filter(item => {
                         const hasRole = !item.roles || item.roles.includes(userRole);
                         const isStarter = session?.user?.plan === "STARTER";
                         
-                        // Hide Centrale Réseau for Starter plans
-                        if (item.label === "Centrale Réseau" && isStarter) return false;
+                        // Only hide for non-admins on Starter plans
+                        if (item.label === "Centrale Réseau" && isStarter && userRole !== "ADMIN") return false;
                         
                         return hasRole;
                     });

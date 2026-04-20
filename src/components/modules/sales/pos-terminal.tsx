@@ -19,14 +19,17 @@ import {
     User,
     Phone,
     MessageSquare,
-    MessageCircle
+    MessageCircle,
+    FileText,
+    MoreHorizontal,
+    BoxIcon
 } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 import { toast } from "sonner";
 import { SafeImage } from "@/components/ui/safe-image";
 import { processSale } from "@/lib/actions/sales";
+import { generateInvoicePDF, shareViaWhatsApp } from "@/lib/invoice";
 
 interface Product {
     id: string;
@@ -204,8 +207,6 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
 
     const [layout, setLayout] = useState<"list" | "grid">("grid");
 
-    const categories = ["all", ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
-
     return (
         <div className="flex flex-col md:flex-row h-full bg-background text-foreground transition-all duration-500 overflow-hidden font-sans">
             
@@ -337,7 +338,7 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                             </h3>
                                             <div className="flex items-center justify-between">
                                                 <span className="text-sm font-black italic tracking-tighter text-foreground font-mono">
-                                                    {product.price.toLocaleString()} F
+                                                    {formatMoney(product.price)} F
                                                 </span>
                                                 <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover/card:bg-primary group-hover/card:text-black transition-all">
                                                     <Plus className="w-4 h-4" />
@@ -396,7 +397,7 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                                     {product.name}
                                                 </h3>
                                                 <span className="md:hidden text-lg font-black text-primary italic tracking-tighter font-mono">
-                                                    {product.price.toLocaleString()} F
+                                                    {formatMoney(product.price)} F
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-3">
@@ -452,10 +453,10 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                 <div className="space-y-4 text-center">
                                     <p className="text-4xl font-black italic uppercase tracking-[0.5em] text-foreground">Registry Empty.</p>
                                     <p className="text-[11px] font-black uppercase tracking-[0.4em] text-muted-foreground/30">AUCUN PRODUIT NE RÉPOND AU FILTRE SÉLECTIONNÉ</p>
-                                    <div className="h-0.5 w-20 bg-primary/20 mx-auto rounded-full" />
                                 </div>
                             </div>
                         )}
+                    </div>
                         </>
                     )}
                 </div>
@@ -505,7 +506,7 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                         <button onClick={() => removeFromCart(item.id)} className="p-1 rounded-full text-muted-foreground/10 hover:text-red-500 transition-colors opacity-0 group-hover/item:opacity-100"><X className="w-4 h-4" /></button>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-lg font-black text-foreground italic tracking-tighter font-mono">{(item.price * item.quantity).toLocaleString()} F</span>
+                                        <span className="text-lg font-black text-foreground italic tracking-tighter font-mono">{formatMoney(item.price * item.quantity)} F</span>
                                         <div className="flex items-center gap-4 bg-card px-4 py-2 rounded-2xl border border-border/40 shadow-inner scale-90 origin-right transition-all group-hover/item:border-primary/20">
                                             <button onClick={() => updateQuantity(item.id, -1)} className="p-1.5 hover:bg-muted rounded-xl transition-colors active:scale-90"><Minus className="w-3.5 h-3.5" /></button>
                                             <span className="text-[12px] font-black w-6 text-center font-mono">{item.quantity}</span>
@@ -531,8 +532,8 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                 <div className="mt-12 space-y-10 group/finance">
                     <div className="p-8 bg-muted/10 border border-border/30 rounded-[3rem] space-y-6 shadow-2xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-primary/2 blur-[80px] rounded-full pointer-events-none" />
-                        <div className="flex justify-between items-center text-[10px]"><span className="text-muted-foreground/30 font-black uppercase tracking-[0.3em] leading-none">Net Hors Taxe Protocol</span><span className="font-black text-foreground/40 font-mono italic">{subtotal.toLocaleString()} F</span></div>
-                        <div className="flex justify-between items-center text-[10px]"><span className="text-muted-foreground/30 font-black uppercase tracking-[0.3em] leading-none">Taxes Aggregated (20%)</span><span className="font-black text-foreground/40 font-mono italic">{tax.toLocaleString()} F</span></div>
+                        <div className="flex justify-between items-center text-[10px]"><span className="text-muted-foreground/30 font-black uppercase tracking-[0.3em] leading-none">Net Hors Taxe Protocol</span><span className="font-black text-foreground/40 font-mono italic">{formatMoney(subtotal)} F</span></div>
+                        <div className="flex justify-between items-center text-[10px]"><span className="text-muted-foreground/30 font-black uppercase tracking-[0.3em] leading-none">Taxes Aggregated (20%)</span><span className="font-black text-foreground/40 font-mono italic">{formatMoney(tax)} F</span></div>
                         <div className="h-[2px] bg-border/20 w-full relative">
                             <div className="absolute top-0 left-0 h-full bg-primary/40 w-24 animate-pulse rounded-full" />
                         </div>
@@ -543,7 +544,7 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                             </div>
                             <div className="text-right">
                                 <span className="text-5xl font-black italic tracking-tighter text-foreground font-mono">
-                                    {total.toLocaleString()}
+                                    {formatMoney(total)}
                                 </span>
                                 <span className="text-[12px] font-black opacity-20 ml-2 uppercase">FCFA</span>
                             </div>
@@ -662,19 +663,19 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                 <div key={item.id} className="flex justify-between items-baseline gap-6">
                                     <div className="flex-1 min-w-0">
                                         <p className="font-black uppercase tracking-tight truncate border-b border-zinc-200 pb-1">{item.name}</p>
-                                        <p className="text-[10px] font-black text-zinc-500 mt-1 uppercase tracking-widest">{item.quantity.toString().padStart(2, '0')} X {item.price.toLocaleString()} FCFA</p>
+                                        <p className="text-[10px] font-black text-zinc-500 mt-1 uppercase tracking-widest">{item.quantity.toString().padStart(2, '0')} X {formatMoney(item.price)} FCFA</p>
                                     </div>
-                                    <div className="font-black text-sm italic">{(item.price * item.quantity).toLocaleString()}</div>
+                                    <div className="font-black text-sm italic">{formatMoney(item.price * item.quantity)}</div>
                                 </div>
                             ))}
                         </div>
 
                         <div className="border-t-2 border-dashed border-zinc-300 pt-8 space-y-4">
-                            <div className="flex justify-between text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400"><span>NET PAYABLE</span><span className="italic">{lastSale.subtotal.toLocaleString()}</span></div>
-                            <div className="flex justify-between text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400"><span>TAX AGGR. (20%)</span><span className="italic">{lastSale.tax.toLocaleString()}</span></div>
+                            <div className="flex justify-between text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400"><span>NET PAYABLE</span><span className="italic">{formatMoney(lastSale.subtotal)}</span></div>
+                            <div className="flex justify-between text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400"><span>TAX AGGR. (20%)</span><span className="italic">{formatMoney(lastSale.tax)}</span></div>
                             <div className="flex justify-between text-3xl font-black pt-6 border-t-2 border-zinc-900 mt-4 leading-none italic">
                                 <span>TOTAL</span>
-                                <span>{lastSale.total.toLocaleString()}</span>
+                                <span>{formatMoney(lastSale.total)}</span>
                             </div>
                             <div className="text-[10px] font-black text-zinc-400 uppercase text-center mt-12 tracking-[0.4em] italic">— PAIEMENT {lastSale.method} SYNC —</div>
                         </div>
@@ -682,12 +683,38 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                         <div className="mt-12 space-y-4 print:hidden">
                             <button onClick={handlePrintReceipt} className="w-full py-6 bg-zinc-900 text-white rounded-[2rem] font-black uppercase text-[11px] tracking-[0.4em] hover:bg-zinc-800 transition-all active:scale-95 flex items-center justify-center gap-4 italic shadow-2xl"><Printer className="w-5 h-5" /> EXÉCUTER THERMAL</button>
                             
+                            <button 
+                                onClick={async () => {
+                                    const doc = await generateInvoicePDF({
+                                        saleId: lastSale.id,
+                                        customerName: customerName || "Client Passant",
+                                        customerPhone: customerPhone,
+                                        items: lastSale.items,
+                                        totalAmount: lastSale.total,
+                                        date: lastSale.date,
+                                        storeName: "MINDOS"
+                                    });
+                                    doc.save(`Facture_${lastSale.id}.pdf`);
+                                }} 
+                                className="w-full py-6 bg-blue-600 text-white rounded-[2rem] font-black uppercase text-[11px] tracking-[0.4em] hover:bg-blue-500 transition-all active:scale-95 flex items-center justify-center gap-4 italic shadow-2xl shadow-blue-500/20"
+                            >
+                                <FileText className="w-5 h-5" /> TÉLÉCHARGER PDF
+                            </button>
+                            
                             {isCustomerEnabled && customerPhone && (
                                 <button 
-                                    onClick={handleWhatsAppShare} 
+                                    onClick={() => shareViaWhatsApp({
+                                        saleId: lastSale.id,
+                                        customerName: customerName || "Client Passant",
+                                        customerPhone: customerPhone,
+                                        items: lastSale.items,
+                                        totalAmount: lastSale.total,
+                                        date: lastSale.date,
+                                        storeName: "MINDOS"
+                                    })} 
                                     className="w-full py-6 bg-emerald-600 text-white rounded-[2rem] font-black uppercase text-[11px] tracking-[0.4em] hover:bg-emerald-500 transition-all active:scale-95 flex items-center justify-center gap-4 italic shadow-2xl shadow-emerald-500/20"
                                 >
-                                    <FaWhatsapp className="w-6 h-6" /> ENVOYER PAR WHATSAPP
+                                    <MessageCircle className="w-5 h-5" /> ENVOYER WHATSAPP
                                 </button>
                             )}
 

@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { getSuppliers, createSupplier } from "@/lib/actions/procurement";
 import { TopLoader } from "@/components/ui/top-loader";
 import { toast } from "sonner";
-import { Truck, Plus, User, Phone, Mail, MapPin, Building2, Search, Loader2, ChevronRight, MoreHorizontal } from "lucide-react";
+import { Truck, Plus, X, User, Phone, Mail, MapPin, Building2, Search, Loader2, ChevronRight, MoreHorizontal, ShoppingCart, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EliteMetricCard } from "@/components/ui/metric-card";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 export default function SuppliersPage() {
     const [loading, setLoading] = useState(true);
@@ -61,24 +63,69 @@ export default function SuppliersPage() {
     );
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8 text-foreground pb-20">
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-4 text-foreground pb-20">
             {loading && <TopLoader />}
 
-            <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-border/50">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight">Gestion des Fournisseurs</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Gérez vos partenaires logistiques et suivez les flux d'approvisionnement.
-                    </p>
-                </div>
-                
-                <button 
-                    onClick={() => setIsAdding(!isAdding)}
-                    className="bg-primary text-primary-foreground px-8 py-3 rounded-xl flex items-center justify-center gap-3 text-sm font-bold shadow-md shadow-primary/10 hover:bg-primary/90 active:scale-95 transition-all"
-                >
-                    {isAdding ? "Annuler l'ajout" : <><Plus className="w-5 h-5" /> Ajouter un Fournisseur</>}
-                </button>
-            </header>
+            <ElitePageHeader 
+                title="Réseau d'Approvisionnement."
+                subtitle="Gestion Partenaires"
+                description="Gérez votre base de fournisseurs, suivez les contacts clés et optimisez vos relations commerciales."
+                actions={
+                    <div className="flex items-center gap-3">
+                         <div className="relative group w-full md:w-72">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                            <input 
+                                value={searchTerm} 
+                                onChange={(e) => setSearchTerm(e.target.value)} 
+                                placeholder="Rechercher un partenaire..." 
+                                className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-bold focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
+                            />
+                        </div>
+                        <button 
+                            onClick={() => setIsAdding(!isAdding)}
+                            className={cn(
+                                "flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-primary/20",
+                                isAdding ? "bg-muted text-foreground" : "bg-primary text-primary-foreground hover:bg-primary/90"
+                            )}
+                        >
+                            {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                            {isAdding ? "Annuler" : "Ajouter Partenaire"}
+                        </button>
+                    </div>
+                }
+            />
+            
+            {/* --- LOGISTICS OVERVIEW (Elite SaaS) --- */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <EliteMetricCard 
+                    label="Total Partenaires" 
+                    value={suppliers.length} 
+                    icon={Building2} 
+                    variant="blue"
+                    sub="Entités logistiques"
+                />
+                <EliteMetricCard 
+                    label="Flux Arrivages" 
+                    value={suppliers.reduce((acc, s) => acc + (s._count?.purchases || 0), 0)} 
+                    icon={Truck} 
+                    variant="amber"
+                    sub="Commandes traitées"
+                />
+                <EliteMetricCard 
+                    label="Disponibilité" 
+                    value="100%" 
+                    icon={Activity} 
+                    variant="emerald"
+                    sub="Réseau opérationnel"
+                />
+                <EliteMetricCard 
+                    label="Sélection" 
+                    value={filteredSuppliers.length} 
+                    icon={Search} 
+                    variant="purple"
+                    sub="Filtre actif"
+                />
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Addition Form (If active) */}

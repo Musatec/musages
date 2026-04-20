@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 import { 
     FileText, Printer, Mail, Search, 
     TrendingUp, CheckCircle2, 
@@ -13,6 +13,8 @@ import { getInvoices } from "@/lib/actions/invoices";
 import { TopLoader } from "@/components/ui/top-loader";
 import { toast } from "sonner";
 import { InvoicesData } from "@/types/invoices";
+import { EliteMetricCard } from "@/components/ui/metric-card";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 export default function InvoicesPage() {
     const [loading, setLoading] = useState(true);
@@ -37,60 +39,63 @@ export default function InvoicesPage() {
         fetchData();
     }, [fetchData]);
 
-    const formatMoney = (amount: number) => {
-        return new Intl.NumberFormat('fr-FR').format(amount);
-    };
-
     return (
-        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8 text-foreground">
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-4 text-foreground">
             {loading && <TopLoader />}
 
-            <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-border/50">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Facturation & Devis</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Gérez vos factures clients, suivez les encaissements et les impayés.
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="relative group w-full md:w-72">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                        <input 
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Rechercher #INV / Client..."
-                            className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
-                        />
-                    </div>
-                    <button className="flex items-center gap-2 px-4 py-2.5 bg-card border border-border rounded-xl text-sm font-bold hover:bg-muted transition-colors shadow-sm">
-                         <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
-                         <span className="hidden sm:inline">Exporter CSV</span>
-                    </button>
-                </div>
-            </header>
-
-            {/* --- METRICS GRID --- */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                    { label: "Facturation Totale", value: data?.metrics?.totalBilled || 0, icon: TrendingUp, color: "text-primary", sub: "Montant brut facturé" },
-                    { label: "Restant à Percevoir", value: data?.metrics?.totalOutstanding || 0, icon: ShieldAlert, color: "text-red-500", sub: "Créances actives" },
-                    { label: "Taux de Recouvrement", value: data?.metrics?.recoveryRate || 0, icon: CheckCircle2, color: "text-emerald-500", sub: "Paiements validés", suffix: "%" },
-                    { label: "Volume Factures", value: data?.invoices?.length || 0, icon: FileText, color: "text-muted-foreground", sub: "Transactions enregistrées" }
-                ].map((m, i) => (
-                    <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className={cn("p-2 rounded-lg bg-muted/50 border border-border shadow-sm", m.color)}>
-                                <m.icon className="w-4 h-4" />
-                            </div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60">{m.label}</span>
+            <ElitePageHeader 
+                title="Audit Documentaire & Flux."
+                subtitle="Gestion Commerciale"
+                description="Gérez vos factures clients, suivez les encaissements en temps réel et analysez les performances de recouvrement."
+                actions={
+                    <div className="flex items-center gap-3">
+                        <div className="relative group w-full md:w-72">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                            <input 
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                placeholder="Rechercher #INV / Client..."
+                                className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm font-bold focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
+                            />
                         </div>
-                        <h2 className="text-2xl font-bold text-foreground">
-                            {formatMoney(m.value)} <span className="text-xs font-medium ml-1 text-muted-foreground/40">{m.suffix || ' FCFA'}</span>
-                        </h2>
-                        <p className="text-[11px] text-muted-foreground mt-1 opacity-60 uppercase font-semibold">{m.sub}</p>
+                        <button className="flex items-center gap-2 px-6 py-2.5 bg-card border border-border rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-muted transition-colors shadow-sm">
+                             <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
+                             <span className="hidden sm:inline">Export CSV</span>
+                        </button>
                     </div>
-                ))}
+                }
+            />
+
+            {/* --- METRICS GRID (Elite SaaS) --- */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <EliteMetricCard 
+                    label="Facturation Totale" 
+                    value={`${formatMoney(data?.metrics?.totalBilled || 0)} F`} 
+                    icon={TrendingUp} 
+                    variant="blue"
+                    sub="Volume brut généré"
+                />
+                <EliteMetricCard 
+                    label="Restant à Percevoir" 
+                    value={`${formatMoney(data?.metrics?.totalOutstanding || 0)} F`} 
+                    icon={ShieldAlert} 
+                    variant="red"
+                    sub="Créances à recouvrer"
+                />
+                <EliteMetricCard 
+                    label="Taux Recouvrement" 
+                    value={`${data?.metrics?.recoveryRate || 0}%`} 
+                    icon={CheckCircle2} 
+                    variant="emerald"
+                    sub="Performance de paie"
+                />
+                <EliteMetricCard 
+                    label="Volume Factures" 
+                    value={data?.invoices?.length || 0} 
+                    icon={FileText} 
+                    variant="purple"
+                    sub="Documents émis"
+                />
             </div>
 
             {/* --- FILTERS PROTOCOL --- */}

@@ -83,6 +83,30 @@ export default async function DashboardPage({
   const totalSalesValue = salesAggregate._sum.totalAmount || 0;
   const netCashflow = (incomeAggregate._sum.amount || 0) - (expenseAggregate._sum.amount || 0);
 
+  // --- TOP PRODUCTS ANALYSIS ---
+  const topProductItems = await fetchSafe(() => prisma.saleItem.groupBy({
+    by: ['productId'],
+    where: { sale: { storeId, status: "COMPLETED" } },
+    _sum: { quantity: true },
+    orderBy: { _sum: { quantity: 'desc' } },
+    take: 5,
+  }), []);
+
+  const topProducts = await Promise.all(
+    topProductItems.map(async (item: any) => {
+        const product = await prisma.product.findUnique({
+            where: { id: item.productId },
+            select: { name: true, image: true, price: true }
+        });
+        return {
+            name: product?.name || "Inconnu",
+            image: product?.image || null,
+            quantity: item._sum.quantity || 0,
+            revenue: (item._sum.quantity || 0) * (product?.price || 0)
+        };
+    })
+  );
+
   const stats = {
     totalSales: totalSalesValue,
     salesGrowth: 12, 
@@ -102,14 +126,10 @@ export default async function DashboardPage({
     createdAt: sale.createdAt instanceof Date ? sale.createdAt.toISOString() : sale.createdAt,
   }));
 
-  const serializedAuditLogs = (auditLogs as any[]).map((log: any) => ({
-    ...log,
-    createdAt: log.createdAt instanceof Date ? log.createdAt.toISOString() : log.createdAt,
-  }));
-
   const metadata = {
       userName: session.user.name || "DG",
-      enterpriseName: store?.name || "Votre Entreprise"
+      enterpriseName: store?.name || "Votre Entreprise",
+      topProducts: topProducts
   };
 
   const userSubscription = await getSubscriptionData();

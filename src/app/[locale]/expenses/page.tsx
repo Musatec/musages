@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 import { 
     ChevronLeft, ChevronRight, Plus, 
     TrendingDown, Tag,
@@ -14,6 +14,8 @@ import { getDailyExpenses, deleteExpense } from "@/lib/actions/expenses";
 import { TopLoader } from "@/components/ui/top-loader";
 import { NewExpenseSheet } from "@/components/modules/expenses/new-expense-sheet";
 import { toast } from "sonner";
+import { EliteMetricCard } from "@/components/ui/metric-card";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 export default function ExpensesPage() {
     const [loading, setLoading] = useState(true);
@@ -36,8 +38,6 @@ export default function ExpensesPage() {
     }, [date]);
 
     useEffect(() => { fetchData(); }, [fetchData]);
-
-    const formatMoney = (amount: number) => new Intl.NumberFormat('fr-FR').format(amount);
 
     const handleDelete = async (id: string) => {
         if (!isToday) return toast.error("Action possible sur les dates antérieures");
@@ -65,70 +65,78 @@ export default function ExpensesPage() {
     };
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8">
+        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-4">
             {loading && <TopLoader />}
 
-            <div className="max-w-[1600px] mx-auto w-full space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="max-w-[1600px] mx-auto w-full space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                 
                 {/* --- PROFESSIONAL HEADER --- */}
-                <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-border/50 text-foreground">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center bg-card border border-border rounded-xl p-1 shadow-sm">
-                            <button onClick={() => changeDate(-1)} className="p-2 hover:bg-muted rounded-lg transition-colors"><ChevronLeft className="w-5 h-5 text-muted-foreground hover:text-primary" /></button>
-                            <div className="px-4 flex flex-col items-center min-w-[140px]">
-                                <span className="text-xs font-bold text-red-500 uppercase tracking-tight">Caisse du jour</span>
-                                <span className="text-sm font-semibold">{data?.dateLabel ? data.dateLabel : "..."}</span>
+                <ElitePageHeader 
+                    title="Flux & Charges Opérationnelles."
+                    subtitle="Gestion de Caisse"
+                    description="Contrôlez vos dépenses quotidiennes, gérez les justificatifs et analysez l'impact des charges sur votre trésorerie."
+                    actions={
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center bg-card border border-border rounded-xl p-1 shadow-sm">
+                                <button onClick={() => changeDate(-1)} className="p-2 hover:bg-muted rounded-lg transition-colors">
+                                    <ChevronLeft className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                                </button>
+                                <div className="px-4 flex flex-col items-center min-w-[140px]">
+                                    <span className="text-[10px] font-black text-red-500 uppercase tracking-widest leading-none mb-1">Date Audit</span>
+                                    <span className="text-xs font-bold italic">{data?.dateLabel ? data.dateLabel : "..."}</span>
+                                </div>
+                                <button 
+                                    onClick={() => changeDate(1)} 
+                                    className={cn("p-2 hover:bg-muted rounded-lg transition-colors", isToday && "opacity-10 pointer-events-none")} 
+                                    disabled={isToday}
+                                >
+                                    <ChevronRight className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                                </button>
                             </div>
-                            <button 
-                                onClick={() => changeDate(1)} 
-                                className={cn("p-2 hover:bg-muted rounded-lg transition-colors", isToday && "opacity-10 pointer-events-none")} 
-                                disabled={isToday}
-                            >
-                                <ChevronRight className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                            <NewExpenseSheet 
+                                trigger={
+                                    <button className="bg-primary text-primary-foreground h-11 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary/90 active:scale-95 transition-all shadow-lg shadow-primary/20">
+                                        <Plus className="w-4 h-4" /> Nouvelle Dépense
+                                    </button>
+                                }
+                            />
+                            <button onClick={fetchData} className="p-3 bg-card border border-border rounded-xl hover:bg-muted transition-all shadow-sm">
+                                <RefreshCcw className={cn("w-5 h-5 text-muted-foreground", loading && "animate-spin")} />
                             </button>
                         </div>
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-tight">Sorties de Caisse</h1>
-                            <p className="text-xs text-muted-foreground">Suivi quotidien des charges opérationnelles.</p>
-                        </div>
-                    </div>
+                    }
+                />
 
-                    <div className="flex items-center gap-3">
-                         <NewExpenseSheet 
-                            trigger={
-                                <button className="bg-primary text-primary-foreground h-10 px-5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-primary/90 active:scale-95 transition-all shadow-md shadow-primary/10">
-                                    <Plus className="w-4 h-4" /> Nouvelle Dépense
-                                </button>
-                            }
-                        />
-                        <button onClick={fetchData} className="p-2.5 bg-card border border-border rounded-xl hover:bg-muted transition-colors shadow-sm">
-                            <RefreshCcw className={cn("w-4 h-4 text-muted-foreground", loading && "animate-spin")} />
-                        </button>
-                    </div>
-                </header>
-
-                {/* --- FINANCIAL HIGHLIGHTS --- */}
+                {/* --- FINANCIAL HIGHLIGHTS (Elite SaaS) --- */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                        { label: "Total des Sorties", value: data?.total || 0, icon: TrendingDown, color: "text-red-500", sub: "Flux monétaire sortant" },
-                        { label: "Opérations du jour", value: data?.expenses?.length || 0, icon: Tag, color: "text-primary", sub: "Nombre de tickets" },
-                        { label: "État de la Trésorerie", value: "SÉCURISÉ", icon: ShieldCheck, color: "text-emerald-500", sub: "Contrôle d'accès actif" },
-                        { label: "Dernière Synchronisation", value: "STABLE", icon: RefreshCcw, color: "text-indigo-500", sub: "Vérification cloud ok" }
-                    ].map((m, i) => (
-                        <div key={i} className="bg-card border border-border rounded-xl p-5 shadow-sm">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className={cn("p-2 rounded-lg bg-muted/50 border border-border shadow-sm", m.color)}>
-                                    <m.icon className="w-4 h-4" />
-                                </div>
-                                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{m.label}</span>
-                            </div>
-                            <h2 className={cn("text-2xl font-bold", m.color === 'text-red-500' ? 'text-red-500' : 'text-foreground')}>
-                                {typeof m.value === 'number' ? formatMoney(m.value) : m.value} 
-                                <span className="text-xs font-medium ml-1 opacity-40">{typeof m.value === 'number' ? ' FCFA' : ''}</span>
-                            </h2>
-                            <p className="text-[11px] text-muted-foreground mt-1">{m.sub}</p>
-                        </div>
-                    ))}
+                    <EliteMetricCard 
+                        label="Total des Sorties" 
+                        value={`${formatMoney(data?.total || 0)} F`} 
+                        icon={TrendingDown} 
+                        variant="red"
+                        sub="Flux monétaire sortant"
+                    />
+                    <EliteMetricCard 
+                        label="Opérations du jour" 
+                        value={data?.expenses?.length || 0} 
+                        icon={Tag} 
+                        variant="blue"
+                        sub="Nombre de tickets"
+                    />
+                    <EliteMetricCard 
+                        label="État Trésorerie" 
+                        value="SÉCURISÉ" 
+                        icon={ShieldCheck} 
+                        variant="emerald"
+                        sub="Contrôle actif"
+                    />
+                    <EliteMetricCard 
+                        label="Dernière Synchro" 
+                        value="STABLE" 
+                        icon={RefreshCcw} 
+                        variant="purple"
+                        sub="Cloud vérifié"
+                    />
                 </div>
 
                 {/* --- EXPENSES MASTER LIST --- */}

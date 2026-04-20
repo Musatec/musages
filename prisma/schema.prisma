@@ -57,10 +57,20 @@ enum PurchaseStatus {
 }
 
 // --- ENUMS ---
+enum UserRole {
+  ADMIN
+  USER
+  MANAGER
+  CASHIER
+  STAFF
+  SUPER_ADMIN
+}
+
 enum Role {
   ADMIN
   MANAGER
   SELLER
+  SUPER_ADMIN
 }
 
 enum ProductType {

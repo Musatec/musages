@@ -11,90 +11,249 @@ import {
     ShieldAlert,
     Server,
     Zap,
-    Lock
+    Lock,
+    Download,
+    FileSpreadsheet,
+    Globe
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 
 import Link from "next/link";
 import { AdminControls } from "@/components/modules/admin/admin-controls";
+import { EliteMetricCard } from "@/components/ui/metric-card";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 export default async function AdminDashboardPage() {
     const session = await auth();
-    if (!session?.user?.storeId || session.user.role !== "ADMIN") {
+    const CEO_EMAIL = "musatech0000@gmail.com";
+    
+    // Safety check for access
+    if (!session?.user?.id) {
+        redirect("/login");
+    }
+
+    // --- AUTO-PROMOTION & ROLE CHECK ---
+    let userRole = session.user.role;
+    const isCEO = session.user.email === CEO_EMAIL;
+
+    if (isCEO && userRole !== "SUPER_ADMIN") {
+        try {
+            await prisma.user.update({
+                where: { email: CEO_EMAIL },
+                data: { role: "SUPER_ADMIN" }
+            });
+            userRole = "SUPER_ADMIN";
+            console.log("[ADMIN] CEO promoted to SUPER_ADMIN on-the-fly.");
+        } catch (e) {
+            console.error("[ADMIN] Failed to auto-promote CEO:", e);
+        }
+    }
+
+    // Only SUPER_ADMIN or ADMIN can access this page
+    if (userRole !== "SUPER_ADMIN" && userRole !== "ADMIN") {
         redirect("/dashboard");
     }
 
     const storeId = session.user.storeId;
+    const isSuperAdmin = userRole === "SUPER_ADMIN";
+    
+    if (!storeId && !isSuperAdmin) {
+        return (
+            <div className="flex-1 flex items-center justify-center p-20 text-center opacity-20 uppercase font-black tracking-[0.5em]">
+                Boutique non identifiée
+            </div>
+        );
+    }
 
-    // --- ADMINISTRATIVE AUDIT DATA ---
-    const [
-        totalEmployees,
-        auditLogs,
-        stockAlerts,
-        totalSales,
-        totalExpenses
-    ] = await Promise.all([
-        prisma.employee.count({ where: { storeId, deletedAt: null } }),
-        prisma.auditLog.findMany({
-            where: { storeId },
-            include: { user: { select: { name: true } } },
+    // --- ADMINISTRATIVE AUDIT DATA (Sequential for stability) ---
+    let totalEmployees = 0;
+    let auditLogs: any[] = [];
+    let stockAlerts = 0;
+    let totalSales: any[] = [];
+    let totalExpenses: any[] = [];
+    
+    // --- GLOBAL SAAS METRICS ---
+    let globalStoresCount = 0;
+    let globalRevenue = 0;
+    let globalUsersCount = 0;
+    let recentStores: any[] = [];
+
+    try {
+        // Local metrics
+        totalEmployees = await prisma.employee.count({ 
+            where: { 
+                storeId: isSuperAdmin ? undefined : storeId as string, 
+                deletedAt: null 
+            } 
+        });
+        
+        // Logs: Global if SuperAdmin, Local if Admin
+        auditLogs = await prisma.auditLog.findMany({
+            where: isSuperAdmin ? {} : { storeId: storeId as string },
+            include: { 
+                user: { select: { name: true } },
+                store: { select: { name: true } } // Added store name for global view
+            },
             orderBy: { createdAt: "desc" },
             take: 12
-        }),
-        prisma.stock.count({ where: { storeId, quantity: { lte: 5 } } }),
-        prisma.sale.aggregate({
-            where: { storeId, status: "COMPLETED" },
-            _sum: { totalAmount: true }
-        }),
-        prisma.transaction.aggregate({
-            where: { storeId, type: "EXPENSE" },
-            _sum: { amount: true }
-        })
-    ]);
+        });
+
+        stockAlerts = await prisma.product.count({ 
+            where: { 
+                storeId: isSuperAdmin ? undefined : storeId as string, 
+                deletedAt: null,
+                stocks: { 
+                    some: { 
+                        quantity: { lte: 5 } 
+                    } 
+                } 
+            } 
+        });
+
+        totalSales = await prisma.sale.findMany({
+            where: { 
+                storeId: isSuperAdmin ? undefined : storeId as string, 
+                status: "COMPLETED", 
+                deletedAt: null 
+            },
+            select: { totalAmount: true }
+        });
+
+        totalExpenses = await prisma.transaction.findMany({
+            where: { 
+                storeId: isSuperAdmin ? undefined : storeId as string, 
+                type: "EXPENSE" 
+            },
+            select: { amount: true }
+        });
+
+        // Global SaaS metrics
+        globalStoresCount = await prisma.store.count({ where: { deletedAt: null } });
+        globalUsersCount = await prisma.user.count({ where: { deletedAt: null } });
+        
+        const allCompletedSales = await prisma.sale.findMany({
+            where: { status: "COMPLETED", deletedAt: null },
+            select: { totalAmount: true }
+        });
+        globalRevenue = allCompletedSales.reduce((acc, s) => acc + (s.totalAmount || 0), 0);
+
+        recentStores = await prisma.store.findMany({
+            where: { deletedAt: null },
+            orderBy: { createdAt: "desc" },
+            take: 5
+        });
+
+    } catch (e: any) {
+        console.error("ADMIN DATA FETCH ERROR:", e.message);
+    }
+
+    const totalSalesAmount = totalSales.reduce((acc, s) => acc + (s.totalAmount || 0), 0);
+    const totalExpensesAmount = totalExpenses.reduce((acc, e) => acc + (e.amount || 0), 0);
 
     const stats = [
         { label: "Masse Salariale", value: totalEmployees, icon: Users, color: "text-blue-500", desc: "Collaborateurs actifs" },
         { label: "Points de Rupture", value: stockAlerts, icon: AlertTriangle, color: "text-amber-500", desc: "Articles sous le seuil" },
-        { label: "Volume d'Affaires", value: `${(totalSales._sum.totalAmount || 0).toLocaleString()} F`, icon: TrendingUp, color: "text-primary", desc: "Total historique" },
-        { label: "Dépenses Totales", value: `${(totalExpenses._sum.amount || 0).toLocaleString()} F`, icon: Zap, color: "text-red-500", desc: "Charges opérationnelles" }
+        { label: "Volume d'Affaires", value: `${formatMoney(totalSalesAmount)} F`, icon: TrendingUp, color: "text-primary", desc: "Total historique" },
+        { label: "Dépenses Totales", value: `${formatMoney(totalExpensesAmount)} F`, icon: Zap, color: "text-red-500", desc: "Charges opérationnelles" }
     ];
 
     return (
         <div className="flex-1 flex flex-col h-full bg-background transition-all duration-500 overflow-y-auto p-6 md:p-10 pb-32">
-            <div className="max-w-[1400px] mx-auto w-full space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="max-w-[1400px] mx-auto w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-white/5 pb-10">
-                    <div className="space-y-2">
+                <ElitePageHeader 
+                    title={isSuperAdmin ? "Console Propriétaire SaaS." : "Audit & Infrastructure."}
+                    subtitle={isSuperAdmin ? "Pilotage & Noyau Infrastructure" : "Console de Haute Direction"}
+                    description={isSuperAdmin 
+                        ? "Maîtrise totale de l'écosystème Musages. Supervisez toutes les boutiques, les revenus consolidés et l'état de l'infrastructure globale."
+                        : "Supervisez l'intégrité du système, gérez les accès critiques et analysez les performances globales de l'infrastructure."
+                    }
+                    actions={
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-0.5 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary italic">Console d'Haute Direction</span>
+                            <button className="flex items-center gap-2 px-4 py-2 bg-muted/20 border border-border rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-muted/40 transition-all">
+                                 <ShieldAlert className="w-4 h-4 text-primary" /> Sécurité
+                            </button>
+                            <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+                                 <Download className="w-4 h-4" /> Rapport Global
+                            </button>
                         </div>
-                        <h1 className="text-4xl font-black tracking-tighter italic uppercase text-foreground">
-                            Audit & <span className="text-primary italic">Infrastructures.</span>
-                        </h1>
-                    </div>
+                    }
+                />
 
-                    <div className="flex items-center gap-4">
-                        <div className="px-6 py-3 bg-white/5 border border-white/5 rounded-2xl flex items-center gap-3">
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Système Opérationnel</span>
-                        </div>
+                {/* --- GLOBAL SAAS CONTROL CENTER --- */}
+                <div className="space-y-4">
+                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-primary italic flex items-center gap-3 px-4">
+                        <Globe className="w-4 h-4" /> Supervision Réseau SaaS
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <EliteMetricCard 
+                            label="Boutiques Actives" 
+                            value={globalStoresCount} 
+                            icon={Server} 
+                            variant="blue"
+                            sub="Enseignes connectées"
+                        />
+                        <EliteMetricCard 
+                            label="Revenus Consolidés" 
+                            value={`${formatMoney(globalRevenue)} F`} 
+                            icon={TrendingUp} 
+                            variant="emerald"
+                            sub="CA global du réseau"
+                        />
+                        <EliteMetricCard 
+                            label="Écosystème Utilisateurs" 
+                            value={globalUsersCount} 
+                            icon={Users} 
+                            variant="purple"
+                            sub="Comptes actifs"
+                        />
+                        <EliteMetricCard 
+                            label="État du Cloud" 
+                            value="Stable" 
+                            icon={Zap} 
+                            variant="orange"
+                            sub="Infrastructure Musages"
+                        />
                     </div>
-                </header>
+                </div>
 
-                {/* --- STRATEGIC OVERVIEW --- */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {stats.map((s, i) => (
-                        <div key={i} className="bg-card border border-white/5 p-8 rounded-[2.5rem] hover:border-primary/20 transition-all group overflow-hidden relative">
-                             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-3xl rounded-full" />
-                             <div className={cn("w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform", s.color)}>
-                                 <s.icon className="w-6 h-6" />
-                             </div>
-                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-1">{s.label}</p>
-                             <h2 className="text-2xl font-black italic tracking-tighter uppercase">{s.value}</h2>
-                             <p className="text-[9px] font-bold text-muted-foreground/20 mt-2 uppercase tracking-widest">{s.desc}</p>
-                        </div>
-                    ))}
+                <div className="h-[1px] bg-white/5 mx-10" />
+
+                {/* --- LOCAL STORE OVERVIEW --- */}
+                <div className="space-y-4">
+                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-muted-foreground/60 italic flex items-center gap-3 px-4">
+                        <Activity className="w-4 h-4" /> Analyse Direction Locale
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <EliteMetricCard 
+                            label="Masse Salariale" 
+                            value={totalEmployees} 
+                            icon={Users} 
+                            variant="blue"
+                            sub="Personnel actif"
+                        />
+                        <EliteMetricCard 
+                            label="Points de Rupture" 
+                            value={stockAlerts} 
+                            icon={AlertTriangle} 
+                            variant="amber"
+                            sub="Stock critique"
+                        />
+                        <EliteMetricCard 
+                            label="Volume d'Affaires" 
+                            value={`${formatMoney(totalSalesAmount)} F`} 
+                            icon={TrendingUp} 
+                            variant="orange"
+                            sub="Total historique"
+                        />
+                        <EliteMetricCard 
+                            label="Charges Locales" 
+                            value={`${formatMoney(totalExpensesAmount)} F`} 
+                            icon={ShieldAlert} 
+                            variant="red"
+                            sub="Dépenses enregistrées"
+                        />
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -117,14 +276,21 @@ export default async function AdminDashboardPage() {
                                              </div>
                                              <div className="space-y-1">
                                                  <p className="text-[11px] font-black uppercase italic tracking-tighter text-foreground group-hover:text-primary transition-colors">
-                                                     {log.action.replace(/_/g, " ")} 
-                                                     <span className="text-muted-foreground/40 normal-case italic font-medium ml-2">— {JSON.stringify(log.details)}</span>
-                                                 </p>
-                                                 <div className="flex items-center gap-2 text-[9px] font-black text-muted-foreground/20 uppercase tracking-widest">
-                                                     <Users className="w-3 h-3" /> {log.user?.name} 
-                                                     <span className="mx-2">•</span>
-                                                     {new Date(log.createdAt).toLocaleTimeString()}
-                                                 </div>
+                                                      {log.action.replace(/_/g, " ")} 
+                                                      <span className="text-muted-foreground/40 normal-case italic font-medium ml-2">— {JSON.stringify(log.details)}</span>
+                                                  </p>
+                                                  <div className="flex items-center gap-2 text-[9px] font-black text-muted-foreground/20 uppercase tracking-widest">
+                                                      <Users className="w-3 h-3" /> {log.user?.name} 
+                                                      {isSuperAdmin && (
+                                                          <>
+                                                              <span className="mx-2 text-primary/30">•</span>
+                                                              <Server className="w-3 h-3 text-primary/40" /> 
+                                                              <span className="text-primary/60">{log.store?.name}</span>
+                                                          </>
+                                                      )}
+                                                      <span className="mx-2">•</span>
+                                                      {new Date(log.createdAt).toLocaleTimeString()}
+                                                  </div>
                                              </div>
                                          </div>
                                          <ShieldCheck className="w-4 h-4 text-emerald-500/20 group-hover:text-emerald-500 transition-colors" />
@@ -152,6 +318,32 @@ export default async function AdminDashboardPage() {
                              <p className="text-[9px] font-black uppercase text-black/40 leading-relaxed text-center px-4 tracking-widest">
                                  Attention : Toute action sur le noyau peut entraîner une déconnexion massive des terminaux.
                              </p>
+                             </div>
+                             
+                            <div className="p-8 bg-card border border-white/5 rounded-[3rem] space-y-6">
+                             <div className="flex items-center justify-between">
+                                 <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Centrales Connectées</h3>
+                                 <Link href="/admin/stores" className="text-[9px] font-bold text-primary hover:underline italic">Gérer</Link>
+                             </div>
+                             <div className="space-y-3">
+                                 {recentStores.map((store) => (
+                                     <div key={store.id} className="p-3 bg-white/5 rounded-xl border border-white/5 flex items-center justify-between group hover:bg-white/10 transition-all">
+                                         <div className="flex items-center gap-3">
+                                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary">
+                                                 {store.name.slice(0,2).toUpperCase()}
+                                             </div>
+                                             <div className="space-y-0.5">
+                                                 <p className="text-[10px] font-bold text-foreground group-hover:text-primary transition-colors">{store.name}</p>
+                                                 <p className="text-[8px] font-medium text-muted-foreground uppercase tracking-widest">{store.plan}</p>
+                                             </div>
+                                         </div>
+                                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                     </div>
+                                 ))}
+                                 {recentStores.length === 0 && (
+                                     <div className="py-4 text-center text-[9px] font-black uppercase opacity-20 italic">Aucune boutique.</div>
+                                 )}
+                             </div>
                          </div>
 
                          <div className="p-8 bg-card border border-white/5 rounded-[3rem] space-y-6">

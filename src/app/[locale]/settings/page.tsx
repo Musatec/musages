@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getSubscriptionData, initiatePayment } from "@/lib/actions/subscription";
+import { EliteMetricCard } from "@/components/ui/metric-card";
+import { ElitePageHeader } from "@/components/ui/page-header";
 
 interface TabButtonProps {
     id: string;
@@ -119,23 +121,21 @@ export default function StoreSettingsPage() {
         <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8 text-foreground pb-20">
             {loading && <TopLoader />}
 
-            <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-border/50">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Paramètres Généraux</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Configurez l'identité visuelle et les paramètres fiscaux de votre boutique.
-                    </p>
-                </div>
-
-                <button 
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="bg-primary text-primary-foreground px-8 py-3 rounded-xl flex items-center justify-center gap-3 text-sm font-bold hover:bg-primary/90 active:scale-95 transition-all shadow-md shadow-primary/10"
-                >
-                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                    Enregistrer les Modifications
-                </button>
-            </header>
+            <ElitePageHeader 
+                title="Configuration & Profil."
+                subtitle="Système de Gestion"
+                description="Personnalisez votre expérience, gérez votre abonnement et configurez les préférences de votre établissement."
+                actions={
+                    <button 
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="bg-primary text-primary-foreground px-8 py-3 rounded-xl flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest hover:bg-primary/90 active:scale-95 transition-all shadow-lg shadow-primary/20"
+                    >
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        Enregistrer
+                    </button>
+                }
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Navigation Sidebar */}
@@ -272,26 +272,32 @@ export default function StoreSettingsPage() {
 
                          {activeTab === 'subscription' && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-right-2 duration-300">
+                                {/* --- SUBSCRIPTION METRICS (Elite SaaS) --- */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <EliteMetricCard 
+                                        label="Plan Actuel" 
+                                        value={subData?.plan || "GRATUIT"} 
+                                        icon={Crown} 
+                                        variant="blue"
+                                        sub={subData?.subscriptionStatus}
+                                    />
+                                    <EliteMetricCard 
+                                        label="Échéance" 
+                                        value={subData?.daysRemaining !== undefined ? `${subData.daysRemaining} Jours` : "ILLIMITÉ"} 
+                                        icon={Zap} 
+                                        variant={subData?.daysRemaining <= 3 ? "red" : "amber"}
+                                        sub="Temps restant"
+                                    />
+                                    <EliteMetricCard 
+                                        label="Transactions" 
+                                        value={subData?.payments?.length || 0} 
+                                        icon={History} 
+                                        variant="purple"
+                                        sub="Historique licence"
+                                    />
+                                </div>
+
                                 <div className="p-8 bg-primary/10 border border-primary/20 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                        <Crown className="w-24 h-24" />
-                                    </div>
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-primary text-black flex items-center justify-center font-black">
-                                                <Zap className="w-5 h-5" />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-black uppercase tracking-tight italic">Plan {subData?.plan}</h3>
-                                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Status: <span className={cn(subData?.subscriptionStatus === 'ACTIVE' ? "text-emerald-500" : "text-primary")}>{subData?.subscriptionStatus}</span></p>
-                                            </div>
-                                        </div>
-                                        {subData?.subscriptionStatus === 'TRIALING' && (
-                                            <div className="bg-white/5 border border-white/5 px-4 py-2 rounded-xl">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-primary italic">Période d'essai active : {subData?.daysRemaining} jour(s) restants</p>
-                                            </div>
-                                        )}
-                                    </div>
                                     <button 
                                         type="button"
                                         onClick={async () => {

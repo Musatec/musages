@@ -23,6 +23,7 @@ export function SafeImage({
             <Image
                 src={error ? fallbackSrc : src}
                 alt={alt}
+                fill={!props.width && !props.height}
                 className={cn(
                     "transition-all duration-500",
                     loading ? "scale-105 blur-lg" : "scale-100 blur-0",
@@ -33,7 +34,7 @@ export function SafeImage({
                 {...props}
             />
             {loading && (
-                <div className="absolute inset-0 bg-accent/20 animate-pulse" />
+                <div className="absolute inset-0 bg-accent/20 animate-pulse z-10" />
             )}
         </div>
     );
