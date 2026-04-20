@@ -141,6 +141,10 @@ export function InventoryManager({ initialProducts }: { initialProducts: Product
                                             <input required type="number" value={formData.minStock} onChange={e => setFormData({...formData, minStock: e.target.value})} className="w-full bg-red-500/5 border-red-500/20 border rounded-xl px-4 py-3 text-sm font-bold text-red-500 outline-none" />
                                          </div>
                                     </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-semibold text-muted-foreground ml-1">Lien de la photo (URL)</label>
+                                        <input value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full bg-muted/30 border-border border rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-primary/20 outline-none" placeholder="https://..." />
+                                    </div>
                                     <button disabled={loading} className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold shadow-lg shadow-primary/10 active:scale-95 transition-all flex items-center justify-center gap-3">
                                         {loading ? <Loader2 className="animate-spin w-5 h-5" /> : "Enregistrer le produit"}
                                     </button>

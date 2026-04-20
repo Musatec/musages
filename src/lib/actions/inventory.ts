@@ -36,7 +36,9 @@ export async function createProduct(data: CreateProductData) {
                 name: data.name,
                 price: Number(data.price) || 0,
                 costPrice: data.costPrice ? Number(data.costPrice) : null,
-                minAlert: Math.floor(Number(data.minStock)) || 5, // Renommé selon schema
+                minAlert: Math.floor(Number(data.minStock)) || 5,
+                category: data.category || "Standard",
+                image: data.image || null,
                 sku: data.sku || null,
                 storeId: storeId as string,
             }

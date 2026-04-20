@@ -183,7 +183,7 @@ export default function SalesJournalClient({
                                         <div className="flex flex-col gap-1">
                                             {sale.items?.map((i: SaleItem) => (
                                                 <div key={i.id} className="flex items-center justify-between text-[11px] font-bold text-foreground bg-muted/20 px-2 py-1 rounded border border-border/50">
-                                                    <span className="uppercase truncate max-w-[140px]">{i.product.name}</span>
+                                                    <span className="uppercase truncate max-w-[140px]">{i.product?.name || "ARTICLE INCONNU"}</span>
                                                     <span className="text-primary ml-2">×{i.quantity}</span>
                                                 </div>
                                             )) || <span className="text-xs italic text-muted-foreground">Aucun article</span>}

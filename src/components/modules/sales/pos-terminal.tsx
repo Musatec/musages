@@ -202,6 +202,10 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
         return () => window.removeEventListener('keydown', handleGlobalKeyDown);
     }, [cart, isCheckingOut, showReceipt]);
 
+    const [layout, setLayout] = useState<"list" | "grid">("grid");
+
+    const categories = ["all", ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
+
     return (
         <div className="flex flex-col md:flex-row h-full bg-background text-foreground transition-all duration-500 overflow-hidden font-sans">
             
@@ -239,23 +243,42 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                             </div>
                         </div>
 
-                        <div className="relative group max-w-2xl w-full">
-                            <div className="absolute inset-y-0 left-8 flex items-center pointer-events-none">
-                                <Search className="h-5 w-5 text-muted-foreground/10 group-focus-within:text-primary transition-all duration-500" />
-                            </div>
-                            <input
-                                type="text"
-                                placeholder="SCANNER OU RECHERCHER..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                onKeyDown={handleSearchKeyDown}
-                                autoFocus
-                                className="block w-full pl-14 md:pl-18 pr-6 md:pr-12 py-5 md:py-7 bg-card border border-border/50 rounded-[2rem] md:rounded-[2.5rem] text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all shadow-2xl placeholder:text-muted-foreground/10 italic"
-                            />
-                            <div className="absolute right-8 top-1/2 -translate-y-1/2 flex items-center gap-3">
-                                <div className="p-2.5 rounded-xl bg-muted/20 border border-border/10">
-                                    <div className="w-1 h-4 bg-primary/20 rounded-full animate-pulse" />
+                        <div className="flex items-center gap-4 flex-1 max-w-3xl">
+                            <div className="relative group flex-1">
+                                <div className="absolute inset-y-0 left-8 flex items-center pointer-events-none">
+                                    <Search className="h-5 w-5 text-muted-foreground/10 group-focus-within:text-primary transition-all duration-500" />
                                 </div>
+                                <input
+                                    type="text"
+                                    placeholder="SCANNER OU RECHERCHER..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    onKeyDown={handleSearchKeyDown}
+                                    autoFocus
+                                    className="block w-full pl-14 md:pl-18 pr-6 md:pr-12 py-5 md:py-7 bg-card border border-border/50 rounded-[2rem] md:rounded-[2.5rem] text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all shadow-2xl placeholder:text-muted-foreground/10 italic"
+                                />
+                            </div>
+
+                            {/* LAYOUT TOGGLE */}
+                            <div className="hidden md:flex bg-card border border-border/50 p-2 rounded-[2rem] shadow-xl">
+                                <button 
+                                    onClick={() => setLayout("list")}
+                                    className={cn(
+                                        "p-4 rounded-2xl transition-all",
+                                        layout === "list" ? "bg-primary text-black shadow-lg" : "text-muted-foreground/40 hover:text-foreground"
+                                    )}
+                                >
+                                    <MoreHorizontal className="w-6 h-6" />
+                                </button>
+                                <button 
+                                    onClick={() => setLayout("grid")}
+                                    className={cn(
+                                        "p-4 rounded-2xl transition-all",
+                                        layout === "grid" ? "bg-primary text-black shadow-lg" : "text-muted-foreground/40 hover:text-foreground"
+                                    )}
+                                >
+                                    <BoxIcon className="w-6 h-6" />
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -279,17 +302,67 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                     </div>
                 </header>
 
-                {/* HIGH-DENSITY SCAN-LINE INTERFACE */}
+                {/* MAIN PRODUCT DISPLAY INTERFACE */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar bg-card/40 border border-border/60 rounded-[3.5rem] overflow-hidden flex flex-col shadow-2xl transition-all hover:border-primary/5 group/log">
                     
-                    {/* TABLE HEAD: REGISTRY METADATA */}
-                    <div className="sticky top-0 bg-muted/30 backdrop-blur-3xl border-b border-border/80 p-8 grid grid-cols-12 text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/30 italic z-30">
-                        <div className="col-span-1 text-center">SYNC</div>
-                        <div className="col-span-5 px-6 italic">PRODUIT / RÉFÉRENCE SYSTÈME</div>
-                        <div className="col-span-2 text-center">PROTOCOLE-CAT</div>
-                        <div className="col-span-2 text-center">FLUX / STOCK</div>
-                        <div className="col-span-2 text-right">COTATION VALEUR</div>
-                    </div>
+                    {layout === "grid" ? (
+                        <div className="p-8 md:p-12 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                            {filteredProducts.length > 0 ? (
+                                filteredProducts.map((product) => (
+                                    <motion.div
+                                        key={product.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        whileHover={{ y: -5 }}
+                                        onClick={() => addToCart(product)}
+                                        className="group/card bg-card border border-border/40 rounded-[2.5rem] p-6 cursor-pointer hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 relative overflow-hidden"
+                                    >
+                                        <div className="aspect-square rounded-[2rem] bg-muted/20 border border-border/10 overflow-hidden mb-6 relative group-hover/card:rotate-2 transition-transform duration-700">
+                                            {product.image ? (
+                                                <SafeImage src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-1000" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center opacity-5">
+                                                    <Package className="w-12 h-12" />
+                                                </div>
+                                            )}
+                                            {product.stock < 10 && (
+                                                <div className="absolute top-4 right-4 px-4 py-1.5 rounded-full bg-amber-500 text-black text-[8px] font-black uppercase tracking-widest shadow-xl">
+                                                    Low Stock
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="space-y-3">
+                                            <h3 className="text-[12px] font-black uppercase italic tracking-tight text-foreground/80 group-hover/card:text-primary transition-colors leading-tight">
+                                                {product.name}
+                                            </h3>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm font-black italic tracking-tighter text-foreground font-mono">
+                                                    {product.price.toLocaleString()} F
+                                                </span>
+                                                <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover/card:bg-primary group-hover/card:text-black transition-all">
+                                                    <Plus className="w-4 h-4" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))
+                            ) : (
+                                <div className="col-span-full py-40 flex flex-col items-center justify-center opacity-10">
+                                    <Search className="w-24 h-24 mb-6" />
+                                    <p className="text-xl font-black uppercase tracking-widest">No Products Found</p>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <>
+                            {/* TABLE HEAD: REGISTRY METADATA */}
+                            <div className="sticky top-0 bg-muted/30 backdrop-blur-3xl border-b border-border/80 p-8 grid grid-cols-12 text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/30 italic z-30">
+                                <div className="col-span-1 text-center">SYNC</div>
+                                <div className="col-span-5 px-6 italic">PRODUIT / RÉFÉRENCE SYSTÈME</div>
+                                <div className="col-span-2 text-center">PROTOCOLE-CAT</div>
+                                <div className="col-span-2 text-center">FLUX / STOCK</div>
+                                <div className="col-span-2 text-right">COTATION VALEUR</div>
+                            </div>
 
                     <div className="flex-1 flex flex-col min-h-0 divide-y divide-border/5">
                         {filteredProducts.length > 0 ? (
@@ -383,7 +456,8 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                 </div>
                             </div>
                         )}
-                    </div>
+                        </>
+                    )}
                 </div>
             </main>
 

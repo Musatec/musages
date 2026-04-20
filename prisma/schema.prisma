@@ -217,6 +217,7 @@ model Product {
   costPrice   Float?      // To calculate margins
   minAlert    Int         @default(5)
   category    String?     @default("Standard")
+  image       String?     // URL of the product image
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   deletedAt   DateTime?
