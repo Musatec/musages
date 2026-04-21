@@ -24,15 +24,27 @@ export default async function SalesJournalPage(props: PageProps) {
         return <div className="p-20 text-center font-black uppercase opacity-20">Store non identifié</div>;
     }
 
-    const initialSales = await prisma.sale.findMany({
-        where: { 
-            storeId, 
-            deletedAt: null,
-            createdAt: { gte: dayStart, lte: dayEnd }
-        },
-        include: { items: { include: { product: true } } },
-        orderBy: { createdAt: "desc" }
-    });
+    let initialSales = [];
+    try {
+        initialSales = await prisma.sale.findMany({
+            where: { 
+                storeId, 
+                deletedAt: null,
+                createdAt: { gte: dayStart, lte: dayEnd }
+            },
+            include: { items: { include: { product: true } } },
+            orderBy: { createdAt: "desc" }
+        });
+    } catch (error: any) {
+        console.error("PRISMA ERROR:", error.code, error.message);
+        // On log dans un fichier pour que je puisse le lire
+        const fs = require('fs');
+        fs.appendFileSync('prisma-error.log', `[${new Date().toISOString()}] ${error.code}: ${error.message}\n`);
+        return <div className="p-20 text-center">
+            <h1 className="text-red-500 font-black">ERREUR BASE DE DONNÉES</h1>
+            <p className="text-xs opacity-50 italic">{error.message}</p>
+        </div>;
+    }
 
     const dailyMetrics = await getDailyMetrics(targetDate);
 

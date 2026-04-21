@@ -12,6 +12,9 @@ import {
     ArrowUpRight, ArrowDownRight, Activity
 } from "lucide-react";
 import { DashboardMetrics, SerializedSale } from "@/types/dashboard";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 export function DashboardClient({ 
     metrics, 
@@ -28,9 +31,21 @@ export function DashboardClient({
 }) {
     const isManager = userRole === "MANAGER";
     const topProducts = metadata?.topProducts || [];
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        if (searchParams.get("payment") === "success") {
+            toast.success("Abonnement activé ! Bienvenue dans l'Empire Musages. 🚀", {
+                description: "Toutes vos fonctionnalités premium sont maintenant débloquées.",
+                duration: 5000,
+            });
+            // Nettoyer l'URL
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+    }, [searchParams]);
     
     return (
-        <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-8">
+        <div className="flex-1 flex flex-col transition-all duration-300 p-4 md:p-8 pt-6 md:pt-10 pb-40 text-foreground">
             
             {userSubscription && !isManager && (userSubscription.isTrialOver || userSubscription.daysRemaining <= 3) && (
                 <div className={cn(

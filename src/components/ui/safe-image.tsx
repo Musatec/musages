@@ -26,8 +26,7 @@ export function SafeImage({
                 fill={!props.width && !props.height}
                 className={cn(
                     "transition-all duration-500",
-                    loading ? "scale-105 blur-lg" : "scale-100 blur-0",
-                    className
+                    loading ? "scale-105 blur-lg" : "scale-100 blur-0"
                 )}
                 onLoad={() => setLoading(false)}
                 onError={() => setError(true)}

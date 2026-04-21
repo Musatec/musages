@@ -55,7 +55,7 @@ export function ElitePageHeader({
             </div>
 
             {actions && (
-                <div className="flex items-center gap-3 animate-in fade-in zoom-in duration-700">
+                <div className="flex flex-wrap items-center gap-3 md:justify-end animate-in fade-in zoom-in duration-700 w-full md:w-auto">
                     {actions}
                 </div>
             )}

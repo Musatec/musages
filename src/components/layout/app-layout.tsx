@@ -6,7 +6,7 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { MobileFab } from "@/components/layout/mobile-fab";
 import { useSidebar } from "@/components/providers/sidebar-provider";
-
+import { cn } from "@/lib/utils";
 import { TopLoader } from "@/components/ui/top-loader";
 import { Suspense } from "react";
 import { EliteHeader } from "@/components/layout/elite-header";
@@ -21,7 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const showLayout = !isLoginPage && !isLandingPage;
 
     return (
-        <div className="flex min-h-screen relative overflow-hidden bg-background selection:bg-primary/20">
+        <div className="flex min-h-screen relative overflow-x-hidden bg-background selection:bg-primary/20">
             <Suspense fallback={null}>
                 <TopLoader />
             </Suspense>
@@ -43,32 +43,36 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     ? (collapsed ? 'md:ml-20' : 'md:ml-64') 
                     : ''
             }`}>
-                {/* Global Command Bar (Mentor Powered) */}
-                {showLayout && <EliteHeader />}
+                {/* Global Command Bar (Fixed) */}
+                {showLayout && (
+                    <div className={cn(
+                        "fixed top-0 right-0 z-[60] transition-all duration-500 left-0",
+                        collapsed ? "md:left-20" : "md:left-64"
+                    )}>
+                        <EliteHeader />
+                    </div>
+                )}
 
-                {/* Spacer pour le header mobile */}
-                {showLayout && <div className="h-16 md:hidden" />}
+                <div className={cn("flex flex-col flex-1", showLayout && "pt-[60px] md:pt-[72px]")}>
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={pathname}
+                            initial={{ opacity: 0, y: 10, filter: "blur(10px)" }}
+                            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                            exit={{ opacity: 0, y: -10, filter: "blur(10px)" }}
+                            transition={{ duration: 0.4, ease: "circOut" }}
+                            className="flex-1"
+                        >
+                            {children}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
 
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={pathname}
-                        initial={{ opacity: 0, y: 10, filter: "blur(10px)" }}
-                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                        exit={{ opacity: 0, y: -10, filter: "blur(10px)" }}
-                        transition={{ duration: 0.4, ease: "circOut" }}
-                        className="flex-1"
-                    >
-                        {children}
-                    </motion.div>
-                </AnimatePresence>
 
-                {/* Spacer pour la nav mobile */}
-                {showLayout && <div className="h-32 md:hidden" />}
             </main>
 
             {/* Navigation - Mobile Elements */}
             {showLayout && <MobileNav />}
-            {showLayout && <MobileFab />}
         </div>
     );
 }

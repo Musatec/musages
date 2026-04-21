@@ -18,7 +18,6 @@ import { PostHogProvider } from 'posthog-js/react'
 import { CSPostHogProvider } from "@/components/providers/posthog-provider";
 import PostHogPageView from "@/components/providers/posthog-pageview";
 import { CrispProvider } from "@/components/providers/crisp-provider";
-import { FeedbackButton } from "@/components/modules/feedback-button";
 import { Suspense } from "react";
 
 const inter = Inter({
@@ -101,7 +100,6 @@ export default async function RootLayout({
                   <SidebarProvider>
                     <PwaRegistrar />
                     <CrispProvider />
-                    <FeedbackButton />
                     <AppLayout>
                       {children}
                     </AppLayout>

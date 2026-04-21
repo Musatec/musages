@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { getSubscriptionData, initiatePayment } from "@/lib/actions/subscription";
 import { EliteMetricCard } from "@/components/ui/metric-card";
 import { ElitePageHeader } from "@/components/ui/page-header";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface TabButtonProps {
     id: string;
@@ -38,7 +39,7 @@ const TabButton = ({ id, activeTab, setActiveTab, label, icon: Icon }: TabButton
     <button
         onClick={() => setActiveTab(id)}
         className={cn(
-            "flex items-center justify-between w-full px-5 py-4 rounded-xl text-xs font-bold transition-all",
+            "flex items-center justify-between w-auto lg:w-full px-5 py-3 lg:py-4 rounded-xl text-[10px] lg:text-xs font-bold transition-all whitespace-nowrap lg:whitespace-normal",
             activeTab === id 
                 ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]" 
                 : "text-muted-foreground hover:bg-muted/50"
@@ -48,7 +49,7 @@ const TabButton = ({ id, activeTab, setActiveTab, label, icon: Icon }: TabButton
             <Icon className="w-4 h-4" />
             <span className="uppercase tracking-wider">{label}</span>
         </div>
-        {activeTab === id && <ChevronRight className="w-4 h-4" />}
+        {activeTab === id && <ChevronRight className="hidden lg:block w-4 h-4" />}
     </button>
 );
 
@@ -137,18 +138,18 @@ export default function StoreSettingsPage() {
                 }
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                {/* Navigation Sidebar */}
-                <div className="flex flex-col gap-1">
-                    <TabButton id="general" activeTab={activeTab} setActiveTab={setActiveTab} label="Identité & Contact" icon={Building2} />
-                    <TabButton id="branding" activeTab={activeTab} setActiveTab={setActiveTab} label="Image de Marque" icon={Palette} />
-                    <TabButton id="taxes" activeTab={activeTab} setActiveTab={setActiveTab} label="Fiscalité & Taxes" icon={Percent} />
-                    <TabButton id="security" activeTab={activeTab} setActiveTab={setActiveTab} label="Sessions & Sécurité" icon={ShieldCheck} />
-                    <TabButton id="subscription" activeTab={activeTab} setActiveTab={setActiveTab} label="Mon Abonnement" icon={CreditCard} />
+            <div className="flex flex-col lg:grid lg:grid-cols-4 gap-8">
+                {/* Navigation - Horizontal Scroll on Mobile, Sidebar on LG */}
+                <div className="flex lg:flex-col gap-1 overflow-x-auto pb-4 lg:pb-0 no-scrollbar -mx-6 px-6 lg:mx-0 lg:px-0">
+                    <TabButton id="general" activeTab={activeTab} setActiveTab={setActiveTab} label="Identité" icon={Building2} />
+                    <TabButton id="branding" activeTab={activeTab} setActiveTab={setActiveTab} label="Branding" icon={Palette} />
+                    <TabButton id="taxes" activeTab={activeTab} setActiveTab={setActiveTab} label="Fiscalité" icon={Percent} />
+                    <TabButton id="security" activeTab={activeTab} setActiveTab={setActiveTab} label="Sécurité" icon={ShieldCheck} />
+                    <TabButton id="subscription" activeTab={activeTab} setActiveTab={setActiveTab} label="Abonnement" icon={CreditCard} />
                 </div>
 
                 {/* Content Area */}
-                <div className="lg:col-span-3 bg-card border border-border p-8 md:p-12 rounded-2xl shadow-sm relative overflow-hidden">
+                <div className="lg:col-span-3 bg-card border border-border p-6 md:p-12 rounded-2xl shadow-sm relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
                     
                     <form onSubmit={handleSave} className="space-y-8">
@@ -205,17 +206,14 @@ export default function StoreSettingsPage() {
 
                         {activeTab === 'branding' && (
                             <div className="space-y-8 animate-in fade-in slide-in-from-right-2 duration-300">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Logo de l'Établissement (URL)</label>
-                                    <div className="relative">
-                                        <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
-                                        <input 
-                                            value={storeData.config.logo}
-                                            onChange={e => setStoreData({...storeData, config: {...storeData.config, logo: e.target.value}})}
-                                            className="w-full bg-muted/20 border border-border rounded-xl px-12 py-3.5 text-xs font-bold focus:border-primary/50 outline-none"
-                                            placeholder="https://votre-image.sn/logo.png"
-                                        />
-                                    </div>
+                                <div className="space-y-4">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground/60 ml-1">Logo de l'Établissement</label>
+                                    <ImageUpload 
+                                        value={storeData.config.logo}
+                                        onChange={url => setStoreData({...storeData, config: {...storeData.config, logo: url}})}
+                                        className="mt-2"
+                                    />
+                                    <p className="text-[10px] text-muted-foreground italic">Ce logo sera affiché sur vos factures, tickets de caisse et sur l'interface de connexion.</p>
                                 </div>
 
                                 <div className="p-6 bg-muted/20 rounded-2xl border border-border space-y-4">

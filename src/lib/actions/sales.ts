@@ -97,6 +97,45 @@ export async function processSale(data: {
                 details: { saleId: sale.id, total: data.total, debtor: isUnpaid }
               }
             });
+
+            // 5. Notifications en temps réel pour le propriétaire
+            const store = await tx.store.findUnique({
+                where: { id: storeId },
+                select: { ownerId: true, name: true }
+            });
+
+            if (store?.ownerId) {
+                // Notification de vente
+                await tx.notification.create({
+                    data: {
+                        userId: store.ownerId,
+                        title: "Nouvelle Vente Réalisée",
+                        description: `Une vente de ${new Intl.NumberFormat('fr-FR').format(data.total)} FCFA a été effectuée dans la boutique ${store.name}.`,
+                        type: "SALE"
+                    }
+                });
+
+                // Vérification des seuils de stock pour alertes
+                for (const item of data.items) {
+                    if (item.id && item.id !== "MANUAL") {
+                        const stock = await tx.stock.findUnique({
+                            where: { storeId_productId: { storeId, productId: item.id } },
+                            include: { product: { select: { name: true } } }
+                        });
+
+                        if (stock && stock.quantity <= 5) {
+                            await tx.notification.create({
+                                data: {
+                                    userId: store.ownerId,
+                                    title: "Alerte Stock Faible",
+                                    description: `L'article "${stock.product.name}" est presque épuisé (${stock.quantity} restants) dans ${store.name}.`,
+                                    type: "ALERT"
+                                }
+                            });
+                        }
+                    }
+                }
+            }
         });
 
         // Mise à jour du cache pour toutes les pages concernées

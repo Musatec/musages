@@ -16,6 +16,7 @@ export async function getSubscriptionData() {
                 plan: true,
                 subscriptionStatus: true,
                 trialEndsAt: true,
+                subscriptionEndsAt: true,
                 payments: {
                     orderBy: { createdAt: "desc" },
                     take: 5
@@ -84,7 +85,7 @@ export async function initiatePayment(plan: "STARTER" | "GROWTH" | "BUSINESS"): 
             item_price: amount,
             command_name: `Abonnement ${plan} pour l'utilisateur ${session.user.id}`,
             ref_command: payment.id,
-            env: "test" as const, // Forcé en mode test pour validation administrative
+            env: (process.env.PAYTECH_ENV || "test") as "test" | "prod",
             ipn_url: `${appUrl}/api/webhooks/paytech`,
             success_url: `${appUrl}/dashboard?payment=success`,
             cancel_url: `${appUrl}/dashboard/settings/billing?payment=cancel`,

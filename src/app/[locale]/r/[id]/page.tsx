@@ -150,72 +150,72 @@ function ReceiptContent() {
                     <div className="absolute -top-12 inset-x-0 h-40 bg-gradient-to-b from-primary/5 to-transparent blur-3xl pointer-events-none opacity-50" />
                     
                     <div className={cn(
-                        "bg-white text-zinc-900 rounded-[2.5rem] p-10 md:p-20 shadow-2xl relative overflow-hidden font-sans border border-border/50",
+                        "bg-white text-zinc-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-20 shadow-2xl relative overflow-hidden font-sans border border-border/50",
                         "print:rounded-none print:shadow-none print:w-full print:p-8 print:border-none"
                     )}>
                         
-                        <div className="text-center mb-16 border-b border-zinc-100 pb-16 space-y-4">
+                        <div className="text-center mb-10 md:mb-16 border-b border-zinc-100 pb-10 md:pb-16 space-y-4">
                             {sale.store?.config?.logo ? (
                                 <div className="flex justify-center mb-6">
-                                    <div className="w-20 h-20 rounded-2xl overflow-hidden relative border border-zinc-100 shadow-sm p-2 bg-white">
+                                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden relative border border-zinc-100 shadow-sm p-2 bg-white">
                                          <img src={sale.store.config.logo} alt="Logo" className="w-full h-full object-contain" />
                                     </div>
                                 </div>
                             ) : (
                                 <div className="flex justify-center mb-6">
-                                    <Building2 className="w-12 h-12 text-zinc-200" />
+                                    <Building2 className="w-10 h-10 md:w-12 md:h-12 text-zinc-200" />
                                 </div>
                             )}
-                            <div className="text-3xl font-bold tracking-tight text-zinc-900 uppercase">{sale.store?.name || 'MINDOS STORE'}</div>
+                            <div className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-900 uppercase leading-tight">{sale.store?.name || 'MINDOS STORE'}</div>
                             
                             <div className="flex flex-col items-center gap-1.5 pt-4">
-                                <span className="flex items-start gap-2 text-xs font-semibold text-zinc-400 max-w-sm mx-auto">
-                                    <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" /> {sale.store?.address || 'Adresse non renseignée'}
+                                <span className="flex items-start gap-2 text-[10px] md:text-xs font-semibold text-zinc-400 max-w-sm mx-auto text-center px-4">
+                                    <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 hidden sm:block" /> {sale.store?.address || 'Adresse non renseignée'}
                                 </span>
                             </div>
                         </div>
 
                         <div className="space-y-6">
-                            <div className="grid grid-cols-12 gap-4 pb-4 border-b border-zinc-100 text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                                <div className="col-span-1">Qté</div>
-                                <div className="col-span-7">Désignation</div>
+                            <div className="grid grid-cols-12 gap-2 pb-4 border-b border-zinc-100 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                                <div className="col-span-2 md:col-span-1">Qté</div>
+                                <div className="col-span-6 md:col-span-7">Désignation</div>
                                 <div className="col-span-4 text-right">Montant</div>
                             </div>
 
                             {sale.items.map((item: any) => (
-                                <div key={item.id} className="grid grid-cols-12 gap-4 items-center">
-                                    <div className="col-span-1">
+                                <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
+                                    <div className="col-span-2 md:col-span-1">
                                         <span className="w-7 h-7 bg-zinc-50 border border-zinc-100 rounded-lg flex items-center justify-center text-[10px] font-bold text-zinc-600">{item.quantity}</span>
                                     </div>
-                                    <div className="col-span-7 pr-4">
-                                        <p className="font-bold uppercase tracking-tight text-sm text-zinc-900 leading-tight">{item.product?.name || 'Article'}</p>
-                                        <p className="text-[9px] font-bold text-zinc-400 mt-1 uppercase tracking-widest">{item.price.toLocaleString()} F / UNITE</p>
+                                    <div className="col-span-6 md:col-span-7 pr-2 md:pr-4">
+                                        <p className="font-bold uppercase tracking-tight text-xs md:text-sm text-zinc-900 leading-tight">{item.product?.name || 'Article'}</p>
+                                        <p className="text-[8px] md:text-[9px] font-bold text-zinc-400 mt-1 uppercase tracking-widest">{item.price.toLocaleString()} F / UNITE</p>
                                     </div>
-                                    <div className="col-span-4 font-bold text-base tabular-nums tracking-tight text-right">{(item.price * item.quantity).toLocaleString()} F</div>
+                                    <div className="col-span-4 font-bold text-sm md:text-base tabular-nums tracking-tight text-right">{(item.price * item.quantity).toLocaleString()} F</div>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="mt-16 pt-12 border-t border-zinc-100 space-y-4">
-                            <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+                        <div className="mt-10 md:mt-16 pt-8 md:pt-12 border-t border-zinc-100 space-y-4">
+                            <div className="flex justify-between text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-zinc-400">
                                 <span>Total Hors Taxe</span>
                                 <span className="tabular-nums">{Math.round(subtotal).toLocaleString()} F</span>
                             </div>
-                            <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest text-zinc-400">
+                            <div className="flex justify-between text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-zinc-400">
                                 <span>TVA ({vatRate}%)</span>
                                 <span className="tabular-nums">{Math.round(tax).toLocaleString()} F</span>
                             </div>
                             
-                            <div className="flex justify-between items-end pt-8 border-t-4 border-double border-zinc-100 mt-10">
-                                <span className="text-lg font-black uppercase tracking-tighter text-zinc-400">Total payé</span>
-                                <span className="text-4xl md:text-5xl font-black tracking-tighter tabular-nums text-zinc-900 leading-none">
-                                    {sale.totalAmount.toLocaleString()} <span className="text-sm font-bold opacity-30">FCFA</span>
+                            <div className="flex justify-between items-end pt-8 border-t-4 border-double border-zinc-100 mt-8 md:mt-10">
+                                <span className="text-sm md:text-lg font-black uppercase tracking-tighter text-zinc-400">Total payé</span>
+                                <span className="text-3xl md:text-5xl font-black tracking-tighter tabular-nums text-zinc-900 leading-none">
+                                    {sale.totalAmount.toLocaleString()} <span className="text-[10px] md:text-sm font-bold opacity-30">FCFA</span>
                                 </span>
                             </div>
 
-                            <div className="pt-20 flex flex-col items-center gap-6 opacity-40">
-                                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.3em]">Merci de votre confiance !</div>
-                                <div className="h-px w-20 bg-zinc-200" />
+                            <div className="pt-12 md:pt-20 flex flex-col items-center gap-6 opacity-40">
+                                <div className="text-[8px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-[0.3em] text-center px-4">Merci de votre confiance !</div>
+                                <div className="h-px w-16 md:w-20 bg-zinc-200" />
                             </div>
                         </div>
                     </div>

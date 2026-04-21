@@ -4,54 +4,29 @@ import { Settings2, Menu, X, Rocket, Zap, LogOut, User, Bell } from "lucide-reac
 import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { NAV_ITEMS } from "@/config/nav";
-import { useSupabase } from "@/components/providers/supabase-provider";
-import { useTranslations } from "next-intl";
-import { SafeImage } from "@/components/ui/safe-image";
-import { supabase } from "@/lib/supabase";
-import { motion, AnimatePresence } from "framer-motion";
-
+import { NAV_SECTIONS, SUPER_ADMIN_NAV } from "@/config/nav";
 import { useSession, signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
+import { useSidebar } from "@/components/providers/sidebar-provider";
+import { motion, AnimatePresence } from "framer-motion";
+import { SafeImage } from "@/components/ui/safe-image";
 
 export function MobileHeader() {
     const { data: session } = useSession();
     const pathname = usePathname();
     const router = useRouter();
-    const t = useTranslations("Sidebar");
     const { theme } = useTheme();
-    const [isOpen, setIsOpen] = useState(false);
-    const isAdmin = session?.user?.role === "ADMIN";
+    const { mobileOpen: isOpen, setMobileOpen: setIsOpen } = useSidebar();
+    
+    const userRole = session?.user?.role || "SELLER";
+    const currentNav = userRole === "SUPER_ADMIN" ? SUPER_ADMIN_NAV : NAV_SECTIONS;
+    const currentTheme = theme === "dark" ? "dark" : "light"; // Simplifié pour test
+    const logoSrc = currentTheme === "dark" ? "/logo-black.svg" : "/logo.svg";
 
-    const logoSrc = theme === "dark" ? "/logo.svg" : "/logo-black.svg";
-
-    // Masquer si pas de boutique
     if (pathname === "/login" || !session?.user?.storeId) return null;
 
     return (
-        <header>
-            {/* --- TOP BAR --- */}
-            <div className="md:hidden flex items-center justify-between px-5 py-4 fixed top-0 left-0 right-0 z-[50] bg-background/80 backdrop-blur-xl border-b border-white/5">
-                <Link href="/dashboard" className="flex items-center gap-2 active:scale-95 transition-transform">
-                    <div className="relative">
-                        <SafeImage src={logoSrc} alt="MINDOS Logo" width={100} height={32} className="h-8 w-auto" priority />
-                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_8px_var(--primary)]" />
-                    </div>
-                </Link>
-
-                <div className="flex items-center gap-2">
-                    <button className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-muted-foreground hover:text-primary transition-all active:scale-95">
-                        <Bell className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => setIsOpen(true)}
-                        className="p-2.5 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-105 transition-all active:scale-95 flex items-center gap-2"
-                    >
-                        <Menu className="w-5 h-5" />
-                    </button>
-                </div>
-            </div>
-
+        <div>
             {/* --- OVERLAY --- */}
             <AnimatePresence>
                 {isOpen && (
@@ -59,7 +34,7 @@ export function MobileHeader() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md md:hidden"
+                        className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md md:hidden"
                         onClick={() => setIsOpen(false)}
                     />
                 )}
@@ -67,7 +42,7 @@ export function MobileHeader() {
 
             {/* --- SIDE DRAWER --- */}
             <div className={cn(
-                "fixed inset-y-0 right-0 z-[70] w-[320px] bg-[#0A0A0B] border-l border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] md:hidden flex flex-col overflow-hidden",
+                "fixed inset-y-0 right-0 z-[110] w-[280px] sm:w-[320px] bg-[#0A0A0B] border-l border-white/10 shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] md:hidden flex flex-col overflow-hidden",
                 isOpen ? "translate-x-0" : "translate-x-full"
             )}>
                 {/* Decorative Background Glows */}
@@ -75,12 +50,14 @@ export function MobileHeader() {
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-600/5 blur-[80px] pointer-events-none rounded-full" />
 
                 {/* Header Profile Section */}
-                <div className="relative px-6 pt-10 pb-8 border-b border-white/5">
+                <div className="relative px-6 pt-10 pb-8 border-b border-white/5 bg-[#0D0D0E]/50">
                     <div className="flex items-center justify-between mb-8">
-                        <SafeImage src={logoSrc} alt="MINDOS" width={80} height={20} className="h-5 w-auto" />
+                        <div className="relative w-24 h-6">
+                            <img src={logoSrc} alt="MINDOS" className="w-full h-full object-contain" />
+                        </div>
                         <button
                             onClick={() => setIsOpen(false)}
-                            className="p-2 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all active:scale-95"
+                            className="p-2 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all active:scale-95"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -88,8 +65,8 @@ export function MobileHeader() {
 
                     <div className="flex items-center gap-4">
                         <div className="relative group">
-                            <div className="absolute -inset-1 bg-gradient-to-tr from-primary to-orange-400 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
-                            <div className="relative w-14 h-14 rounded-2xl bg-[#151516] border border-white/10 flex items-center justify-center overflow-hidden">
+                            <div className="absolute -inset-1 bg-gradient-to-tr from-primary to-orange-400 rounded-2xl blur opacity-25" />
+                            <div className="relative w-14 h-14 rounded-2xl bg-[#151516] border border-white/10 flex items-center justify-center overflow-hidden shadow-inner">
                                 {session?.user?.image ? (
                                     <SafeImage src={session.user.image} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
@@ -98,91 +75,70 @@ export function MobileHeader() {
                             </div>
                         </div>
                         <div className="flex flex-col">
-                            <h3 className="text-white font-bold tracking-tight text-lg leading-none">
-                                {session?.user?.name?.split(' ')[0] || "Utilisateur"}
+                            <h3 className="text-white font-black tracking-tight text-lg leading-none uppercase italic">
+                                {session?.user?.name?.split(' ')[0] || "Propriétaire"}
                             </h3>
-                            <p className="text-xs text-muted-foreground font-medium mt-1">{session?.user?.email || "Connecté"}</p>
+                            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mt-1.5 opacity-40 leading-none">{userRole}</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Navigation Scroll Area */}
-                <div className="flex-1 overflow-y-auto py-6 px-4 space-y-6 custom-scrollbar relative z-10">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2 px-4 mb-4">
-                            <div className="w-1 h-1 rounded-full bg-primary" />
-                            <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.4em]">Navigation Principale</p>
-                        </div>
+                <div className="flex-1 overflow-y-auto py-8 px-4 space-y-10 custom-scrollbar relative z-10 no-scrollbar">
+                    {currentNav.map((section) => {
+                        const visibleItems = section.items.filter(item => {
+                            const hasRole = !item.roles || item.roles.includes(userRole);
+                            return hasRole;
+                        });
 
-                        {NAV_ITEMS.map((item, idx) => {
-                            const Icon = item.icon;
-                            const isActive = pathname === item.href;
+                        if (visibleItems.length === 0) return null;
 
-                            return (
-                                <button
-                                    key={item.href}
-                                    onClick={() => {
-                                        setIsOpen(false);
-                                        router.push(item.href);
-                                    }}
-                                    className={cn(
-                                        "group w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 relative",
-                                        isActive
-                                            ? "bg-white/[0.03] text-white border border-white/10 shadow-xl"
-                                            : "text-muted-foreground hover:text-white hover:bg-white/[0.02]"
-                                    )}
-                                >
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="active-indicator"
-                                            className="absolute left-0 w-1 h-6 bg-primary rounded-full"
-                                        />
-                                    )}
-                                    <div className={cn(
-                                        "w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 border",
-                                        isActive
-                                            ? "bg-primary/20 border-primary/30 text-primary shadow-[0_0_15px_rgba(249,115,22,0.3)]"
-                                            : "bg-white/5 border-white/5 text-muted-foreground group-hover:bg-white/10 group-hover:border-white/10"
-                                    )}>
-                                        <Icon className="w-4 h-4" />
-                                    </div>
-                                    <div className="flex flex-col items-start">
-                                        <span className="text-xs font-black tracking-widest uppercase">{t(item.key)}</span>
-                                        {isActive && <span className="text-[8px] font-medium text-primary/60 uppercase tracking-tighter mt-0.5 animate-pulse italic">Active Segment</span>}
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
+                        return (
+                            <div key={section.title} className="space-y-3">
+                                <p className="px-4 text-[9px] font-black text-white/20 uppercase tracking-[0.4em] italic mb-4">
+                                    {section.title}
+                                </p>
+                                <div className="space-y-1.5">
+                                    {visibleItems.map((item) => {
+                                        const Icon = item.icon;
+                                        const isActive = pathname === item.href;
 
-                    {/* ADMIN SECTION */}
-                    {isAdmin && (
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-2 px-4 mb-4 mt-4">
-                                <div className="w-1 h-1 rounded-full bg-orange-500" />
-                                <p className="text-[10px] font-bold text-orange-500/70 uppercase tracking-widest">Administration</p>
-                            </div>
-                            <Link
-                                href="/admin"
-                                className={cn(
-                                    "flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 border shadow-sm",
-                                    pathname === "/admin"
-                                        ? "bg-orange-500/10 text-white border-orange-500/20"
-                                        : "bg-white/5 border-white/5 text-muted-foreground hover:bg-orange-500/5 hover:border-orange-500/10 hover:text-white"
-                                )}
-                            >
-                                <div className={cn(
-                                    "w-8 h-8 rounded-xl flex items-center justify-center border transition-all",
-                                    pathname === "/admin" ? "bg-orange-500 text-white border-orange-500" : "bg-white/5 border-white/5"
-                                )}>
-                                    <Zap className="w-4 h-4" />
+                                        return (
+                                            <button
+                                                key={item.href}
+                                                onClick={() => {
+                                                    setIsOpen(false);
+                                                    router.push(item.href);
+                                                }}
+                                                className={cn(
+                                                    "group w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 relative",
+                                                    isActive
+                                                        ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]"
+                                                        : "text-muted-foreground hover:text-white hover:bg-white/[0.05]"
+                                                )}
+                                            >
+                                                <div className={cn(
+                                                    "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 border",
+                                                    isActive
+                                                        ? "bg-white/20 border-white/30 text-white"
+                                                        : "bg-white/5 border-white/5 text-muted-foreground group-hover:bg-white/10 group-hover:border-white/10"
+                                                )}>
+                                                    <Icon className="w-4 h-4" />
+                                                </div>
+                                                <span className="text-[11px] font-black tracking-widest uppercase italic">{item.label}</span>
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="mobile-indicator"
+                                                        className="ml-auto w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_white]"
+                                                    />
+                                                )}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
-                                <span className="text-xs font-black tracking-widest uppercase">{t('admin')}</span>
-                            </Link>
-                        </div>
-                    )}
-
-                    {/* Clean block: System OS Info removed for professional use */}
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {/* Footer Section - Multi-tiered */}
@@ -192,7 +148,7 @@ export function MobileHeader() {
                             className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-white/10 hover:bg-white/[0.05] transition-all group col-span-2"
                         >
                             <Settings2 className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-white uppercase">{t('settings')}</span>
+                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-white uppercase">Paramètres</span>
                         </Link>
 
                     <button
@@ -204,6 +160,6 @@ export function MobileHeader() {
                     </button>
                 </div>
             </div>
-        </header>
+        </div>
     );
 }

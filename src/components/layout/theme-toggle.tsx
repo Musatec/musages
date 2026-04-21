@@ -4,46 +4,30 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
-export function ThemeToggle({ collapsed }: { collapsed?: boolean }) {
+export function ThemeToggle() {
     const { theme, setTheme } = useTheme();
 
     return (
-        <div 
-            className={cn(
-                "flex bg-black/5 dark:bg-black/5 p-1 rounded-2xl border border-black/10 dark:border-black/10 transition-all duration-500",
-                collapsed ? "w-10 flex-col gap-1" : "w-full"
-            )} 
-            style={{ backgroundColor: 'hsla(var(--sidebar-foreground) / 0.05)', borderColor: 'hsla(var(--sidebar-foreground) / 0.1)' }}
-        >
+        <div className="flex bg-muted/50 p-1 rounded-full border border-border/50 transition-all duration-300">
             <button 
                 onClick={() => setTheme("light")}
                 className={cn(
-                    "flex items-center justify-center py-2 rounded-xl transition-all duration-500 relative",
-                    collapsed ? "w-8 h-8" : "flex-1 gap-2",
-                    theme === "light" ? "text-primary shadow-lg" : "hover:opacity-80"
+                    "p-2 rounded-full transition-all duration-300",
+                    theme === "light" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
                 )}
-                style={{
-                    backgroundColor: theme === "light" ? 'hsla(var(--sidebar-foreground) / 0.1)' : 'transparent',
-                    color: theme !== "light" ? 'hsla(var(--sidebar-foreground) / 0.5)' : undefined
-                }}
+                title="Mode Clair"
             >
-                <Sun className={cn("w-4 h-4", theme === "light" && "animate-spin-slow")} />
-                {!collapsed && <span className="text-[10px] font-black uppercase tracking-widest">Clair</span>}
+                <Sun className="w-4 h-4" />
             </button>
             <button 
                 onClick={() => setTheme("dark")}
                 className={cn(
-                    "flex items-center justify-center py-2 rounded-xl transition-all duration-500 relative",
-                    collapsed ? "w-8 h-8" : "flex-1 gap-2",
-                    theme === "dark" ? "text-primary shadow-lg" : "hover:opacity-80"
+                    "p-2 rounded-full transition-all duration-300",
+                    theme === "dark" ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
                 )}
-                style={{
-                    backgroundColor: theme === "dark" ? 'hsla(var(--sidebar-foreground) / 0.1)' : 'transparent',
-                    color: theme !== "dark" ? 'hsla(var(--sidebar-foreground) / 0.5)' : undefined
-                }}
+                title="Mode Sombre"
             >
                 <Moon className="w-4 h-4" />
-                {!collapsed && <span className="text-[10px] font-black uppercase tracking-widest">Sombre</span>}
             </button>
         </div>
     );

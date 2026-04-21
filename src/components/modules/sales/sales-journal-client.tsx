@@ -104,20 +104,38 @@ export default function SalesJournalClient({
                 subtitle="Point de Vente"
                 description={`Registre quotidien des transactions pour le ${dateObj.toLocaleDateString('fr-FR')}.`}
                 actions={
-                    <div className="flex items-center gap-3">
-                         <div className="relative group w-full md:w-64">
+                    <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                         <div className="flex items-center bg-card border border-border rounded-xl p-1 shadow-sm shrink-0">
+                            <button onClick={handlePrevDay} className="p-2 hover:bg-muted rounded-lg transition-colors">
+                                <ChevronLeft className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                            </button>
+                            <div className="px-4 flex flex-col items-center min-w-[120px]">
+                                <span className="text-[10px] font-black text-primary uppercase tracking-widest leading-none mb-1">Journal</span>
+                                <span className="text-xs font-bold italic">{dateObj.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                            </div>
+                            <button 
+                                onClick={handleNextDay} 
+                                className={cn("p-2 hover:bg-muted rounded-lg transition-colors", isToday && "opacity-10 pointer-events-none")} 
+                                disabled={isToday}
+                            >
+                                <ChevronRight className="w-5 h-5 text-muted-foreground hover:text-primary" />
+                            </button>
+                        </div>
+
+                        <div className="relative group flex-1 md:w-64">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
                             <input 
                                 value={search} 
                                 onChange={(e) => setSearch(e.target.value)} 
-                                placeholder="Rechercher une vente..." 
+                                placeholder="Rechercher..." 
                                 className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/40 shadow-sm"
                             />
                         </div>
+
                         <NewSaleSheet 
                             trigger={
-                                <button className="bg-primary text-primary-foreground h-11 px-6 rounded-xl text-sm font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary/90 active:scale-95 transition-all shadow-lg shadow-primary/20">
-                                    <Plus className="w-5 h-5 stroke-[3]" /> Nouvelle Vente
+                                <button className="bg-primary text-primary-foreground h-11 px-6 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 hover:bg-primary/90 active:scale-95 transition-all shadow-lg shadow-primary/20">
+                                    <Plus className="w-4 h-4 stroke-[3]" /> <span className="hidden sm:inline">Nouvelle Vente</span>
                                 </button>
                             }
                         />
@@ -126,36 +144,41 @@ export default function SalesJournalClient({
             />
 
             {/* --- METRICS HUB (Elite SaaS) --- */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <EliteMetricCard 
-                    label="Chiffre d'Affaires" 
+                    label="CA Global" 
                     value={`${formatMoney(totalSales)} F`} 
                     icon={ShoppingCart} 
                     variant="blue"
+                    sub="Total Ventes"
                 />
                 <EliteMetricCard 
-                    label="Bénéfice Net" 
+                    label="Bénéfice" 
                     value={`${formatMoney(totalProfit)} F`} 
                     icon={TrendingUp} 
                     variant="emerald"
+                    sub="Marge Estimée"
                 />
                 <EliteMetricCard 
-                    label="Transactions" 
+                    label="Volume" 
                     value={filteredSales.length} 
                     icon={Receipt} 
                     variant="orange"
+                    sub="Nombre Tickets"
                 />
                 <EliteMetricCard 
                     label="Panier Moyen" 
                     value={`${formatMoney(filteredSales.length > 0 ? totalSales / filteredSales.length : 0)} F`} 
                     icon={CreditCard} 
                     variant="purple"
+                    sub="Valeur Moyenne"
                 />
             </div>
 
             {/* TABLES SECTION */}
-            <div className="bg-card border border-border shadow-sm rounded-xl overflow-hidden flex-1 flex flex-col min-h-[400px]">
-                <div className="overflow-x-auto">
+            <div className="bg-card border border-border shadow-sm rounded-[2rem] overflow-hidden flex-1 flex flex-col min-h-[400px]">
+                {/* Desktop View */}
+                <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-muted/10 text-muted-foreground text-xs font-semibold border-b border-border">
                             <tr>
@@ -236,40 +259,67 @@ export default function SalesJournalClient({
                         </tbody>
                     </table>
                 </div>
-            </div>
-            
-            {/* MOBILE VIEW */}
-            <div className="lg:hidden space-y-3">
-                {filteredSales.map((sale: Sale) => (
-                    <div key={sale.id} className="p-4 bg-card border border-border rounded-xl space-y-3">
-                        <div className="flex justify-between items-start">
-                            <span className="text-xs font-bold font-mono">#{sale.id.slice(-6).toUpperCase()}</span>
-                            <span className="text-[10px] text-muted-foreground">{new Date(sale.createdAt).toLocaleTimeString()}</span>
-                        </div>
-                        <div className="flex justify-between items-end">
-                            <div className="flex-1">
-                                <h4 className="text-sm font-bold uppercase">{sale.customerName || "CLIENT PASSANT"}</h4>
-                                <p className="text-[10px] text-muted-foreground uppercase">{sale.paymentMethod || 'CASH'}</p>
-                                <div className="mt-2 flex flex-wrap gap-1.5">
-                                    {sale.items?.map((i: SaleItem) => (
-                                        <div key={i.id} className="w-6 h-6 rounded bg-muted border border-border/50 overflow-hidden shrink-0 shadow-sm" title={i.product.name}>
+
+                {/* Mobile Card View */}
+                <div className="lg:hidden divide-y divide-border/20">
+                    {filteredSales.length === 0 ? (
+                        <div className="py-20 text-center text-muted-foreground italic">Aucune transaction ce jour.</div>
+                    ) : filteredSales.map((sale: Sale) => (
+                        <div key={sale.id} className="p-5 space-y-4">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-black italic text-primary font-mono">#{sale.id.slice(-6).toUpperCase()}</span>
+                                        <span className={cn(
+                                            "px-2 py-0.5 rounded text-[8px] font-black uppercase border",
+                                            sale.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-orange-500/10 text-orange-600 border-orange-500/20"
+                                        )}>
+                                            {sale.status === 'COMPLETED' ? 'PAYÉ' : 'PARTIEL'}
+                                        </span>
+                                    </div>
+                                    <h4 className="text-sm font-black uppercase tracking-tight text-foreground italic">{sale.customerName || "CLIENT PASSANT"}</h4>
+                                </div>
+                                <span className="text-xs font-bold text-muted-foreground font-mono">{new Date(sale.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
+                                {sale.items?.map((i: SaleItem) => (
+                                    <div key={i.id} className="relative group shrink-0">
+                                        <div className="w-10 h-10 rounded-lg bg-muted border border-border overflow-hidden shadow-sm">
                                             {i.product?.image ? (
                                                 <SafeImage src={i.product.image} alt={i.product.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center opacity-10">
-                                                    <Package className="w-2 h-2" />
+                                                    <Package className="w-4 h-4" />
                                                 </div>
                                             )}
                                         </div>
-                                    ))}
+                                        <span className="absolute -top-1 -right-1 bg-primary text-black text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md border border-background">
+                                            {i.quantity}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                                <div className="space-y-0.5">
+                                    <p className="text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest">{sale.paymentMethod || 'CASH'}</p>
+                                    <p className="text-base font-black italic text-foreground">{formatMoney(sale.totalAmount)} F</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => handlePrint(sale.id)} className="p-3 bg-muted/20 border border-border rounded-xl active:scale-90 transition-all">
+                                        <Printer className="w-4 h-4" />
+                                    </button>
+                                    {isToday && (
+                                        <button onClick={() => handleDelete(sale.id)} className="p-3 bg-red-500/5 text-red-500 border border-red-500/10 rounded-xl active:scale-90 transition-all">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-base font-bold text-foreground">{formatMoney(sale.totalAmount)} F</p>
-                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
     );

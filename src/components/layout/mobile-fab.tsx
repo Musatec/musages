@@ -7,7 +7,9 @@ import {
     X,
     Loader2,
     Wallet,
-    ShoppingCart
+    ShoppingCart,
+    CheckCircle2,
+    Lightbulb
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -192,13 +194,35 @@ export function MobileFab() {
         {
             id: "studio",
             icon: Plus,
-            label: "Nouvelle Découverte",
+            label: "Découverte 🎨",
             color: "bg-primary",
             onClick: () => {
                 setIsStudioDialogOpen(true);
                 setIsOpen(false);
             },
             delay: 0
+        },
+        {
+            id: "task",
+            icon: CheckCircle2,
+            label: "Mission ⚡️",
+            color: "bg-blue-500",
+            onClick: () => {
+                setIsTaskDialogOpen(true);
+                setIsOpen(false);
+            },
+            delay: 0.05
+        },
+        {
+            id: "note",
+            icon: Lightbulb,
+            label: "Idée 🧠",
+            color: "bg-amber-500",
+            onClick: () => {
+                setIsNoteDialogOpen(true);
+                setIsOpen(false);
+            },
+            delay: 0.1
         },
         {
             id: "capital",
@@ -209,7 +233,7 @@ export function MobileFab() {
                 setIsTransactionSheetOpen(true);
                 setIsOpen(false);
             },
-            delay: 0.05
+            delay: 0.15
         },
         {
             id: "sales",
@@ -220,7 +244,7 @@ export function MobileFab() {
                 router.push('/sales');
                 setIsOpen(false);
             },
-            delay: 0.1
+            delay: 0.2
         }
     ];
 

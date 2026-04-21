@@ -225,33 +225,29 @@ export default function StudioPage() {
                 <div className="w-full">
 
                     {/* COMPACT HEADER */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-6 md:mb-8 mt-2 md:mt-4 border-b border-border/50 pb-4 md:pb-6">
-                        <div className="space-y-1 text-center md:text-left" >
-                            <div className="flex items-center gap-3 justify-center md:justify-start">
-                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 md:hidden">
-                                    <FlaskConical className="w-4 h-4 text-primary" />
-                                </div>
-                                <h1 className="text-3xl md:text-5xl font-black tracking-tight text-foreground leading-none">
-                                    {t('title')}
-                                </h1>
-                            </div>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 mt-4 border-b border-border/50 pb-6">
+                        <div className="space-y-1 text-center md:text-left">
+                            <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-foreground leading-none italic uppercase">
+                                {t('title')}.
+                            </h1>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] mt-2">Atelier Créatif & Lab</p>
                         </div>
 
                         {/* Search Bar */}
                         <div className="relative w-full md:w-72 group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
                             <input
                                 type="text"
                                 placeholder={t('search_placeholder')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-card border border-border rounded-full py-3.5 md:py-2 pl-10 pr-4 text-sm text-foreground focus:border-primary/30 outline-none transition-all placeholder:text-muted-foreground/30 shadow-sm"
+                                className="w-full bg-card border border-border rounded-xl py-3 pl-12 pr-4 text-xs font-bold text-foreground focus:border-primary/50 outline-none transition-all placeholder:text-muted-foreground/20 shadow-sm"
                             />
                         </div>
                     </div>
 
                     {/* HORIZONTAL STICKY FILTERS BAR */}
-                    <div className="sticky top-0 md:top-6 z-40 mb-12 py-3 px-2 -mx-6 md:mx-auto w-screen md:w-fit md:max-w-4xl bg-background/95 md:bg-background/90 backdrop-blur-xl border-b md:border border-border md:rounded-xl shadow-xl transition-all duration-300">
+                    <div className="sticky top-[57px] md:top-6 z-40 mb-12 py-3 px-2 -mx-4 md:mx-auto w-full md:w-fit md:max-w-4xl bg-background/95 md:bg-background/90 backdrop-blur-xl border-b md:border border-border md:rounded-xl shadow-xl transition-all duration-300">
                         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar px-6 md:px-0">
                             <button
                                 onClick={() => setActiveFilter('all')}

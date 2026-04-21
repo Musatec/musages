@@ -189,7 +189,7 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
                     </div>
                 </div>
 
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {insights.length > 0 ? (
                         insights.map((insight, idx) => (
                             <motion.div 

@@ -52,7 +52,11 @@ export async function POST(req: Request) {
                 return NextResponse.json({ message: "Already processed" });
             }
 
-            // 3. Mettre à jour le statut du paiement et l'abonnement de l'utilisateur
+            // 3. Calcul de la date d'expiration (30 jours)
+            const endsAt = new Date();
+            endsAt.setDate(endsAt.getDate() + 30);
+
+            // 4. Mise à jour atomique du statut, de l'utilisateur et de ses boutiques
             await prisma.$transaction([
                 prisma.payment.update({
                     where: { id: paymentId },
@@ -61,10 +65,16 @@ export async function POST(req: Request) {
                 prisma.user.update({
                     where: { id: payment.userId },
                     data: { 
-                        plan: payment.plan,
+                        plan: payment.plan as any,
                         subscriptionStatus: "ACTIVE",
-                        trialEndsAt: null // On enlève la période d'essai si elle existait
+                        trialEndsAt: null,
+                        subscriptionEndsAt: endsAt
                     }
+                }),
+                // Synchroniser toutes les boutiques possédées par cet utilisateur
+                prisma.store.updateMany({
+                    where: { ownerId: payment.userId },
+                    data: { plan: payment.plan as any }
                 })
             ]);
 

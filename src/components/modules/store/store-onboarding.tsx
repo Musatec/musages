@@ -13,6 +13,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ImageUpload } from "@/components/ui/image-upload";
+import { SafeImage } from "@/components/ui/safe-image";
 
 interface InitialProduct {
     name: string;
@@ -165,9 +167,13 @@ export function StoreOnboarding() {
                         <p className="text-[11px] text-gray-500 font-medium uppercase tracking-widest opacity-60 italic">Personnalisez vos futures factures</p>
                     </header>
                     <div className="space-y-4">
-                        <div className="space-y-1">
-                            <label className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 ml-1">Logo URL (Optionnel)</label>
-                            <input value={logo} onChange={(e) => setLogo(e.target.value)} placeholder="https://votre-site.com/logo.png" className="w-full bg-black/40 border border-white/5 rounded-xl px-5 py-3 text-[10px] font-black text-white focus:border-primary/50 outline-none transition-all" />
+                        <div className="space-y-3">
+                            <label className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 ml-1">Identité Visuelle (Logo)</label>
+                            <ImageUpload 
+                                value={logo}
+                                onChange={(url) => setLogo(url)}
+                                className="bg-black/20 p-2 rounded-2xl border border-white/5"
+                            />
                         </div>
                         <div className="space-y-1">
                             <label className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 ml-1">Slogan Commercial</label>
@@ -176,8 +182,13 @@ export function StoreOnboarding() {
 
                         {/* LIVE RECEIPT PREVIEW */}
                         <div className="pt-4 animate-in fade-in zoom-in duration-700">
-                             <div className="bg-white text-black p-6 rounded-2xl shadow-xl w-full max-w-[280px] mx-auto rotate-1 scale-90 origin-center border-t-8 border-primary">
+                             <div className="bg-white text-black p-6 rounded-2xl shadow-xl w-full max-w-[280px] mx-auto rotate-1 scale-90 origin-center border-t-8 border-primary relative overflow-hidden">
                                  <div className="text-center space-y-1 mb-4">
+                                      {logo && (
+                                          <div className="flex justify-center mb-2">
+                                              <SafeImage src={logo} alt="Logo Preview" width={40} height={40} className="h-10 w-auto object-contain" />
+                                          </div>
+                                      )}
                                      <div className="text-sm font-black uppercase tracking-tighter leading-none">{name || "Votre Boutique"}</div>
                                      <div className="text-[7px] font-bold text-gray-400 uppercase tracking-widest">Reçu de paiement Alpha</div>
                                  </div>

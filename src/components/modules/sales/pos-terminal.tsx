@@ -226,37 +226,37 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
             </div>
 
             {/* MAIN TERMINAL AREA: THE KINETIC HUB */}
-            <main className="flex-1 flex flex-col p-8 md:p-14 overflow-hidden space-y-12 bg-background relative">
+            <main className="flex-1 flex flex-col p-4 md:p-14 overflow-hidden space-y-6 md:space-y-12 bg-background relative">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-20" />
                 
-                <header className="space-y-10 group">
-                    <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-4">
-                                 <div className="w-12 h-0.5 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]" />
-                                 <span className="text-[10px] font-black uppercase tracking-[0.6em] text-muted-foreground/30 leading-none italic">Terminal Registry Alpha-01</span>
+                <header className="space-y-6 md:space-y-10 group">
+                    <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 md:gap-10">
+                        <div className="space-y-3 md:space-y-4">
+                            <div className="flex items-center gap-3 md:gap-4">
+                                 <div className="w-8 md:w-12 h-0.5 bg-primary rounded-full shadow-[0_0_15px_rgba(var(--primary-rgb),0.5)]" />
+                                 <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-muted-foreground/30 leading-none italic">Terminal Registry Alpha-01</span>
                             </div>
                             <div className="space-y-1">
-                                <h1 className="text-5xl font-black italic tracking-tighter uppercase leading-none text-foreground">
+                                <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase leading-none text-foreground">
                                     Alpha <span className="text-primary italic">POS.</span>
                                 </h1>
-                                <p className="text-[11px] font-black text-muted-foreground/20 tracking-[0.4em] uppercase italic leading-none">MindOS Kinetic Operations Hub</p>
+                                <p className="text-[9px] md:text-[11px] font-black text-muted-foreground/20 tracking-[0.4em] uppercase italic leading-none">MindOS Kinetic Operations Hub</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4 flex-1 max-w-3xl">
+                        <div className="flex items-center gap-3 md:gap-4 flex-1 max-w-3xl">
                             <div className="relative group flex-1">
-                                <div className="absolute inset-y-0 left-8 flex items-center pointer-events-none">
-                                    <Search className="h-5 w-5 text-muted-foreground/10 group-focus-within:text-primary transition-all duration-500" />
+                                <div className="absolute inset-y-0 left-4 md:left-8 flex items-center pointer-events-none">
+                                    <Search className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground/10 group-focus-within:text-primary transition-all duration-500" />
                                 </div>
                                 <input
                                     type="text"
-                                    placeholder="SCANNER OU RECHERCHER..."
+                                    placeholder="SCANNER / RECHERCHER..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     onKeyDown={handleSearchKeyDown}
                                     autoFocus
-                                    className="block w-full pl-14 md:pl-18 pr-6 md:pr-12 py-5 md:py-7 bg-card border border-border/50 rounded-[2rem] md:rounded-[2.5rem] text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em] focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all shadow-2xl placeholder:text-muted-foreground/10 italic"
+                                    className="block w-full pl-10 md:pl-18 pr-4 md:pr-12 py-4 md:py-7 bg-card border border-border/50 rounded-2xl md:rounded-[2.5rem] text-[10px] md:text-[11px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all shadow-2xl placeholder:text-muted-foreground/10 italic"
                                 />
                             </div>
 
@@ -304,10 +304,10 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                 </header>
 
                 {/* MAIN PRODUCT DISPLAY INTERFACE */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar bg-card/40 border border-border/60 rounded-[3.5rem] overflow-hidden flex flex-col shadow-2xl transition-all hover:border-primary/5 group/log">
+                <div className="flex-1 overflow-y-auto custom-scrollbar bg-card/40 border border-border/60 rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden flex flex-col shadow-2xl transition-all hover:border-primary/5 group/log">
                     
                     {layout === "grid" ? (
-                        <div className="p-8 md:p-12 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+                        <div className="p-4 md:p-12 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-8">
                             {filteredProducts.length > 0 ? (
                                 filteredProducts.map((product) => (
                                     <motion.div
@@ -316,9 +316,9 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                         animate={{ opacity: 1, y: 0 }}
                                         whileHover={{ y: -5 }}
                                         onClick={() => addToCart(product)}
-                                        className="group/card bg-card border border-border/40 rounded-[2.5rem] p-6 cursor-pointer hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 relative overflow-hidden"
+                                        className="group/card bg-card border border-border/40 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6 cursor-pointer hover:border-primary/30 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 relative overflow-hidden"
                                     >
-                                        <div className="aspect-square rounded-[2rem] bg-muted/20 border border-border/10 overflow-hidden mb-6 relative group-hover/card:rotate-2 transition-transform duration-700">
+                                        <div className="aspect-square rounded-[1.5rem] md:rounded-[2rem] bg-muted/20 border border-border/10 overflow-hidden mb-4 md:mb-6 relative group-hover/card:rotate-2 transition-transform duration-700">
                                             {product.image ? (
                                                 <SafeImage src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-1000" />
                                             ) : (
@@ -326,22 +326,17 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                                     <Package className="w-12 h-12" />
                                                 </div>
                                             )}
-                                            {product.stock < 10 && (
-                                                <div className="absolute top-4 right-4 px-4 py-1.5 rounded-full bg-amber-500 text-black text-[8px] font-black uppercase tracking-widest shadow-xl">
-                                                    Low Stock
-                                                </div>
-                                            )}
                                         </div>
-                                        <div className="space-y-3">
-                                            <h3 className="text-[12px] font-black uppercase italic tracking-tight text-foreground/80 group-hover/card:text-primary transition-colors leading-tight">
+                                        <div className="space-y-2 md:space-y-3">
+                                            <h3 className="text-[10px] md:text-[12px] font-black uppercase italic tracking-tight text-foreground/80 group-hover/card:text-primary transition-colors leading-tight truncate">
                                                 {product.name}
                                             </h3>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm font-black italic tracking-tighter text-foreground font-mono">
+                                                <span className="text-[11px] md:text-sm font-black italic tracking-tighter text-foreground font-mono">
                                                     {formatMoney(product.price)} F
                                                 </span>
-                                                <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover/card:bg-primary group-hover/card:text-black transition-all">
-                                                    <Plus className="w-4 h-4" />
+                                                <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg md:rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover/card:bg-primary group-hover/card:text-black transition-all">
+                                                    <Plus className="w-3 h-3 md:w-4 md:h-4" />
                                                 </div>
                                             </div>
                                         </div>
@@ -356,8 +351,8 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                         </div>
                     ) : (
                         <>
-                            {/* TABLE HEAD: REGISTRY METADATA */}
-                            <div className="sticky top-0 bg-muted/30 backdrop-blur-3xl border-b border-border/80 p-8 grid grid-cols-12 text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/30 italic z-30">
+                            {/* TABLE HEAD: REGISTRY METADATA (Desktop Only) */}
+                            <div className="sticky top-0 bg-muted/30 backdrop-blur-3xl border-b border-border/80 p-4 md:p-8 hidden md:grid grid-cols-12 text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/30 italic z-30">
                                 <div className="col-span-1 text-center">SYNC</div>
                                 <div className="col-span-5 px-6 italic">PRODUIT / RÉFÉRENCE SYSTÈME</div>
                                 <div className="col-span-2 text-center">PROTOCOLE-CAT</div>
@@ -371,7 +366,7 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                 <div
                                     key={product.id}
                                     onClick={() => addToCart(product)}
-                                    className="flex flex-col md:grid md:grid-cols-12 items-center px-6 md:px-8 py-6 md:py-10 hover:bg-primary/[0.02] cursor-pointer group/row transition-all duration-300 active:bg-primary/5 relative border-l-[4px] md:border-l-[6px] border-l-transparent hover:border-l-primary gap-4 md:gap-0"
+                                    className="flex flex-col md:grid md:grid-cols-12 items-center px-4 md:px-8 py-4 md:py-10 hover:bg-primary/[0.02] cursor-pointer group/row transition-all duration-300 active:bg-primary/5 relative border-l-[4px] md:border-l-[6px] border-l-transparent hover:border-l-primary gap-3 md:gap-0"
                                 >
                                     {/* STATUS INDICATOR (Desktop Only) */}
                                     <div className="hidden md:flex col-span-1 flex justify-center flex-col items-center gap-2">
@@ -393,16 +388,16 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                         </div>
                                         <div className="flex-1 min-w-0 space-y-1">
                                             <div className="flex items-center justify-between md:block">
-                                                <h3 className="text-sm md:text-lg font-black text-foreground uppercase tracking-tight italic group-hover/row:text-primary transition-colors truncate">
+                                                <h3 className="text-[12px] md:text-lg font-black text-foreground uppercase tracking-tight italic group-hover/row:text-primary transition-colors truncate">
                                                     {product.name}
                                                 </h3>
-                                                <span className="md:hidden text-lg font-black text-primary italic tracking-tighter font-mono">
+                                                <span className="md:hidden text-sm md:text-lg font-black text-primary italic tracking-tighter font-mono">
                                                     {formatMoney(product.price)} F
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="h-[1px] w-4 bg-muted/20" />
-                                                <p className="text-[8px] md:text-[10px] font-black text-muted-foreground/30 uppercase tracking-[0.3em] font-mono">{product.sku || product.id.slice(-6).toUpperCase()}</p>
+                                            <div className="flex items-center gap-2 md:gap-3">
+                                                <div className="h-[1px] w-3 md:w-4 bg-muted/20" />
+                                                <p className="text-[8px] md:text-[10px] font-black text-muted-foreground/30 uppercase tracking-[0.2em] md:tracking-[0.3em] font-mono">{product.sku || product.id.slice(-6).toUpperCase()}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -416,15 +411,15 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
 
                                     {/* FLOW / STOCK INDICATOR */}
                                     <div className="md:col-span-2 w-full flex items-center justify-between md:justify-center px-2 md:px-0">
-                                        <div className="md:hidden text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">Disponibilité</div>
-                                        <div className="inline-flex flex-col items-center md:items-center gap-1.5 md:gap-3">
+                                        <div className="md:hidden text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest">Stock</div>
+                                        <div className="inline-flex flex-col items-center md:items-center gap-1 md:gap-3">
                                             <span className={cn(
-                                                "text-[10px] md:text-[12px] font-black italic tracking-tighter font-mono",
+                                                "text-[9px] md:text-[12px] font-black italic tracking-tighter font-mono",
                                                 product.stock < 10 ? "text-amber-500" : "text-emerald-500/60 group-hover/row:text-emerald-500"
                                             )}>
-                                                {product.stock} UNITS
+                                                {product.stock} PCS
                                             </span>
-                                            <div className="w-16 md:w-24 h-[2px] md:h-[3px] bg-muted/20 rounded-full overflow-hidden">
+                                            <div className="w-12 md:w-24 h-[2px] md:h-[3px] bg-muted/20 rounded-full overflow-hidden">
                                                 <div 
                                                     className={cn("h-full", product.stock < 10 ? "bg-amber-500" : "bg-emerald-500")} 
                                                     style={{ width: `${Math.min(100, (product.stock / 100) * 100)}%` }} 
@@ -464,12 +459,12 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
 
             {/* CHECKOUT SIDEBAR: THE TRANSACTION ENGINE */}
             <aside className={cn(
-                "fixed lg:static inset-0 lg:inset-auto z-[80] lg:z-10 w-full lg:w-[500px] bg-card border-l border-border/60 flex flex-col p-10 lg:p-14 relative shadow-[-40px_0_60px_rgba(0,0,0,0.05)] transition-all duration-700 ease-in-out",
+                "fixed lg:static inset-0 lg:inset-auto z-[80] lg:z-10 w-full lg:w-[500px] bg-card border-l border-border/60 flex flex-col p-6 md:p-14 relative shadow-[-40px_0_60px_rgba(0,0,0,0.05)] transition-all duration-700 ease-in-out",
                 showMobileCart ? "translate-x-0" : "translate-x-full lg:translate-x-0"
             )}>
                 <div className="absolute top-0 right-0 w-full h-1 bg-gradient-to-l from-transparent via-primary/20 to-transparent opacity-20" />
                 
-                <header className="flex items-center gap-6 mb-12 pb-12 border-b border-border/30">
+                <header className="flex items-center gap-4 md:gap-6 mb-6 md:mb-12 pb-6 md:pb-12 border-b border-border/30">
                     <button onClick={() => setShowMobileCart(false)} className="lg:hidden p-4 rounded-2xl bg-muted/20 text-muted-foreground mr-2 active:scale-90 transition-all"><X className="w-6 h-6" /></button>
                     <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-inner group/icon">
                         <ShoppingCart className="w-6 h-6 text-primary group-hover/icon:scale-110 transition-transform" />

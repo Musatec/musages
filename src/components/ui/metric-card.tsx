@@ -31,7 +31,7 @@ export function EliteMetricCard({
 }: MetricCardProps) {
     return (
         <div className={cn(
-            "relative overflow-hidden rounded-2xl p-4 shadow-lg transition-all duration-300 hover:scale-[1.02] flex items-center gap-4 border-none text-white", 
+            "relative overflow-hidden rounded-2xl p-4 shadow-lg transition-all duration-300 hover:scale-[1.02] flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 border-none text-white", 
             "bg-gradient-to-br",
             variants[variant],
             className

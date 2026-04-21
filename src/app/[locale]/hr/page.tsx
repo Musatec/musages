@@ -218,8 +218,9 @@ export default function HRPage() {
                 </div>
 
                 {/* --- STAFF DIRECTORY TABLE --- */}
-                <div className="bg-card border border-border shadow-sm rounded-xl overflow-hidden min-h-[500px] flex flex-col">
-                    <div className="overflow-x-auto">
+                <div className="bg-card border border-border shadow-sm rounded-xl overflow-hidden min-h-[300px] md:min-h-[500px] flex flex-col">
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left text-sm border-separate border-spacing-0">
                             <thead className="bg-muted/10 text-muted-foreground text-xs font-semibold border-b border-border">
                                 <tr>
@@ -301,6 +302,48 @@ export default function HRPage() {
                                 })}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div className="md:hidden divide-y divide-border/20">
+                        {filteredEmployees?.length === 0 ? (
+                            <div className="py-20 text-center text-muted-foreground italic">Aucun collaborateur trouvé.</div>
+                        ) : filteredEmployees?.map((employee) => {
+                            const net = employee.salary - employee.advances;
+                            return (
+                                <div key={employee.id} className="p-4 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
+                                            <UserIcon className="w-4 h-4 opacity-40" />
+                                        </div>
+                                        <div className="flex-1 overflow-hidden">
+                                            <h3 className="font-bold text-foreground text-sm uppercase truncate">{employee.firstName} {employee.lastName}</h3>
+                                            <p className="text-[10px] text-muted-foreground font-mono uppercase">{employee.phone || "Non renseigné"}</p>
+                                        </div>
+                                        <span className={cn(
+                                            "px-2 py-0.5 rounded text-[8px] font-black uppercase border",
+                                            net <= 0 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                                        )}>
+                                            {net <= 0 ? "Payé" : "Paie"}
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/40">
+                                        <div className="space-y-0.5">
+                                            <p className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest">Salaire Net</p>
+                                            <p className="text-sm font-black italic">{formatMoney(employee.salary)} F</p>
+                                        </div>
+                                        <div className="space-y-0.5 text-right">
+                                            <p className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest">Solde Actuel</p>
+                                            <p className={cn("text-sm font-black italic", net > 0 ? "text-primary" : "text-emerald-500")}>{formatMoney(net)} F</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-end gap-2 pt-2">
+                                        <button onClick={() => handleAdvance(employee.id, employee.firstName)} className="px-4 py-2 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Acompte</button>
+                                        <button onClick={() => handleSalaryPayment(employee.id, employee.firstName, net)} disabled={net <= 0} className={cn("px-4 py-2 bg-primary text-primary-foreground rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-primary/10", net <= 0 && "opacity-20")}>Payer Solde</button>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             </div>

@@ -24,7 +24,7 @@ interface ActionButtonsProps {
 }
 
 const ActionButtons = ({ project, onEdit, onDelete, onDuplicate, t }: ActionButtonsProps) => (
-    <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20 translate-y-2 group-hover:translate-y-0">
+    <div className="absolute top-2 right-2 flex gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 z-20 translate-y-0 md:translate-y-2 md:group-hover:translate-y-0">
         <button
             onClick={(e) => { e.stopPropagation(); onEdit(project); }}
             className="w-8 h-8 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-md text-white hover:bg-white hover:text-black transition-all border border-white/10 shadow-lg"

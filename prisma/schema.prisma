@@ -148,6 +148,7 @@ model User {
   plan          UserPlan  @default(STARTER)
   subscriptionStatus SubscriptionStatus @default(TRIALING)
   trialEndsAt   DateTime?
+  subscriptionEndsAt DateTime?
   storeId       String?
   store         Store?    @relation(fields: [storeId], references: [id])
   createdAt     DateTime  @default(now())
@@ -163,6 +164,7 @@ model User {
   auditLogs     AuditLog[]
   stockMovements StockMovement[]
   ownedStores   Store[]   @relation("StoreOwner")
+  notifications Notification[] @relation("UserNotifications")
   feedbacks     Feedback[]
 }
 
@@ -338,6 +340,20 @@ model AuditLog {
   action    String   // (e.g., "DELETE_SALE", "UPDATE_STOCK")
   details   Json?
   createdAt DateTime @default(now())
+}
+
+// --- NOTIFICATIONS ---
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation("UserNotifications", fields: [userId], references: [id])
+  title       String
+  description String
+  type        String   // SALE, ALERT, INFO, SUCCESS
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 // --- FEEDBACK & SURVEYS ---

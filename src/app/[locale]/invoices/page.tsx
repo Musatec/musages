@@ -65,7 +65,7 @@ export default function InvoicesPage() {
                     subtitle="Gestion des Flux"
                     description="Supervisez l'ensemble de vos documents commerciaux, analysez les créances et gérez les flux de trésorerie historiques."
                     actions={
-                        <button className="flex items-center gap-3 px-6 py-3 bg-muted/20 border border-border rounded-xl text-xs font-black uppercase tracking-widest hover:bg-muted/40 transition-all">
+                        <button className="flex items-center gap-3 px-6 py-3 bg-muted/20 border border-border rounded-xl text-xs font-black uppercase tracking-widest hover:bg-muted/40 transition-all w-full md:w-auto">
                              <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
                              Export Excel
                         </button>
@@ -103,38 +103,39 @@ export default function InvoicesPage() {
                     />
                 </div>
 
-
                 {/* --- INVOICE LEDGER: HIGH-DENSITY TABLE --- */}
-                <div className="bg-card border border-border/50 rounded-[2.5rem] overflow-hidden shadow-2xl flex-1 flex flex-col min-h-[600px]">
-                     <div className="p-8 border-b border-border/30 bg-muted/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                         <div className="relative group w-full md:w-96">
-                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/20 group-focus-within:text-primary transition-all" />
-                            <input 
-                                placeholder="RECHERCHER FACTURE / CLIENT..." 
-                                className="w-full bg-background border border-border rounded-2xl pl-14 pr-6 py-4 text-xs font-black uppercase tracking-[0.1em] outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/10"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
-                         </div>
-                         <div className="flex items-center gap-3 bg-muted/10 p-1.5 rounded-2xl border border-border/10">
-                            {['ALL', 'COMPLETED', 'PARTIAL', 'UNPAID'].map((status) => (
-                                <button 
-                                    key={status}
-                                    onClick={() => setStatusFilter(status)}
-                                    className={cn(
-                                        "px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
-                                        statusFilter === status 
-                                            ? "bg-primary text-black shadow-lg shadow-primary/20" 
-                                            : "text-muted-foreground/40 hover:bg-muted/20"
-                                    )}
-                                >
-                                    {status.replace("COMPLETED", "PAYÉ").replace("UNPAID", "IMPAYÉ").replace("PARTIAL", "DETTE").replace("ALL", "TOUT")}
-                                </button>
-                            ))}
-                         </div>
+                <div className="bg-card border border-border/50 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl flex-1 flex flex-col min-h-[400px] md:min-h-[600px]">
+                     {/* --- FILTERS & SEARCH --- */}
+                <div className="flex flex-col md:flex-row gap-4 p-4 md:p-8 border-b border-border/30 bg-muted/5 items-stretch md:items-center">
+                    <div className="hidden md:block relative group flex-1 md:max-w-md">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 group-focus-within:text-primary transition-all" />
+                        <input 
+                            placeholder="RECHERCHER..." 
+                            className="w-full bg-card border border-border rounded-xl pl-12 pr-4 py-3.5 text-xs font-black uppercase tracking-[0.1em] outline-none focus:border-primary/50 transition-all placeholder:text-muted-foreground/20 shadow-sm"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
                      </div>
+                     <div className="flex items-center gap-1.5 bg-muted/20 p-1 rounded-xl border border-border/10 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-1">
+                        {['ALL', 'COMPLETED', 'PARTIAL', 'UNPAID'].map((status) => (
+                            <button 
+                                key={status}
+                                onClick={() => setStatusFilter(status)}
+                                className={cn(
+                                    "px-4 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
+                                    statusFilter === status 
+                                        ? "bg-primary text-black shadow-lg shadow-primary/20" 
+                                        : "text-muted-foreground/40 hover:bg-muted/30"
+                                )}
+                            >
+                                {status.replace("COMPLETED", "PAYÉ").replace("UNPAID", "IMPAYÉ").replace("PARTIAL", "DETTE").replace("ALL", "TOUT")}
+                            </button>
+                        ))}
+                     </div>
+                </div>
 
-                     <div className="overflow-x-auto">
+                     {/* Desktop View Table */}
+                     <div className="hidden md:block overflow-x-auto no-scrollbar">
                         <table className="w-full text-left border-separate border-spacing-0">
                             <thead>
                                 <tr className="sticky top-0 z-20 bg-muted/30 backdrop-blur-md text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 border-b border-border">
@@ -181,7 +182,7 @@ export default function InvoicesPage() {
                                             <div className="flex justify-center">
                                                 <div className={cn(
                                                     "px-4 py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest min-w-[120px] text-center italic shadow-inner",
-                                                    inv.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : 
+                                                    inv.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : 
                                                     inv.status === 'PARTIAL' ? "bg-primary/10 text-primary border-primary/20" : 
                                                     "bg-red-500/10 text-red-500 border-red-500/20"
                                                 )}>
@@ -207,6 +208,47 @@ export default function InvoicesPage() {
                             </tbody>
                         </table>
                      </div>
+
+                     {/* Mobile Card View */}
+                     <div className="md:hidden divide-y divide-border/10">
+                        {data?.invoices.map((inv) => (
+                            <div key={inv.id} className="p-6 space-y-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <span className="text-[10px] font-black italic text-primary">#{inv.id.slice(-6).toUpperCase()}</span>
+                                        <h4 className="text-sm font-black uppercase tracking-tighter text-foreground italic mt-1">{inv.customerName || "CLIENT PASSANT"}</h4>
+                                    </div>
+                                    <div className={cn(
+                                        "px-3 py-1 rounded-lg border text-[8px] font-black uppercase tracking-widest italic shadow-inner",
+                                        inv.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : 
+                                        inv.status === 'PARTIAL' ? "bg-primary/10 text-primary border-primary/20" : 
+                                        "bg-red-500/10 text-red-500 border-red-500/20"
+                                    )}>
+                                        {inv.status === 'COMPLETED' ? "SECURED" : inv.status === 'PARTIAL' ? "PARTIAL" : "UNPAID"}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 py-3 border-y border-border/10">
+                                    <div className="space-y-0.5">
+                                        <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-widest">Total</p>
+                                        <p className="text-sm font-black italic">{formatMoney(inv.totalAmount)} F</p>
+                                    </div>
+                                    <div className="space-y-0.5 text-right">
+                                        <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-widest">Reste</p>
+                                        <p className={cn("text-sm font-black italic", (inv.totalAmount - inv.amountPaid) > 0 ? "text-primary" : "text-emerald-500")}>
+                                            {formatMoney(inv.totalAmount - inv.amountPaid)} F
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between pt-1">
+                                    <span className="text-[9px] font-bold text-muted-foreground/40 uppercase font-mono">{new Date(inv.createdAt).toLocaleDateString()}</span>
+                                    <div className="flex items-center gap-2">
+                                        <button className="p-2.5 bg-muted/20 border border-border/10 rounded-lg active:scale-90 transition-all"><Printer className="w-3.5 h-3.5" /></button>
+                                        <button className="p-2.5 bg-muted/20 border border-border/10 rounded-lg active:scale-90 transition-all"><Mail className="w-3.5 h-3.5" /></button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

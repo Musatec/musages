@@ -1,78 +1,98 @@
-"use client";
-
-import {
+import { 
     LayoutDashboard, 
+    ShoppingCart, 
     Package, 
+    ArrowLeftRight, 
+    TrendingUp, 
     Users, 
+    ChevronLeft, 
+    Settings,
+    Activity,
+    PlusCircle,
     FileText,
-    AlertCircle,
+    CreditCard,
+    Server,
+    Truck,
+    ShieldCheck,
+    Crown,
+    Zap,
     CalendarDays,
     ArrowDownCircle,
     Banknote,
-    ChartLine
+    ChartLine,
+    History,
+    Receipt,
+    Wallet
 } from "lucide-react";
 
-export const NAV_ITEMS = [
+export interface NavItem {
+    label: string;
+    key?: string;
+    icon: any;
+    href: string;
+    roles?: string[];
+}
+
+export interface NavSection {
+    title: string;
+    items: NavItem[];
+}
+
+export const NAV_SECTIONS: NavSection[] = [
     {
-        title: "Tableau de Bord",
-        key: "dashboard",
-        href: "/dashboard",
-        icon: LayoutDashboard,
+        title: "OPÉRATIONS",
+        items: [
+            { label: "Tableau de Bord", icon: LayoutDashboard, href: "/dashboard" },
+            { label: "Journal des Ventes", icon: ArrowLeftRight, href: "/sales/journal" },
+            { label: "Factures & Devis", icon: FileText, href: "/sales/invoices" },
+            { label: "Suivi des Dettes", icon: CreditCard, href: "/sales/debts" },
+        ]
     },
     {
-        title: "Journal de Vente",
-        key: "journal",
-        href: "/sales/journal",
-        icon: CalendarDays,
+        title: "LOGISTIQUE",
+        items: [
+            { label: "Inventaire Global", icon: Package, href: "/inventory" },
+            { label: "Nouvel Arrivage", icon: ShoppingCart, href: "/logistics/purchases" },
+            { label: "Mouvements & Audit", icon: PlusCircle, href: "/inventory/movements" },
+            { label: "Gestion Fournisseurs", icon: Truck, href: "/logistics/suppliers" },
+        ]
     },
     {
-        title: "Facturation Studio",
-        key: "invoices",
-        href: "/sales/invoices",
-        icon: FileText,
+        title: "DIRECTION",
+        items: [
+            { label: "Moniteur d'Audit", icon: Activity, href: "/admin", roles: ["ADMIN", "SUPER_ADMIN"] },
+            { label: "Caisse & Dépenses", icon: TrendingUp, href: "/expenses", roles: ["ADMIN", "MANAGER"] },
+            { label: "Rapports & Analytics", icon: ChartLine, href: "/reports", roles: ["ADMIN"] },
+            { label: "Gestion Équipe", icon: Users, href: "/hr", roles: ["ADMIN", "MANAGER"] },
+            { label: "Centrale Réseau", icon: Server, href: "/admin/stores", roles: ["ADMIN", "SUPER_ADMIN"] },
+            { label: "Paramètres Globaux", icon: Settings, href: "/settings", roles: ["ADMIN"] },
+        ]
+    }
+];
+
+export const SUPER_ADMIN_NAV: NavSection[] = [
+    {
+        title: "PILOTAGE PROPRIÉTAIRE",
+        items: [
+            { label: "Console SaaS", icon: LayoutDashboard, href: "/admin" },
+            { label: "Centrale Réseau", icon: Server, href: "/admin/stores" },
+            { label: "Audit Global", icon: Activity, href: "/admin/audit" },
+        ]
     },
     {
-        title: "Gestion Dépenses",
-        key: "expenses",
-        href: "/expenses",
-        icon: ArrowDownCircle,
-    },
-    {
-        title: "Suivi des Dettes",
-        key: "debts",
-        href: "/sales/debts",
-        icon: AlertCircle,
-    },
-    {
-        title: "Stocks & Inventaire",
-        key: "inventory",
-        href: "/inventory",
-        icon: Package,
-    },
-    {
-        title: "Trésorerie & Capital",
-        key: "capital",
-        href: "/capital",
-        icon: Banknote,
-    },
-    {
-        title: "Ressources Humaines",
-        key: "hr",
-        href: "/hr",
-        icon: Users,
-    },
-    {
-        title: "Analyses & Rapports",
-        key: "reports",
-        href: "/reports",
-        icon: ChartLine,
+        title: "INFRASTRUCTURE",
+        items: [
+            { label: "États des Systèmes", icon: ShieldCheck, href: "/admin/health" },
+            { label: "Rapports SaaS", icon: TrendingUp, href: "/admin/analytics" },
+            { label: "Paramètres Noyau", icon: Settings, href: "/settings" },
+        ]
     }
 ];
 
 export const BOTTOM_NAV_ITEMS = [
-    NAV_ITEMS.find(i => i.key === 'dashboard')!,
-    NAV_ITEMS.find(i => i.key === 'journal')!,
-    NAV_ITEMS.find(i => i.key === 'invoices')!,
-    NAV_ITEMS.find(i => i.key === 'expenses')!,
-    NAV_ITEMS.find(i => i.key === 'inventory')!,
+    { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { label: "Journal", icon: History, href: "/sales/journal" },
+    { label: "Factures", icon: Receipt, href: "/sales/invoices" },
+    { label: "Dépenses", icon: Wallet, href: "/expenses" },
+    { label: "Stock", icon: Package, href: "/inventory" },
 ];

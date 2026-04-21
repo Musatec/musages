@@ -69,8 +69,8 @@ export default async function AdminDashboardPage() {
     let totalEmployees = 0;
     let auditLogs: any[] = [];
     let stockAlerts = 0;
-    let totalSales: any[] = [];
-    let totalExpenses: any[] = [];
+    let totalSalesAmount = 0;
+    let totalExpensesAmount = 0;
     
     // --- GLOBAL SAAS METRICS ---
     let globalStoresCount = 0;
