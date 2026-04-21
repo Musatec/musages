@@ -11,7 +11,7 @@ export async function globalSearch(query: string) {
         const storeId = session?.user?.storeId;
         if (!storeId) return { error: "Non autorisé" };
 
-        const [products, sales, customers] = await Promise.all([
+        const [products, sales] = await Promise.all([
             // 1. Recherche Produits
             prisma.product.findMany({
                 where: {
@@ -36,17 +36,14 @@ export async function globalSearch(query: string) {
                     ]
                 },
                 take: 5,
-                select: { id: true, customerName: true, total: true, createdAt: true }
+                select: { id: true, customerName: true, totalAmount: true, createdAt: true }
             }),
-            // 3. Recherche Clients (si une table existe, sinon on skip)
-            // On va supposer qu'on cherche dans les noms de clients des ventes pour l'instant
-            // ou si vous avez une table Client, ajoutez-la ici.
         ]);
 
         return {
             results: [
-                ...products.map(p => ({ id: p.id, title: p.name, subtitle: `${p.category} • ${new Intl.NumberFormat('fr-FR').format(p.price)} FCFA`, type: "PRODUCT", href: `/inventory?id=${p.id}` })),
-                ...sales.map(s => ({ id: s.id, title: `Vente #${s.id.slice(-6)}`, subtitle: `${s.customerName || "Client Comptant"} • ${new Intl.NumberFormat('fr-FR').format(s.total)} FCFA`, type: "SALE", href: `/sales/history?id=${s.id}` })),
+                ...products.map(p => ({ id: p.id, title: p.name, subtitle: `${p.category || 'Général'} • ${new Intl.NumberFormat('fr-FR').format(p.price)} FCFA`, type: "PRODUCT", href: `/inventory?id=${p.id}` })),
+                ...sales.map(s => ({ id: s.id, title: `Vente #${s.id.slice(-6)}`, subtitle: `${s.customerName || "Client Comptant"} • ${new Intl.NumberFormat('fr-FR').format(s.totalAmount)} FCFA`, type: "SALE", href: `/sales/journal?id=${s.id}` })),
             ]
         };
     } catch (error) {
