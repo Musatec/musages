@@ -70,10 +70,11 @@ export function GuidedTour() {
                             title: "Le Terminal Alpha 🧾", 
                             description: "Prêt à encaisser ? Cliquez ici pour ouvrir le Point de Vente et réaliser votre première vente.",
                             side: "right",
-                            align: 'start'
-                        },
-                        onNextClick: () => {
-                            router.push("/sales");
+                            align: 'start',
+                            onNextClick: (element, step, { driver }) => {
+                                driver.destroy();
+                                router.push("/sales");
+                            }
                         }
                     }
                 ],
