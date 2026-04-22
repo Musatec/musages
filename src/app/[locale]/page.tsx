@@ -146,25 +146,6 @@ export default function LandingPage() {
                                 </button>
                             </motion.div>
 
-                            {/* Dashboard Mockup Preview - Realistic Capture */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 100, scale: 0.9 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                transition={{ duration: 1.2, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                                className="relative mt-20 group px-4 md:px-0"
-                            >
-                                <div className="absolute -inset-4 bg-gradient-to-b from-primary/30 to-transparent blur-3xl rounded-[3rem] opacity-30 group-hover:opacity-60 transition-opacity" />
-                                <div className="relative bg-[#0A0A0B] border border-white/10 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)] max-w-6xl mx-auto aspect-video w-full">
-                                    <SafeImage 
-                                        src="/dashboard-capture.png" 
-                                        alt="MINDOS Real-time Strategic Dashboard" 
-                                        className="w-full h-full transition-transform duration-[3s] group-hover:scale-105"
-                                    />
-                                    {/* Subtle Overlay reflection */}
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
-                                    <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-[2rem] md:rounded-[3rem]" />
-                                </div>
-                            </motion.div>
                         </motion.div>
                     </div>
                 </section>
