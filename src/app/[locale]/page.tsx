@@ -156,7 +156,7 @@ export default function LandingPage() {
                                 <div className="absolute -inset-4 bg-gradient-to-b from-primary/30 to-transparent blur-3xl rounded-[3rem] opacity-30 group-hover:opacity-60 transition-opacity" />
                                 <div className="relative bg-[#0A0A0B] border border-white/10 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)] max-w-6xl mx-auto">
                                     <SafeImage 
-                                        src="/mindos_dashboard_capture_1776872471987.png" 
+                                        src="/dashboard-capture.png" 
                                         alt="MINDOS Real-time Strategic Dashboard" 
                                         className="w-full h-auto transition-transform duration-[3s] group-hover:scale-105"
                                     />
