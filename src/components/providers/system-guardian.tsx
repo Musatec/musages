@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 interface SystemSettings {
     maintenanceMode?: boolean;
     broadcastMessage?: string;
+    maintenance_mode?: boolean;
+    broadcast_message?: string;
 }
 
 export function SystemGuardian({ children }: { children: React.ReactNode }) {
