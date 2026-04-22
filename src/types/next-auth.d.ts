@@ -8,6 +8,7 @@ declare module "next-auth" {
       role: Role;
       storeId: string | null;
       plan: UserPlan;
+      hasSeenOnboarding: boolean;
     } & DefaultSession["user"];
   }
 
@@ -15,6 +16,7 @@ declare module "next-auth" {
     role: Role;
     storeId: string | null;
     plan: UserPlan;
+    hasSeenOnboarding: boolean;
   }
 }
 
@@ -23,5 +25,6 @@ declare module "next-auth/jwt" {
     role: Role;
     storeId: string | null;
     plan: UserPlan;
+    hasSeenOnboarding: boolean;
   }
 }

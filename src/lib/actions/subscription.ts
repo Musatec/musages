@@ -27,14 +27,13 @@ export async function getSubscriptionData() {
         if (!user) return null;
 
         const now = new Date();
-        const typedUser = user as any;
-        const isTrialOver = typedUser.trialEndsAt ? now > typedUser.trialEndsAt : false;
+        const isTrialOver = user.trialEndsAt ? now > user.trialEndsAt : false;
         
         return {
-            ...typedUser,
+            ...user,
             isTrialOver,
-            daysRemaining: typedUser.trialEndsAt 
-                ? Math.ceil((new Date(typedUser.trialEndsAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+            daysRemaining: user.trialEndsAt 
+                ? Math.ceil((new Date(user.trialEndsAt).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
                 : 0
         };
     } catch (error) {

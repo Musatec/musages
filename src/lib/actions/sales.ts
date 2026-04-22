@@ -202,6 +202,16 @@ export async function deleteSale(saleId: string) {
                     storeId: session.user?.storeId as string
                 }
             });
+
+            // 3. Audit Log Global
+            await tx.auditLog.create({
+                data: {
+                    storeId: session.user?.storeId as string,
+                    userId: session.user?.id as string,
+                    action: "DELETE_SALE",
+                    details: { saleId: sale.id, total: sale.totalAmount }
+                }
+            });
         });
 
         revalidatePath("/sales/journal");

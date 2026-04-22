@@ -78,6 +78,15 @@ export function OnboardingWizard({ metrics }: OnboardingWizardProps) {
                             VOTRE EMPIRE <br />
                             <span className="text-foreground">COMMENCE ICI.</span>
                         </h2>
+                        <button 
+                            onClick={() => {
+                                localStorage.removeItem("mindos_onboarding_completed");
+                                window.location.reload();
+                            }}
+                            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:underline italic"
+                        >
+                            <Sparkles className="w-3 h-3" /> Relancer la visite guidée
+                        </button>
                     </div>
 
                     <div className="flex flex-col items-end gap-2 text-right">

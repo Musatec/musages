@@ -113,13 +113,14 @@ export function Sidebar() {
                                         <Link 
                                             key={item.href} 
                                             href={item.href}
+                                            id={item.label === "Inventaire Global" ? "sidebar-inventory" : item.label === "Tableau de Bord" ? "sidebar-dashboard" : item.label === "Journal des Ventes" ? "sidebar-sales" : undefined}
                                             className={cn(
-                                                "flex items-center gap-3 p-2.5 rounded-xl transition-all group relative overflow-hidden",
-                                                isActive 
-                                                    ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]" 
-                                                    : "opacity-80 hover:opacity-100 hover:bg-white/5"
-                                            )}
-                                        >
+                                                 "flex items-center gap-3 p-2.5 rounded-xl transition-all group relative overflow-hidden",
+                                                 isActive 
+                                                     ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]" 
+                                                     : "opacity-80 hover:opacity-100 hover:bg-white/5"
+                                             )}
+                                         >
                                             <item.icon className={cn("w-4 h-4 transition-all relative z-10", isActive ? "scale-110" : "group-hover:scale-110")} />
                                             {!collapsed && (
                                                 <span className={cn(

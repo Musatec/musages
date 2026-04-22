@@ -9,7 +9,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "sonner";
 import { NextIntlClientProvider } from 'next-intl';
 import { SidebarProvider } from "@/components/providers/sidebar-provider";
-import { getMessages } from 'next-intl/server';
+import { getMessages, getLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing, type Locale } from '@/i18n/routing';
 import { SessionProvider } from "next-auth/react";
@@ -18,6 +18,7 @@ import { PostHogProvider } from 'posthog-js/react'
 import { CSPostHogProvider } from "@/components/providers/posthog-provider";
 import PostHogPageView from "@/components/providers/posthog-pageview";
 import { CrispProvider } from "@/components/providers/crisp-provider";
+import { GuidedTour } from "@/components/ui/guided-tour";
 import { Suspense } from "react";
 
 const inter = Inter({
@@ -75,7 +76,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const locale = 'fr';
+  const locale = await getLocale();
 
   // Receiving messages provided in `i18n/request.ts`
   const messages = await getMessages();
@@ -101,6 +102,7 @@ export default async function RootLayout({
                     <PwaRegistrar />
                     <CrispProvider />
                     <AppLayout>
+                      <GuidedTour />
                       {children}
                     </AppLayout>
                   </SidebarProvider>

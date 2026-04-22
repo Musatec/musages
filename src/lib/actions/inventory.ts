@@ -64,6 +64,16 @@ export async function createProduct(data: CreateProductData) {
             }
         });
 
+        // 4. Audit Log
+        await prisma.auditLog.create({
+            data: {
+                storeId: storeId as string,
+                userId: userId as string,
+                action: "CREATE_PRODUCT",
+                details: { productId: product.id, name: product.name }
+            }
+        });
+
         revalidatePath("/inventory");
         revalidatePath("/sales"); // Update POS too
         
@@ -112,6 +122,16 @@ export async function updateStock(data: {
                     userId: userId as string,
                 }
             });
+
+            // 3. Audit Log
+            await tx.auditLog.create({
+                data: {
+                    storeId: storeId as string,
+                    userId: userId as string,
+                    action: "UPDATE_STOCK",
+                    details: { productId: data.productId, amount: data.amount, reason: data.reason }
+                }
+            });
         });
 
         revalidatePath("/inventory");
@@ -129,9 +149,22 @@ export async function deleteProduct(productId: string) {
     if (!session?.user?.storeId) return { error: "Non autorisé" };
 
     try {
-        await prisma.product.update({
-            where: { id: productId, storeId: session.user.storeId },
+        const userId = session.user.id;
+        const storeId = session.user.storeId;
+
+        const product = await prisma.product.update({
+            where: { id: productId, storeId: storeId },
             data: { deletedAt: new Date() }
+        });
+
+        // Audit Log
+        await prisma.auditLog.create({
+            data: {
+                storeId: storeId,
+                userId: userId as string,
+                action: "DELETE_PRODUCT",
+                details: { productId: productId, name: product.name }
+            }
         });
 
         revalidatePath("/inventory");

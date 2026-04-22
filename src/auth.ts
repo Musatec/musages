@@ -3,6 +3,7 @@ import NextAuth from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authConfig } from "./auth.config";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
@@ -15,6 +16,11 @@ export const {
   ...authConfig,
   session: { strategy: "jwt" },
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
+    }),
     Credentials({
       async authorize(credentials) {
         const parsedCredentials = z

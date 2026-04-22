@@ -249,15 +249,16 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                 <div className="absolute inset-y-0 left-4 md:left-8 flex items-center pointer-events-none">
                                     <Search className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground/10 group-focus-within:text-primary transition-all duration-500" />
                                 </div>
-                                <input
-                                    type="text"
-                                    placeholder="SCANNER / RECHERCHER..."
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    onKeyDown={handleSearchKeyDown}
-                                    autoFocus
-                                    className="block w-full pl-10 md:pl-18 pr-4 md:pr-12 py-4 md:py-7 bg-card border border-border/50 rounded-2xl md:rounded-[2.5rem] text-[10px] md:text-[11px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all shadow-2xl placeholder:text-muted-foreground/10 italic"
-                                />
+                                    <input
+                                        id="pos-search-input"
+                                        type="text"
+                                        placeholder="SCANNER / RECHERCHER..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        onKeyDown={handleSearchKeyDown}
+                                        autoFocus
+                                        className="block w-full pl-10 md:pl-18 pr-4 md:pr-12 py-4 md:py-7 bg-card border border-border/50 rounded-2xl md:rounded-[2.5rem] text-[10px] md:text-[11px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all shadow-2xl placeholder:text-muted-foreground/10 italic"
+                                    />
                             </div>
 
                             {/* LAYOUT TOGGLE */}
@@ -312,6 +313,7 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                                 filteredProducts.map((product) => (
                                     <motion.div
                                         key={product.id}
+                                        id={`pos-product-${product.id}`}
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         whileHover={{ y: -5 }}
@@ -620,6 +622,7 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
                     
                     {/* FINAL ACTION COMMAND */}
                     <button 
+                        id="pos-checkout-btn"
                         onClick={handleProcessSale} 
                         disabled={cart.length === 0 || isCheckingOut} 
                         className="w-full py-10 rounded-[2.5rem] bg-primary hover:bg-primary/90 disabled:opacity-20 disabled:grayscale transition-all text-black font-black uppercase tracking-[0.6em] text-[12px] flex items-center justify-center gap-6 shadow-2xl shadow-primary/30 active:scale-95 italic group/btn"

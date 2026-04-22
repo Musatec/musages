@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { startOfMonth, endOfMonth, format, startOfDay, endOfDay, subDays } from "date-fns";
 import { apiRateLimit } from "@/lib/ratelimit";
 import { headers } from "next/headers";
+import { calculateGrossPerformance, calculateNetProfit, calculateInventoryValue } from "@/lib/finance";
 
 export interface FinancialSummary {
     totalRevenue: number;
@@ -37,8 +38,6 @@ export async function getFinancialReport() {
         error: "Non autorisé" 
     };
 
-    // --- RATE LIMITING (Temporairement désactivé pour debug build) ---
-    /*
     let ip = "local";
     try {
         const headerList = await headers();
@@ -55,7 +54,6 @@ export async function getFinancialReport() {
             };
         }
     }
-    */
 
     try {
         const now = new Date();
@@ -78,19 +76,17 @@ export async function getFinancialReport() {
             }
         });
 
-        // 2. Calcul du CA et du Bénéfice Brut (Marge)
-        let totalRevenue = 0;
-        let totalCostOfGoodsSold = 0;
+        // 2. Calcul des indicateurs de performance via le module centralisé
+        const formattedSales = sales.map(s => ({
+            totalAmount: s.totalAmount,
+            items: s.items.map(i => ({
+                quantity: i.quantity,
+                price: i.price,
+                costPrice: i.product?.costPrice
+            }))
+        }));
 
-        sales.forEach(sale => {
-            totalRevenue += sale.totalAmount;
-            sale.items.forEach(item => {
-                const cost = item.product?.costPrice || 0;
-                totalCostOfGoodsSold += (cost * item.quantity);
-            });
-        });
-
-        const grossProfit = totalRevenue - totalCostOfGoodsSold;
+        const { totalRevenue, grossProfit } = calculateGrossPerformance(formattedSales);
 
         // 3. Récupération des Dépenses (Transactions - EXPENSE)
         const expenses = await prisma.transaction.aggregate({
@@ -103,7 +99,7 @@ export async function getFinancialReport() {
         });
 
         const totalExpenses = expenses._sum.amount || 0;
-        const netProfit = grossProfit - totalExpenses;
+        const netProfit = calculateNetProfit(grossProfit, totalExpenses);
 
         const sevenDaysAgo = startOfDay(subDays(now, 6));
         const recentSales = await prisma.sale.findMany({
@@ -132,15 +128,16 @@ export async function getFinancialReport() {
             };
         });
 
-        // 5. Valeur du Stock (Prix d'achat * Quantité)
+        // 5. Valeur du Stock (Prix d'achat * Quantité) via module centralisé
         const stocks = await prisma.stock.findMany({
             where: { storeId },
             include: { product: true }
         });
 
-        const inventoryValue = stocks.reduce((acc, s) => {
-            return acc + (s.quantity * (s.product.costPrice || 0));
-        }, 0);
+        const inventoryValue = calculateInventoryValue(stocks.map(s => ({
+            quantity: s.quantity,
+            costPrice: s.product.costPrice
+        })));
 
         return {
             summary: {

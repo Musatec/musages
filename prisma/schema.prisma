@@ -149,6 +149,7 @@ model User {
   subscriptionStatus SubscriptionStatus @default(TRIALING)
   trialEndsAt   DateTime?
   subscriptionEndsAt DateTime?
+  hasSeenOnboarding Boolean @default(false)
   storeId       String?
   store         Store?    @relation(fields: [storeId], references: [id])
   createdAt     DateTime  @default(now())

@@ -88,3 +88,24 @@ export async function register(data: z.infer<typeof RegisterSchema>) {
     return { success: false, error: `Erreur: ${errorMessage}` };
   }
 }
+
+/**
+ * Marque la visite guidée comme complétée pour l'utilisateur
+ */
+export async function completeOnboardingAction() {
+    try {
+        const { auth } = await import("@/auth");
+        const session = await auth();
+        if (!session?.user?.id) return { error: "Non autorisé" };
+
+        await prisma.user.update({
+            where: { id: session.user.id },
+            data: { hasSeenOnboarding: true }
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error("[ONBOARDING_ACTION] Error:", error);
+        return { error: "Erreur technique" };
+    }
+}
