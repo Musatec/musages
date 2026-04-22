@@ -15,9 +15,12 @@ export const {
 } = NextAuth({
   ...authConfig,
   session: { strategy: "jwt" },
+  trustHost: true,
+  debug: process.env.NODE_ENV === "development",
   callbacks: {
     ...authConfig.callbacks,
     async signIn({ user, account, profile }) {
+      console.log("[AUTH_DEBUG] signIn callback triggered for:", user.email);
       if (account?.provider === "google") {
         if (!user.email) {
           console.error("[AUTH_GOOGLE] Pas d'email retourné par Google");
@@ -25,14 +28,14 @@ export const {
         }
 
         try {
-          console.log("[AUTH_GOOGLE] Recherche de l'utilisateur:", user.email);
+          console.log("[AUTH_GOOGLE] Tentative de gestion utilisateur pour:", user.email);
           
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email as string }
           });
 
           if (!existingUser) {
-            console.log("[AUTH_GOOGLE] Création d'un nouvel utilisateur OAuth");
+            console.log("[AUTH_GOOGLE] Nouvel utilisateur détecté. Création en cours...");
             await prisma.user.create({
               data: {
                 email: user.email as string,
@@ -45,16 +48,23 @@ export const {
                 hasSeenOnboarding: false
               }
             });
+            console.log("[AUTH_GOOGLE] Utilisateur créé avec succès.");
           } else {
-            console.log("[AUTH_GOOGLE] Utilisateur existant trouvé:", existingUser.email);
+            console.log("[AUTH_GOOGLE] Utilisateur existant trouvé.");
           }
         } catch (error: any) {
-          console.error("[AUTH_GOOGLE_ERROR] Erreur lors de la gestion utilisateur OAuth:", error.message);
+          console.error("[AUTH_GOOGLE_ERROR] ÉCHEC CRITIQUE lors de la gestion OAuth:", error);
+          // On renvoie false pour déclencher Access Denied mais on a loggé l'erreur
           return false;
         }
       }
       return true;
     },
+  },
+  events: {
+    async signIn(message) { console.log("[AUTH_EVENT] signIn success:", message.user.email); },
+    async createUser(message) { console.log("[AUTH_EVENT] user created:", message.user.email); },
+    async linkAccount(message) { console.log("[AUTH_EVENT] account linked:", message.user.email); },
   },
   providers: [
     Google({
