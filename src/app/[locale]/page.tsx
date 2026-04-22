@@ -87,76 +87,86 @@ export default function LandingPage() {
             </nav>
 
             <main>
-                {/* 2. HERO SECTION */}
-                <section className="relative min-h-[90vh] flex flex-col items-center justify-center pt-32 pb-20 px-6 text-center overflow-hidden">
-                    {/* Visual: Glow orange derrière le titre */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none animate-pulse" />
+                {/* 2. HERO SECTION - High Impact */}
+                <section className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-20 px-6 overflow-hidden">
+                    {/* Background Ambient Glows */}
+                    <div className="absolute top-[20%] left-[10%] w-[40%] h-[40%] bg-primary/20 blur-[150px] rounded-full pointer-events-none animate-pulse" />
+                    <div className="absolute bottom-[20%] right-[10%] w-[30%] h-[30%] bg-orange-600/10 blur-[120px] rounded-full pointer-events-none" />
 
-                    <motion.div
-                        initial="initial"
-                        animate="animate"
-                        variants={{
-                            animate: { transition: { staggerChildren: 0.1 } }
-                        }}
-                        className="relative z-10 max-w-5xl space-y-8"
-                    >
-
-                        <motion.h1
-                            variants={fadeInUp}
-                            className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.9] uppercase px-2"
-                        >
-                            Transformez le <span className="text-primary italic block sm:inline">Chaos</span> <br className="hidden sm:block" />
-                            en <span className="relative inline-block mt-1 sm:mt-0">
-                                Création
-                                <div className="absolute -inset-2 bg-primary/20 blur-2xl rounded-full -z-10" />
-                            </span>.
-                        </motion.h1>
-
-                        <motion.p
-                            variants={fadeInUp}
-                            className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground font-medium leading-relaxed"
-                        >
-                            Le système d&apos;exploitation pour les créateurs qui ne s&apos;arrêtent jamais.
-                            Structurez votre génie, maîtrisez votre temps.
-                        </motion.p>
-
+                    <div className="max-w-7xl mx-auto w-full relative z-10 grid grid-cols-1 lg:grid-cols-1 gap-12 text-center">
                         <motion.div
-                            variants={fadeInUp}
-                            className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4"
+                            initial="initial"
+                            animate="animate"
+                            variants={{
+                                animate: { transition: { staggerChildren: 0.15 } }
+                            }}
+                            className="space-y-8"
                         >
-                            <Link
-                                href="/login?mode=signup"
-                                className="group w-full sm:w-auto px-8 py-4 md:px-10 md:py-5 bg-primary text-black rounded-2xl font-black text-base md:text-lg hover:bg-primary/80 transition-all shadow-[0_20px_40px_rgba(249,115,22,0.2)] active:scale-95 flex items-center justify-center gap-3 uppercase"
+                            <motion.div 
+                                variants={fadeInUp}
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md"
                             >
-                                Lancer mon Workspace <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                            <button className="w-full sm:w-auto px-8 py-4 md:px-10 md:py-5 bg-white/5 border border-white/10 rounded-2xl font-black text-base md:text-lg hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase italic">
-                                <Play className="w-4 h-4 fill-current" /> Voir la Démo
-                            </button>
-                        </motion.div>
+                                <Sparkles className="w-4 h-4 text-primary" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/80 italic">L&apos;OS Ultime pour Entrepreneurs</span>
+                            </motion.div>
 
-                        {/* TRUST ELEMENTS */}
-                        <motion.div 
-                            variants={fadeInUp}
-                            className="pt-16 flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700"
-                        >
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="w-5 h-5" />
-                                <span className="text-[10px] font-black uppercase tracking-widest italic">Sécurisé par Supabase</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <CreditCard className="w-5 h-5" />
-                                <span className="text-[10px] font-black uppercase tracking-widest italic">Paiements Wave & Mobile Money</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Zap className="w-5 h-5" />
-                                <span className="text-[10px] font-black uppercase tracking-widest italic">Vitesse Warp 1.0</span>
-                            </div>
-                        </motion.div>
-                    </motion.div>
+                            <motion.h1
+                                variants={fadeInUp}
+                                className="text-6xl sm:text-8xl md:text-9xl font-black tracking-tighter leading-[0.85] uppercase"
+                            >
+                                Dominez le <br />
+                                <span className="text-primary italic relative">
+                                    Marché.
+                                    <svg className="absolute -bottom-2 left-0 w-full h-3 text-primary/30" viewBox="0 0 100 10" preserveAspectRatio="none">
+                                        <path d="M0 5 Q 25 0, 50 5 T 100 5" fill="none" stroke="currentColor" strokeWidth="2" />
+                                    </svg>
+                                </span>
+                            </motion.h1>
 
-                    {/* Decorative bottom fade */}
-                    <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-20" />
+                            <motion.p
+                                variants={fadeInUp}
+                                className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground font-medium leading-relaxed"
+                            >
+                                Structurez votre génie, maîtrisez votre temps et vos profits. 
+                                L&apos;infrastructure d&apos;élite pour les créateurs qui bâtissent l&apos;avenir.
+                            </motion.p>
+
+                            <motion.div
+                                variants={fadeInUp}
+                                className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4"
+                            >
+                                <Link
+                                    href="/login?mode=signup"
+                                    className="group w-full sm:w-auto px-10 py-5 bg-primary text-black rounded-[2rem] font-black text-lg hover:bg-primary/80 transition-all shadow-[0_20px_50px_rgba(249,115,22,0.3)] active:scale-95 flex items-center justify-center gap-3 uppercase italic"
+                                >
+                                    Prendre les Commandes <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                                <button className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 backdrop-blur-xl rounded-[2rem] font-black text-lg hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase italic">
+                                    <Play className="w-4 h-4 fill-current" /> Explorer le Noyau
+                                </button>
+                            </motion.div>
+
+                            {/* Dashboard Mockup Preview - Realistic Capture */}
+                            <motion.div
+                                initial={{ opacity: 0, y: 100, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ duration: 1.2, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                                className="relative mt-20 group px-4 md:px-0"
+                            >
+                                <div className="absolute -inset-4 bg-gradient-to-b from-primary/30 to-transparent blur-3xl rounded-[3rem] opacity-30 group-hover:opacity-60 transition-opacity" />
+                                <div className="relative bg-[#0A0A0B] border border-white/10 rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)] max-w-6xl mx-auto">
+                                    <SafeImage 
+                                        src="/mindos_dashboard_capture_1776872471987.png" 
+                                        alt="MINDOS Real-time Strategic Dashboard" 
+                                        className="w-full h-auto transition-transform duration-[3s] group-hover:scale-105"
+                                    />
+                                    {/* Subtle Overlay reflection */}
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+                                    <div className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-[2rem] md:rounded-[3rem]" />
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    </div>
                 </section>
 
                 {/* 3. SECTION FONCTIONNALITÉS (Bento Grid) */}
@@ -216,6 +226,35 @@ export default function LandingPage() {
                                 </p>
                             </div>
                         </motion.div>
+                    </div>
+                </section>
+
+                {/* 4. POWER METRICS SECTION */}
+                <section className="py-24 px-6 relative overflow-hidden">
+                    <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+                        {[
+                            { label: "Transactions", value: "2M+", sub: "Sécurisées / An" },
+                            { label: "Utilisateurs", value: "15k+", sub: "Entrepreneurs Actifs" },
+                            { label: "Disponibilité", value: "99.9%", sub: "SLA Garanti" },
+                            { label: "Pays", value: "12+", sub: "Déploiement Afrique" }
+                        ].map((stat, i) => (
+                            <motion.div 
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                viewport={{ once: true }}
+                                className="text-center space-y-2 group"
+                            >
+                                <div className="text-4xl md:text-6xl font-black tracking-tighter text-white group-hover:text-primary transition-colors duration-500 italic">
+                                    {stat.value}
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">{stat.label}</div>
+                                    <div className="text-[8px] font-bold uppercase tracking-widest text-primary/40">{stat.sub}</div>
+                                </div>
+                            </motion.div>
+                        ))}
                     </div>
                 </section>
 
