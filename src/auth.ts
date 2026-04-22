@@ -35,7 +35,22 @@ export const {
           });
 
           if (!existingUser) {
-            console.log("[AUTH_GOOGLE] Nouvel utilisateur détecté. Création en cours...");
+            console.log("[AUTH_GOOGLE] Nouvel utilisateur détecté. Création automatique de l'Empire...");
+            
+            // 1. Créer une boutique par défaut avec les infos Google
+            const store = await prisma.store.create({
+                data: {
+                    name: `Empire de ${user.name?.split(' ')[0] || "Commandant"}`,
+                    plan: "STARTER",
+                    config: {
+                        logo: user.image,
+                        slogan: "Maîtrise et Croissance.",
+                        activity: "Commerce Général"
+                    }
+                }
+            });
+
+            // 2. Créer l'utilisateur lié à cette boutique
             await prisma.user.create({
               data: {
                 email: user.email as string,
@@ -45,12 +60,28 @@ export const {
                 plan: "STARTER",
                 subscriptionStatus: "TRIALING",
                 trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-                hasSeenOnboarding: false
+                hasSeenOnboarding: false,
+                storeId: store.id // Liaison immédiate
               }
             });
-            console.log("[AUTH_GOOGLE] Utilisateur créé avec succès.");
+            console.log("[AUTH_GOOGLE] Empire et Utilisateur créés avec succès.");
           } else {
             console.log("[AUTH_GOOGLE] Utilisateur existant trouvé.");
+            
+            // Cas particulier : Utilisateur existe mais n'a pas de boutique (onboarding non fini)
+            if (!existingUser.storeId) {
+                console.log("[AUTH_GOOGLE] Utilisateur existant sans boutique. Création d'un Empire de secours...");
+                const store = await prisma.store.create({
+                    data: {
+                        name: `Empire de ${existingUser.name?.split(' ')[0] || "Commandant"}`,
+                        plan: "STARTER"
+                    }
+                });
+                await prisma.user.update({
+                    where: { id: existingUser.id },
+                    data: { storeId: store.id }
+                });
+            }
           }
         } catch (error: any) {
           console.error("[AUTH_GOOGLE_ERROR] ÉCHEC CRITIQUE lors de la gestion OAuth:", error);

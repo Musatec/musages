@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/routing";
 import { useSession } from "next-auth/react";
 import { completeOnboardingAction } from "@/lib/actions/auth";
 

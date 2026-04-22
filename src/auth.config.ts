@@ -22,7 +22,23 @@ export const authConfig = {
       return session;
     },
     async jwt({ token, user, trigger, session }) {
+      // Chargement initial ou reconnexion
       if (user) {
+        // Pour les utilisateurs Google, on doit aller chercher les infos en DB car pas d'adaptateur
+        if (!user.storeId && user.email) {
+            const { prisma } = await import("@/lib/prisma");
+            const dbUser = await prisma.user.findUnique({
+                where: { email: user.email }
+            });
+            if (dbUser) {
+                token.role = dbUser.role;
+                token.storeId = dbUser.storeId;
+                token.plan = dbUser.plan;
+                token.hasSeenOnboarding = dbUser.hasSeenOnboarding;
+                return token;
+            }
+        }
+        
         token.role = user.role;
         token.storeId = user.storeId;
         token.plan = (user as any).plan;

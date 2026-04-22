@@ -23,7 +23,9 @@ export function MobileHeader() {
     const currentTheme = theme === "dark" ? "dark" : "light"; // Simplifié pour test
     const logoSrc = currentTheme === "dark" ? "/logo-black.svg" : "/logo.svg";
 
-    if (pathname === "/login" || !session?.user?.storeId) return null;
+    const isVisible = pathname !== "/login" && session?.user?.storeId;
+
+    if (!isVisible) return null;
 
     return (
         <div>

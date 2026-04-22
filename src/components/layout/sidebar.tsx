@@ -24,7 +24,7 @@ import {
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/routing";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";

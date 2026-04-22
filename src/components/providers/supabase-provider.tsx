@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/routing";
 import { Loader2 } from "lucide-react";
 
 type SupabaseContextType = {
@@ -94,20 +94,16 @@ export default function SupabaseProvider({
         signOut
     };
 
-    // TRÈS IMPORTANT : Empêche l'application de rendre des composants qui font des requêtes Supabase
-    // avant que l'utilisateur ne soit chargé/vérifié.
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center space-y-4">
-                <Loader2 className="w-10 h-10 text-[#F97316] animate-spin" />
-                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Initialisation MINDOS...</p>
-            </div>
-        );
-    }
-
     return (
         <SupabaseContext.Provider value={value}>
-            {children}
+            {isLoading ? (
+                <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center space-y-4">
+                    <Loader2 className="w-10 h-10 text-[#F97316] animate-spin" />
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Initialisation MINDOS...</p>
+                </div>
+            ) : (
+                children
+            )}
         </SupabaseContext.Provider>
     );
 }

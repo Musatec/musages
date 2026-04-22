@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getSystemSettings } from "@/lib/actions/system";
 import { useSupabase } from "./supabase-provider";
 import { ShieldAlert, Zap, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SystemSettings {
-    maintenance_mode?: boolean;
-    broadcast_message?: string;
+    maintenanceMode?: boolean;
+    broadcastMessage?: string;
 }
 
 export function SystemGuardian({ children }: { children: React.ReactNode }) {
@@ -18,28 +19,14 @@ export function SystemGuardian({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Fetch global settings from admin profile
         const fetchSystemStatus = async () => {
             try {
-                // We find an admin profile to get global settings
-                const { data, error } = await supabase
-                    .from('User')
-                    .select('storeId')
-                    .eq('role', 'ADMIN')
-                    .limit(1)
-                    .maybeSingle();
-
-                if (error) {
-                    console.warn("Guardian: Could not fetch system settings (RLS?)", error.message);
-                    return;
-                }
-
-                if (data) {
-                    setMaintenanceMode(false);
-                    setBroadcast("");
-                }
+                const settings = await getSystemSettings();
+                setMaintenanceMode(settings.maintenanceMode || false);
+                setBroadcast(settings.broadcastMessage || "");
             } catch (err) {
-                console.error("Guardian check failed:", err);
+                // Silently fail to avoid crashing the UI
+                console.debug("Guardian: fallback to normal mode");
             } finally {
                 setLoading(false);
             }
@@ -53,8 +40,8 @@ export function SystemGuardian({ children }: { children: React.ReactNode }) {
             .on('postgres_changes', {
                 event: 'UPDATE',
                 schema: 'public',
-                table: 'profiles',
-                filter: "role=eq.admin"
+                table: 'User',
+                filter: "role=eq.ADMIN"
             }, (payload) => {
                 const settings = (payload.new as { settings?: SystemSettings }).settings;
                 if (settings) {
@@ -105,7 +92,7 @@ export function SystemGuardian({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <>
+        <div className="flex flex-col flex-1">
             {/* BROADCAST BANNER */}
             {broadcast && (
                 <div className="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r from-[#F97316] to-amber-500 py-1.5 px-4 text-center overflow-hidden animate-in slide-in-from-top duration-500 shadow-2xl">
@@ -121,6 +108,6 @@ export function SystemGuardian({ children }: { children: React.ReactNode }) {
             <div className={cn("flex-1 flex flex-col", broadcast && "pt-8")}>
                 {children}
             </div>
-        </>
+        </div>
     );
 }

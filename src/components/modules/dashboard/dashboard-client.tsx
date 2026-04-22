@@ -42,7 +42,20 @@ export function DashboardClient({
             // Nettoyer l'URL
             window.history.replaceState({}, '', window.location.pathname);
         }
-    }, [searchParams]);
+
+        // Toast de bienvenue pour les nouveaux Empires (Cas Google Auto-create)
+        const isNewEmpire = metrics.activeInventory === 0 && metrics.totalSales === 0;
+        if (isNewEmpire) {
+            const hasToasted = sessionStorage.getItem("new_empire_toast_shown");
+            if (!hasToasted) {
+                toast.success(`Empire de ${metadata?.userName?.split(' ')[0] || "Commandant"} Initialisé ! 🏰`, {
+                    description: "Votre espace de travail a été configuré automatiquement. Commençons par structurer votre stock.",
+                    duration: 6000,
+                });
+                sessionStorage.setItem("new_empire_toast_shown", "true");
+            }
+        }
+    }, [searchParams, metrics, metadata]);
     
     return (
         <div className="flex-1 flex flex-col transition-all duration-300 p-4 md:p-8 pt-6 md:pt-10 pb-40 text-foreground">

@@ -94,6 +94,14 @@ export default async function DashboardPage({
 
   const topProducts = await Promise.all(
     topProductItems.map(async (item: any) => {
+        if (!item.productId) {
+            return {
+                name: "Article Manuel",
+                image: null,
+                quantity: item._sum.quantity || 0,
+                revenue: 0
+            };
+        }
         const product = await prisma.product.findUnique({
             where: { id: item.productId },
             select: { name: true, image: true, price: true }

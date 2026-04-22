@@ -22,7 +22,7 @@ interface InitialProduct {
 }
 
 export function StoreOnboarding() {
-  const { update } = useSession();
+  const { data: session, update } = useSession();
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -32,19 +32,24 @@ export function StoreOnboarding() {
   const [logo, setLogo] = useState("");
   const [slogan, setSlogan] = useState("Le futur de votre gestion.");
   const [activity, setActivity] = useState("");
-  
-  const getInitialPlan = (): "STARTER" | "GROWTH" | "BUSINESS" => {
-    if (typeof document !== 'undefined') {
-      const match = document.cookie.match(/mindos_plan=([^;]+)/);
-      const cookiePlan = match ? match[1] : null;
-      if (cookiePlan === "STARTER" || cookiePlan === "GROWTH" || cookiePlan === "BUSINESS") {
-        return cookiePlan;
-      }
-    }
-    return "STARTER";
-  };
 
-  const [plan, setPlan] = useState<"STARTER" | "GROWTH" | "BUSINESS">(getInitialPlan());
+  // Pré-remplissage intelligent à partir de Google
+  useEffect(() => {
+    if (session?.user) {
+      if (!name && session.user.name) setName(session.user.name);
+      if (!logo && session.user.image) setLogo(session.user.image);
+    }
+  }, [session, name, logo]);
+
+  const [plan, setPlan] = useState<"STARTER" | "GROWTH" | "BUSINESS">("STARTER");
+
+  useEffect(() => {
+    const match = document.cookie.match(/mindos_plan=([^;]+)/);
+    const cookiePlan = match ? match[1] : null;
+    if (cookiePlan === "STARTER" || cookiePlan === "GROWTH" || cookiePlan === "BUSINESS") {
+      setPlan(cookiePlan);
+    }
+  }, []);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
