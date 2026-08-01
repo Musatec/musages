@@ -6,122 +6,20 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// --- LOGISTICS & PROCUREMENT ---
-model Supplier {
-  id          String   @id @default(cuid())
-  storeId     String
-  store       Store    @relation(fields: [storeId], references: [id])
-  name        String
-  contactName String?
-  email       String?
-  phone       String?
-  address     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-
-  purchases   Purchase[]
-}
-
-model Purchase {
-  id            String         @id @default(cuid())
-  storeId       String
-  store         Store          @relation(fields: [storeId], references: [id])
-  supplierId    String
-  supplier      Supplier       @relation(fields: [supplierId], references: [id])
-  totalAmount   Float
-  amountPaid    Float          @default(0)
-  status        PurchaseStatus @default(COMPLETED)
-  paymentMethod String         @default("CASH")
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  
-  items         PurchaseItem[]
-}
-
-model PurchaseItem {
-  id        String   @id @default(cuid())
-  purchaseId String
-  purchase  Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int
-  unitPrice Float
-}
-
-enum PurchaseStatus {
-  COMPLETED
-  PENDING
-  CANCELLED
-  PARTIAL
-}
-
 // --- ENUMS ---
-enum UserRole {
-  ADMIN
-  USER
-  MANAGER
-  CASHIER
-  STAFF
-  SUPER_ADMIN
-}
-
 enum Role {
-  ADMIN
-  MANAGER
-  SELLER
   SUPER_ADMIN
+  DIRECTEUR
+  SECRETAIRE
+  PROFESSEUR
+  SURVEILLANT
+  PARENT
 }
 
-enum ProductType {
-  PHYSICAL
-  SERVICE
-}
-
-enum SaleStatus {
-  COMPLETED
-  CANCELLED
-  REFUNDED
-  UNPAID
-  PARTIAL
-}
-
-enum TransactionType {
-  INCOME
-  EXPENSE
-}
-
-enum StorePlan {
+enum SchoolPlan {
   STARTER
   GROWTH
   BUSINESS
-}
-
-// --- AUTH & MULTI-TENANCY ---
-model Store {
-  id          String   @id @default(cuid())
-  name        String
-  address     String?
-  plan        StorePlan @default(STARTER)
-  config      Json?    // For custom settings (logo, taxes, etc.)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-
-  users       User[]
-  products    Product[]
-  stocks      Stock[]
-  sales       Sale[]
-  transactions Transaction[]
-  employees   Employee[]
-  auditLogs   AuditLog[]
-  stockMovements StockMovement[]
-  suppliers   Supplier[]
-  purchases   Purchase[]
-
-  ownerId     String?
-  owner       User?     @relation("StoreOwner", fields: [ownerId], references: [id])
-  feedbacks   Feedback[]
 }
 
 enum SubscriptionStatus {
@@ -131,70 +29,126 @@ enum SubscriptionStatus {
   CANCELED
 }
 
-enum UserPlan {
-  STARTER
-  GROWTH
-  BUSINESS
+enum TuitionStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
+enum PaymentMethod {
+  CASH
+  WAVE
+  ORANGE_MONEY
+  BANK_TRANSFER
+  CHEQUE
+}
+
+enum Term {
+  TRIMESTRE_1
+  TRIMESTRE_2
+  TRIMESTRE_3
+  SEMESTRE_1
+  SEMESTRE_2
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  RETARD
+  EXCUSED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+// --- MULTI-TENANCY & AUTH (ÉTABLISSEMENTS SCOLAIRES) ---
+model School {
+  id          String     @id @default(cuid())
+  name        String     // Nom de l'école (ex: Collège Sacré-Cœur, Complexe Educatif Jangu)
+  address     String?
+  phone       String?
+  email       String?
+  logo        String?    // URL du logo de l'école pour les reçus et bulletins
+  ninea       String?    // NINEA / Numéro d'enregistrement (Optionnel)
+  plan        SchoolPlan @default(STARTER)
+  config      Json?      // Paramètres personnalisés (entête bulletins, message WhatsApp, etc.)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+
+  ownerId     String?
+  owner       User?      @relation("SchoolOwner", fields: [ownerId], references: [id])
+  
+  users       User[]
+  classes     Class[]
+  subjects    Subject[]
+  students    Student[]
+  tuitionFees TuitionFee[]
+  grades      Grade[]
+  attendances Attendance[]
+  teachers    Teacher[]
+  transactions Transaction[]
+  auditLogs   AuditLog[]
+  notifications Notification[]
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          Role      @default(SELLER)
-  plan          UserPlan  @default(STARTER)
+  id                 String             @id @default(cuid())
+  name               String?
+  email              String?            @unique
+  emailVerified      DateTime?
+  image              String?
+  password           String?
+  role               Role               @default(DIRECTEUR)
+  plan               SchoolPlan         @default(STARTER)
   subscriptionStatus SubscriptionStatus @default(TRIALING)
-  trialEndsAt   DateTime?
+  trialEndsAt        DateTime?
   subscriptionEndsAt DateTime?
-  hasSeenOnboarding Boolean @default(false)
-  storeId       String?
-  store         Store?    @relation(fields: [storeId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
+  hasSeenOnboarding  Boolean            @default(false)
+  schoolId           String?
+  school             School?            @relation(fields: [schoolId], references: [id])
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
 
-  accounts      Account[]
-  sessions      Session[]
-  sales         Sale[]
-  transactions  Transaction[]
-  payments      Payment[]
-
-  auditLogs     AuditLog[]
-  stockMovements StockMovement[]
-  ownedStores   Store[]   @relation("StoreOwner")
-  notifications Notification[] @relation("UserNotifications")
-  feedbacks     Feedback[]
+  accounts           Account[]
+  sessions           Session[]
+  payments           Payment[]          // Abonnements SaaS payés par l'école
+  ownedSchools       School[]           @relation("SchoolOwner")
+  auditLogs          AuditLog[]
+  notifications      Notification[]     @relation("UserNotifications")
 }
 
+// Model de paiement d'abonnement SaaS (PayTech / PayDunya pour utiliser l'app Jangu)
 model Payment {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
-  amount        Float
-  plan          UserPlan
-  status        String   // SUCCESS, PENDING, FAILED
-  provider      String   // PayTech, PayDunya
-  providerRef   String?  // Reference ID from provider
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  amount      Float
+  plan        SchoolPlan
+  status      String     // SUCCESS, PENDING, FAILED
+  provider    String     // PayTech, PayDunya
+  providerRef String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
-// Next-Auth Models (Auth.js v5)
+// NextAuth Models (Auth.js v5)
 model Account {
   id                 String  @id @default(cuid())
   userId             String
   type               String
   provider           String
   providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
   expires_at         Int?
   token_type         String?
   scope              String?
-  id_token           String?  @db.Text
+  id_token           String? @db.Text
   session_state      String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -218,155 +172,185 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// --- INVENTORY ---
-model Product {
-  id          String      @id @default(cuid())
-  storeId     String
-  store       Store       @relation(fields: [storeId], references: [id])
-  name        String
-  sku         String?
-  type        ProductType @default(PHYSICAL)
-  price       Float
-  costPrice   Float?      // To calculate margins
-  minAlert    Int         @default(5)
-  category    String?     @default("Standard")
-  image       String?     // URL of the product image
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  deletedAt   DateTime?
-
-  stocks      Stock[]
-  saleItems   SaleItem[]
-  movements   StockMovement[]
-  purchaseItems PurchaseItem[]
-
-  @@unique([storeId, sku])
-}
-
-model Stock {
+// --- STRUCTURE ACADÉMIQUE ---
+model Class {
   id        String   @id @default(cuid())
-  storeId   String
-  store     Store    @relation(fields: [storeId], references: [id])
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int      @default(0)
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id])
+  name      String   // ex: "CM2 A", "3ème B", "Terminale S2"
+  level     String?  // ex: "ÉLÉMENTAIRE", "COLLÈGE", "LYCÉE"
+  monthlyFee Float   @default(0) // Tarif d'écolage par défaut de cette classe
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([storeId, productId])
+  students Student[]
+
+  @@index([schoolId])
 }
 
-model StockMovement {
-  id        String   @id @default(cuid())
-  storeId   String
-  store     Store    @relation(fields: [storeId], references: [id])
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id])
-  quantity  Int      // Can be negative
-  reason    String   // (e.g., "Sale", "Reception", "Adjustment")
-  userId    String   // Who did it?
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-}
-
-// --- SALES (POS) ---
-model Sale {
-  id            String     @id @default(cuid())
-  storeId       String
-  store         Store      @relation(fields: [storeId], references: [id])
-  totalAmount   Float
-  amountPaid    Float      @default(0)
-  status        SaleStatus @default(COMPLETED)
-  paymentMethod String     @default("CASH") // CASH, MOBILE_MONEY, WAVE, FLOUZ
-  customerName  String?
-  customerPhone String?    // For WhatsApp recovery protocol
-  sellerId      String
-  seller        User       @relation(fields: [sellerId], references: [id])
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  deletedAt     DateTime?
-
-  items       SaleItem[]
-}
-
-model SaleItem {
+model Subject {
   id          String   @id @default(cuid())
-  saleId      String
-  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  productId   String?
-  product     Product? @relation(fields: [productId], references: [id])
-  customName  String?  // For manual articles
-  quantity    Int
-  price       Float    // Price at the moment of sale
+  schoolId    String
+  school      School   @relation(fields: [schoolId], references: [id])
+  name        String   // ex: "Mathématiques", "Français", "SVT"
+  coefficient Int      @default(1) // Coefficient pour le calcul des bulletins
+  code        String?  // ex: "MATH", "FRA"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  grades Grade[]
+
+  @@index([schoolId])
 }
 
-// --- CASHFLOW ---
+// --- ÉLÈVES & PARENTS ---
+model Student {
+  id          String   @id @default(cuid())
+  schoolId    String
+  school      School   @relation(fields: [schoolId], references: [id])
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id])
+  matricule   String   // Numéro matricule unique de l'élève
+  firstName   String
+  lastName    String
+  gender      String?  // M / F
+  dateOfBirth DateTime?
+  photo       String?  // Photo de l'élève
+
+  parentName  String   // Nom du tuteur / parent
+  parentPhone String   // Numéro WhatsApp du parent pour relances & reçus
+  parentEmail String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  tuitionFees TuitionFee[]
+  grades      Grade[]
+  attendances Attendance[]
+
+  @@unique([schoolId, matricule])
+  @@index([schoolId, classId])
+}
+
+// --- RECOUVREMENT DES ÉCOLAGES & MENSUALITÉS ---
+model TuitionFee {
+  id            String        @id @default(cuid())
+  schoolId      String
+  school        School        @relation(fields: [schoolId], references: [id])
+  studentId     String
+  student       Student       @relation(fields: [studentId], references: [id])
+  month         Int           // 1 à 12 (ex: 10 pour Octobre, 11 pour Novembre...)
+  year          Int           // ex: 2026
+  amount        Float         // Montant de l'écolage dû
+  amountPaid    Float         @default(0) // Montant versé
+  status        TuitionStatus @default(PENDING)
+  dueDate       DateTime
+  paidAt        DateTime?
+  paymentMethod PaymentMethod?
+  receiptNumber String?       // Numéro de reçu généré (ex: REC-2026-00412)
+  notes         String?       // ex: "Payé au guichet par la maman" ou "Wave Direct"
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([schoolId, month, year])
+  @@index([schoolId, status])
+}
+
+// --- NOTES & BULLETINS TRIMEESTRIELS ---
+model Grade {
+  id          String   @id @default(cuid())
+  schoolId    String
+  school      School   @relation(fields: [schoolId], references: [id])
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id])
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  term        Term     @default(TRIMESTRE_1)
+  title       String   // ex: "Devoir 1", "Composition 1er Trimestre"
+  gradeValue  Float    // Note obtenue (ex: 15.5 sur 20)
+  maxGrade    Float    @default(20)
+  coefficient Int      @default(1)
+  comments    String?  // Appréciation du professeur
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([schoolId, studentId, term])
+}
+
+// --- PRÉSENCES & DISCIPLINE (ALERTES WHATSAPP) ---
+model Attendance {
+  id             String           @id @default(cuid())
+  schoolId       String
+  school         School           @relation(fields: [schoolId], references: [id])
+  studentId      String
+  student        Student          @relation(fields: [studentId], references: [id])
+  date           DateTime         @default(now())
+  status         AttendanceStatus @default(PRESENT)
+  arrivalTime    String?          // ex: "08h25"
+  reason         String?          // Motif d'absence ou retard
+  parentNotified Boolean          @default(false) // Alerte WhatsApp envoyée
+  createdAt      DateTime         @default(now())
+
+  @@index([schoolId, date])
+}
+
+// --- ENSEIGNANTS & VACATIONS ---
+model Teacher {
+  id           String   @id @default(cuid())
+  schoolId     String
+  school       School   @relation(fields: [schoolId], references: [id])
+  firstName    String
+  lastName     String
+  email        String?
+  phone        String
+  mainSubject  String?
+  hourlyRate   Float    @default(0) // Tarif horaire de vacation (ex: 3 500 FCFA/h)
+  contractType String   @default("VACATAIRE") // PERMANENT, VACATAIRE
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+}
+
+// --- COMPTABILITÉ & TRÉSORERIE ÉCOLE ---
 model Transaction {
   id          String          @id @default(cuid())
-  storeId     String
-  store       Store           @relation(fields: [storeId], references: [id])
+  schoolId    String
+  school      School          @relation(fields: [schoolId], references: [id])
   amount      Float
   type        TransactionType
-  category    String          // (e.g., "Salary", "Rent", "Sale Income")
+  category    String          // ex: "ECOLAGE_CASH", "SALAIRE_VACATAIRE", "FOURNITURES"
   description String?
-  userId      String?         // The person who made this movement
-  user        User?           @relation(fields: [userId], references: [id])
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+
+  @@index([schoolId, createdAt])
 }
 
-// --- HR ---
-model Employee {
-  id         String   @id @default(cuid())
-  storeId    String
-  store      Store    @relation(fields: [storeId], references: [id])
-  firstName  String
-  lastName   String
-  email      String?
-  phone      String?
-  salary     Float
-  advances   Float    @default(0) // Acomptes
-  startDate  DateTime @default(now())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  deletedAt  DateTime?
-}
-
-// --- AUDIT LOGS ---
+// --- AUDIT LOGS & NOTIFICATIONS ---
 model AuditLog {
   id        String   @id @default(cuid())
-  storeId   String
-  store     Store    @relation(fields: [storeId], references: [id])
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id])
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  action    String   // (e.g., "DELETE_SALE", "UPDATE_STOCK")
+  action    String   // ex: "PAID_TUITION", "ENTERED_GRADES"
   details   Json?
   createdAt DateTime @default(now())
 }
 
-// --- NOTIFICATIONS ---
 model Notification {
   id          String   @id @default(cuid())
   userId      String
   user        User     @relation("UserNotifications", fields: [userId], references: [id])
+  schoolId    String?
+  school      School?  @relation(fields: [schoolId], references: [id])
   title       String
   description String
-  type        String   // SALE, ALERT, INFO, SUCCESS
+  type        String
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
 
   @@index([userId, createdAt])
-}
-
-// --- FEEDBACK & SURVEYS ---
-model Feedback {
-  id        String    @id @default(cuid())
-  storeId   String?
-  store     Store?    @relation(fields: [storeId], references: [id])
-  userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  rating    Int       // 1 to 5
-  category  String    // BUG, FEATURE, SUGGESTION, GENERAL
-  comment   String?   @db.Text
-  isResolved Boolean  @default(false)
-  createdAt DateTime  @default(now())
 }

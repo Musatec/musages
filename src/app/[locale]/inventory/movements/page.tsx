@@ -14,9 +14,9 @@ import { ElitePageHeader } from "@/components/ui/page-header";
 
 export default async function InventoryMovementsPage() {
     const session = await auth();
-    if (!session?.user?.storeId) redirect("/login");
+    if (!session?.user?.id) redirect("/login");
 
-    const storeId = session.user.storeId;
+    const storeId = session.user.schoolId || session.user.storeId || session.user.id;
 
     // Fetching the last 50 stock movements with absolute safety types
     const movements = await (prisma.stockMovement as any).findMany({

@@ -1,8 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { DashboardClient } from "@/components/modules/dashboard/dashboard-client";
-import { getSubscriptionData } from "@/lib/actions/subscription";
+import { JanguDashboardClient } from "@/components/modules/dashboard/jangu-dashboard-client";
 
 export const dynamic = "force-dynamic";
 
@@ -18,20 +17,8 @@ export default async function DashboardPage({
     redirect(`/${locale}/login`);
   }
 
-  // Redirect to setup if no store is associated
-  if (!session.user.storeId) {
-    redirect(`/${locale}/setup`);
-  }
+  const schoolId = session.user.schoolId || session.user.storeId || session.user.id || "school_demo_123";
 
-  const storeId = session.user.storeId;
-
-  // --- OPTIMIZED PARALLEL FETCHING ---
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
-  // --- SAFE INDIVIDUAL FETCHING ---
-  // On utilise des fonctions anonymes auto-exécutées pour isoler les erreurs de chaque bloc
   const fetchSafe = async (fn: () => Promise<any>, defaultValue: any) => {
     try {
       return await fn();
@@ -41,114 +28,64 @@ export default async function DashboardPage({
     }
   };
 
-  const salesAggregate = await fetchSafe(() => prisma.sale.aggregate({
-    where: { storeId, createdAt: { gte: startOfMonth }, status: "COMPLETED" },
-    _sum: { totalAmount: true }
-  }), { _sum: { totalAmount: 0 } });
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
 
-  const stockAlerts = await fetchSafe(() => prisma.stock.count({
-    where: { storeId, quantity: { lte: 5 } }
+  // Métriques de l'école
+  const school = await fetchSafe(() => prisma.school.findUnique({
+    where: { id: schoolId }
+  }), null);
+
+  const totalStudents = await fetchSafe(() => prisma.student.count({
+    where: { schoolId, deletedAt: null }
   }), 0);
 
-  const activeInventory = await fetchSafe(() => prisma.product.count({
-    where: { storeId, deletedAt: null }
+  const totalClasses = await fetchSafe(() => prisma.class.count({
+    where: { schoolId }
   }), 0);
 
-  const incomeAggregate = await fetchSafe(() => prisma.transaction.aggregate({
-    where: { storeId, type: "INCOME" },
-    _sum: { amount: true }
-  }), { _sum: { amount: 0 } });
-
-  const expenseAggregate = await fetchSafe(() => prisma.transaction.aggregate({
-    where: { storeId, type: "EXPENSE" },
-    _sum: { amount: true }
-  }), { _sum: { amount: 0 } });
-
-  const totalEmployees = await fetchSafe(() => prisma.employee.count({
-    where: { storeId, deletedAt: null }
+  const totalTeachers = await fetchSafe(() => prisma.teacher.count({
+    where: { schoolId, deletedAt: null }
   }), 0);
 
-  const recentSales = await fetchSafe(() => prisma.sale.findMany({
-    where: { storeId, status: "COMPLETED" },
-    orderBy: { createdAt: "desc" },
-    take: 5,
+  // Écolages du mois en cours
+  const tuitionsMonth = await fetchSafe(() => prisma.tuitionFee.aggregate({
+    where: { schoolId, month: currentMonth, year: currentYear },
+    _sum: { amount: true, amountPaid: true }
+  }), { _sum: { amount: 0, amountPaid: 0 } });
+
+  const paidTuitionsCount = await fetchSafe(() => prisma.tuitionFee.count({
+    where: { schoolId, month: currentMonth, year: currentYear, status: "PAID" }
+  }), 0);
+
+  const totalTuitionsCount = await fetchSafe(() => prisma.tuitionFee.count({
+    where: { schoolId, month: currentMonth, year: currentYear }
+  }), 0);
+
+  const recentTuitions = await fetchSafe(() => prisma.tuitionFee.findMany({
+    where: { schoolId },
+    include: { student: { include: { class: true } } },
+    orderBy: { updatedAt: "desc" },
+    take: 6,
   }), []);
 
-  const auditLogs = await fetchSafe(() => prisma.auditLog.findMany({
-    where: { storeId },
-    orderBy: { createdAt: "desc" },
-    take: 8,
-  }), []);
-
-  const totalSalesValue = salesAggregate._sum.totalAmount || 0;
-  const netCashflow = (incomeAggregate._sum.amount || 0) - (expenseAggregate._sum.amount || 0);
-
-  // --- TOP PRODUCTS ANALYSIS ---
-  const topProductItems = await fetchSafe(() => prisma.saleItem.groupBy({
-    by: ['productId'],
-    where: { sale: { storeId, status: "COMPLETED" } },
-    _sum: { quantity: true },
-    orderBy: { _sum: { quantity: 'desc' } },
-    take: 5,
-  }), []);
-
-  const topProducts = await Promise.all(
-    topProductItems.map(async (item: any) => {
-        if (!item.productId) {
-            return {
-                name: "Article Manuel",
-                image: null,
-                quantity: item._sum.quantity || 0,
-                revenue: 0
-            };
-        }
-        const product = await prisma.product.findUnique({
-            where: { id: item.productId },
-            select: { name: true, image: true, price: true }
-        });
-        return {
-            name: product?.name || "Inconnu",
-            image: product?.image || null,
-            quantity: item._sum.quantity || 0,
-            revenue: (item._sum.quantity || 0) * (product?.price || 0)
-        };
-    })
-  );
-
-  const stats = {
-    totalSales: totalSalesValue,
-    salesGrowth: 12, 
-    activeInventory,
-    stockAlerts,
-    totalEmployees,
-    netCashflow,
-  };
-
-  const store = await prisma.store.findUnique({
-      where: { id: storeId }
-  });
-
-  // Serialize to avoid Date object issues
-  const serializedRecentSales = (recentSales as any[]).map((sale: any) => ({
-    ...sale,
-    createdAt: sale.createdAt instanceof Date ? sale.createdAt.toISOString() : sale.createdAt,
-  }));
-
-  const metadata = {
-      userName: session.user.name || "DG",
-      enterpriseName: store?.name || "Votre Entreprise",
-      topProducts: topProducts
-  };
-
-  const userSubscription = await getSubscriptionData();
+  const totalAmountDue = tuitionsMonth._sum.amount || 0;
+  const totalAmountPaid = tuitionsMonth._sum.amountPaid || 0;
+  const collectionRate = totalTuitionsCount > 0 ? Math.round((paidTuitionsCount / totalTuitionsCount) * 100) : 0;
 
   return (
-    <DashboardClient 
-      metadata={metadata}
-      metrics={stats} 
-      recentSales={serializedRecentSales as any} 
+    <JanguDashboardClient 
+      schoolName={school?.name || "Mon Établissement"}
+      totalStudents={totalStudents}
+      totalClasses={totalClasses}
+      totalTeachers={totalTeachers}
+      totalAmountDue={totalAmountDue}
+      totalAmountPaid={totalAmountPaid}
+      collectionRate={collectionRate}
+      recentTuitions={recentTuitions}
+      currentMonth={currentMonth}
+      currentYear={currentYear}
       userRole={session.user.role}
-      userSubscription={userSubscription as any}
     />
   );
 }

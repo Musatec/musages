@@ -3,27 +3,20 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import "dotenv/config";
 
-const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/postgres";
+// Ignorer les avertissements et contrôles TLS de certificats auto-signés
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
-  console.warn("⚠️ DATABASE_URL is missing from environment variables during production build!");
-}
+const rawUrl = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/postgres";
+const connectionString = rawUrl.split("?")[0];
 
 const globalForPrisma = global as unknown as { 
   prisma: PrismaClient | undefined,
   pool: Pool | undefined 
 };
 
-// Singleton pour le Pool (évite de saturer Supabase en dev)
 const pool = globalForPrisma.pool || new Pool({ 
   connectionString,
-  max: 5, // Réduit pour éviter de saturer PgBouncer
-  idleTimeoutMillis: 60000,
-  connectionTimeoutMillis: 90000, // Augmenté à 90s pour les connexions critiques
-  statement_timeout: 90000, // Timeout au niveau SQL
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.pool = pool;

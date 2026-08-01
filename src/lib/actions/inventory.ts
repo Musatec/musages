@@ -20,7 +20,8 @@ interface CreateProductData {
 export async function createProduct(data: CreateProductData) {
     try {
         const session = await auth();
-        const storeId = data.storeId || session?.user?.storeId;
+        const isSuperAdmin = session?.user?.role === "SUPER_ADMIN";
+        const storeId = (isSuperAdmin && data.storeId) ? data.storeId : session?.user?.storeId;
         const userId = session?.user?.id;
         
         if (!storeId || !userId) {

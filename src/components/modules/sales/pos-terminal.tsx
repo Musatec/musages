@@ -69,6 +69,7 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
     const [customerName, setCustomerName] = useState("");
     const [customerPhone, setCustomerPhone] = useState("");
     const [isCustomerEnabled, setIsCustomerEnabled] = useState(false);
+    const [layout, setLayout] = useState<"list" | "grid">("grid");
 
     const handlePrintReceipt = () => {
         window.print();
@@ -204,8 +205,6 @@ export function PosTerminal({ initialProducts }: { initialProducts: Product[] })
         window.addEventListener('keydown', handleGlobalKeyDown);
         return () => window.removeEventListener('keydown', handleGlobalKeyDown);
     }, [cart, isCheckingOut, showReceipt]);
-
-    const [layout, setLayout] = useState<"list" | "grid">("grid");
 
     return (
         <div className="flex flex-col md:flex-row h-full bg-background text-foreground transition-all duration-500 overflow-hidden font-sans">

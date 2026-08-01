@@ -4,62 +4,64 @@
 
 @layer base {
     :root {
-        --background: 240 5% 98%;
-        --foreground: 240 10% 5%;
-        --card: 0 0% 100%;
-        --card-foreground: 240 10% 8%;
+        /* Bright Clean Educational Theme (Light Mode) */
+        --background: 210 40% 98%;      /* #F8FAFC - Soft crisp slate background */
+        --foreground: 222 47% 11%;      /* #0F172A - Deep slate text for high contrast */
+        --card: 0 0% 100%;             /* #FFFFFF - Pure white cards */
+        --card-foreground: 222 47% 11%;
         --popover: 0 0% 100%;
-        --popover-foreground: 240 10% 8%;
-        --primary: 24 95% 48%;
-        --primary-rgb: 234, 88, 12;
+        --popover-foreground: 222 47% 11%;
+        --primary: 160 84% 39%;         /* #10B981 - Vibrant TaleemApp Emerald Green */
+        --primary-rgb: 16, 185, 129;
         --primary-foreground: 0 0% 100%;
-        --secondary: 240 5% 94%;
-        --secondary-foreground: 240 10% 10%;
-        --muted: 240 5% 94%;
-        --muted-foreground: 240 5% 30%;
-        --accent: 240 5% 90%;
-        --accent-foreground: 240 10% 10%;
+        --secondary: 210 40% 96.1%;
+        --secondary-foreground: 222 47% 11%;
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --accent: 160 84% 95%;          /* Soft Emerald tint */
+        --accent-foreground: 160 84% 25%;
         --destructive: 0 84.2% 60.2%;
         --destructive-foreground: 0 0% 100%;
-        --border: 240 5% 85%;
-        --input: 240 5% 85%;
-        --ring: 24 95% 48%;
-        --radius: 0.75rem;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --ring: 160 84% 39%;
+        --radius: 1rem;
 
-        /* Premium Sidebar - Inverted in Light Mode (Dark Sidebar) */
-        --sidebar-background: 240 5% 5%;
-        --sidebar-foreground: 240 5% 98%;
-        --sidebar-border: 240 5% 15%;
-        --sidebar-accent: 24 95% 48%;
+        /* Clean Sidebar (Light Mode) */
+        --sidebar-background: 0 0% 100%;
+        --sidebar-foreground: 222 47% 11%;
+        --sidebar-border: 214.3 31.8% 91.4%;
+        --sidebar-accent: 160 84% 39%;
     }
 
     .dark {
-        --background: 240 5% 5%;
-        --foreground: 240 5% 98%;
-        --card: 240 4% 10%;
-        --card-foreground: 240 5% 95%;
-        --popover: 240 4% 10%;
-        --popover-foreground: 240 5% 95%;
-        --primary: 24 95% 48%;
-        --primary-rgb: 234, 88, 12;
+        /* Soft Luminous Slate (Dark Mode) */
+        --background: 222 47% 11%;      /* #0F172A - Deep Slate (NOT pitch black) */
+        --foreground: 210 40% 98%;
+        --card: 217 33% 17%;           /* #1E293B - Luminous Slate card */
+        --card-foreground: 210 40% 98%;
+        --popover: 217 33% 17%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 160 84% 39%;         /* #10B981 - Emerald Green */
+        --primary-rgb: 16, 185, 129;
         --primary-foreground: 0 0% 100%;
-        --secondary: 240 4% 14%;
-        --secondary-foreground: 240 5% 95%;
-        --muted: 240 4% 14%;
-        --muted-foreground: 240 5% 80%;
-        --accent: 240 4% 20%;
-        --accent-foreground: 240 5% 90%;
+        --secondary: 217.2 32.6% 17.5%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217.2 32.6% 17.5%;
+        --muted-foreground: 215 20.2% 65.1%;
+        --accent: 160 84% 20%;
+        --accent-foreground: 210 40% 98%;
         --destructive: 0 62.8% 30.6%;
         --destructive-foreground: 0 0% 100%;
-        --border: 240 4% 20%;
-        --input: 240 4% 20%;
-        --ring: 24 95% 48%;
+        --border: 217.2 32.6% 22.5%;
+        --input: 217.2 32.6% 22.5%;
+        --ring: 160 84% 39%;
 
-        /* Premium Sidebar - Inverted in Dark Mode (Light Sidebar) */
-        --sidebar-background: 240 5% 98%;
-        --sidebar-foreground: 240 10% 4%;
-        --sidebar-border: 240 5% 90%;
-        --sidebar-accent: 24 95% 48%;
+        /* Clean Sidebar (Dark Mode) */
+        --sidebar-background: 222 47% 11%;
+        --sidebar-foreground: 210 40% 98%;
+        --sidebar-border: 217.2 32.6% 22.5%;
+        --sidebar-accent: 160 84% 39%;
     }
 }
 
@@ -76,21 +78,9 @@
         font-feature-settings: "rlig" 1, "calt" 1, "cv01" 1, "cv11" 1;
         -webkit-font-smoothing: antialiased;
         background-image: 
-            radial-gradient(at 0% 0%, hsla(var(--primary) / 0.03) 0px, transparent 50%),
-            radial-gradient(at 100% 100%, hsla(var(--primary) / 0.02) 0px, transparent 50%);
+            radial-gradient(at 0% 0%, hsla(var(--primary) / 0.05) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, hsla(var(--primary) / 0.03) 0px, transparent 50%);
         background-attachment: fixed;
-    }
-
-    /* Kinetic Grid Overlay */
-    body::before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background-image: linear-gradient(to right, hsl(var(--foreground) / 0.015) 1px, transparent 1px),
-                          linear-gradient(to bottom, hsl(var(--foreground) / 0.015) 1px, transparent 1px);
-        background-size: 50px 50px;
-        pointer-events: none;
-        z-index: -1;
     }
 
     ::selection {
@@ -99,50 +89,33 @@
     }
 }
 
-/* --- PREMIUM SIDEBAR CLASSES --- */
+/* --- SIDEBAR STYLES --- */
 .sidebar-container {
     background-color: hsl(var(--sidebar-background));
     color: hsl(var(--sidebar-foreground));
     border-right: 1px solid hsl(var(--sidebar-border));
-    box-shadow: 20px 0 60px -15px rgba(0, 0, 0, 0.1);
+    box-shadow: 10px 0 30px -10px rgba(0, 0, 0, 0.05);
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sidebar-item-active {
-    background-color: hsl(var(--sidebar-accent));
-    color: white !important;
-    box-shadow: 0 10px 20px -5px hsla(var(--sidebar-accent) / 0.4);
-}
-
-.sidebar-item-hover {
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.sidebar-item-hover:hover {
-    background-color: hsla(var(--sidebar-foreground) / 0.08); /* clean subtle hover */
-    color: hsl(var(--sidebar-foreground)); 
-    transform: translateX(6px);
 }
 
 /* --- PREMIUM UTILITIES --- */
 .glass {
-    background: hsla(var(--background) / 0.6);
+    background: hsla(var(--background) / 0.85);
     backdrop-filter: blur(24px) saturate(190%);
-    border: 1px solid hsla(var(--foreground) / 0.06);
+    border: 1px solid hsla(var(--foreground) / 0.08);
 }
 
 .glass-card {
-    background: linear-gradient(135deg, hsla(var(--foreground) / 0.03) 0%, hsla(var(--foreground) / 0.01) 100%);
-    backdrop-filter: blur(12px);
-    border: 1px solid hsla(var(--foreground) / 0.04);
-    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.05);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-    border-color: hsla(var(--primary) / 0.2);
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+    border-color: hsla(var(--primary) / 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.08);
 }
 
 /* --- SCROLLBAR --- */
@@ -156,18 +129,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.15);
+    background: hsl(var(--muted-foreground) / 0.2);
     border-radius: 100px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary) / 0.5);
-}
-
-/* --- CUSTOM FONTS (INTER) --- */
-@layer base {
-    h1, h2, h3, h4, h5, h6 {
-        letter-spacing: -0.025em;
-        font-weight: 700;
-    }
+    background: hsl(var(--primary) / 0.6);
 }

@@ -4,13 +4,11 @@ import { usePathname } from "@/i18n/routing";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { MobileHeader } from "@/components/layout/mobile-header";
-import { MobileFab } from "@/components/layout/mobile-fab";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { cn } from "@/lib/utils";
 import { TopLoader } from "@/components/ui/top-loader";
 import { Suspense } from "react";
 import { EliteHeader } from "@/components/layout/elite-header";
-import { motion, AnimatePresence } from "framer-motion";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -28,8 +26,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             {/* Premium Atmosphere Elements */}
             <div className="fixed inset-0 z-[-1] pointer-events-none">
-                <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[100px] opacity-20" />
-                <div className="absolute top-[20%] -right-[5%] w-[30%] h-[30%] bg-orange-500/5 rounded-full blur-[100px] opacity-10" />
+                <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-emerald-500/5 rounded-full blur-[100px] opacity-20" />
+                <div className="absolute top-[20%] -right-[5%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px] opacity-10" />
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]" />
             </div>
 
@@ -54,21 +52,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
 
                 <div className={cn("flex flex-col flex-1", showLayout && "pt-[60px] md:pt-[72px]")}>
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={pathname}
-                            initial={{ opacity: 0, y: 10, filter: "blur(10px)" }}
-                            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                            exit={{ opacity: 0, y: -10, filter: "blur(10px)" }}
-                            transition={{ duration: 0.4, ease: "circOut" }}
-                            className="flex-1"
-                        >
-                            {children}
-                        </motion.div>
-                    </AnimatePresence>
+                    <div className="flex-1">
+                        {children}
+                    </div>
                 </div>
-
-
             </main>
 
             {/* Navigation - Mobile Elements */}

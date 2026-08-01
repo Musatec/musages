@@ -33,7 +33,11 @@ export function UserMenu() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    if (!user) return null;
+    if (!user) {
+        return (
+            <div className="w-10 h-10 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center text-primary/40 animate-pulse" />
+        );
+    }
 
     const planLabel = user.plan || "STARTER";
     const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";

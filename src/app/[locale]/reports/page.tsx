@@ -9,7 +9,7 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
     const session = await auth();
     const { locale } = await params;
 
-    if (!session?.user?.storeId) {
+    if (!session?.user?.id) {
         redirect(`/${locale}/login`);
     }
 

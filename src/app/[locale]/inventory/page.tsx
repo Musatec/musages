@@ -7,7 +7,8 @@ import Link from "next/link";
 
 export default async function InventoryPage() {
     const session = await auth();
-    if (!session?.user?.storeId) {
+    const schoolId = session?.user?.schoolId || session?.user?.storeId;
+    if (!session?.user?.id) {
         redirect("/login");
     }
 
@@ -39,7 +40,7 @@ export default async function InventoryPage() {
 
     let products;
     try {
-        products = await getProductsWithRetry(session.user.storeId as string);
+        products = await getProductsWithRetry((schoolId || session?.user?.id) as string);
     } catch (error) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center p-10 text-center space-y-4">

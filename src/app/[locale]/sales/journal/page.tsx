@@ -18,10 +18,10 @@ export default async function SalesJournalPage(props: PageProps) {
     dayEnd.setHours(23,59,59,999);
 
     const session = await auth();
-    const storeId = session?.user?.storeId;
+    const storeId = session?.user?.schoolId || session?.user?.storeId || session?.user?.id;
 
-    if (!storeId) {
-        return <div className="p-20 text-center font-black uppercase opacity-20">Store non identifié</div>;
+    if (!session?.user?.id) {
+        return <div className="p-20 text-center font-black uppercase opacity-20">Utilisateur non identifié</div>;
     }
 
     let initialSales = [];

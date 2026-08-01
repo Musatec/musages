@@ -98,8 +98,8 @@ export default function SupabaseProvider({
         <SupabaseContext.Provider value={value}>
             {isLoading ? (
                 <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center space-y-4">
-                    <Loader2 className="w-10 h-10 text-[#F97316] animate-spin" />
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Initialisation MINDOS...</p>
+                    <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Initialisation TaleemApp...</p>
                 </div>
             ) : (
                 children

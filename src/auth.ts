@@ -37,49 +37,47 @@ export const {
           if (!existingUser) {
             console.log("[AUTH_GOOGLE] Nouvel utilisateur détecté. Création automatique de l'Empire...");
             
-            // 1. Créer une boutique par défaut avec les infos Google
-            const store = await prisma.store.create({
+            // 1. Créer une école par défaut avec les infos Google
+            const school = await prisma.school.create({
                 data: {
-                    name: `Empire de ${user.name?.split(' ')[0] || "Commandant"}`,
+                    name: `Établissement de ${user.name?.split(' ')[0] || "Directeur"}`,
                     plan: "STARTER",
                     config: {
                         logo: user.image,
-                        slogan: "Maîtrise et Croissance.",
-                        activity: "Commerce Général"
+                        slogan: "Excellence & Discipline."
                     }
                 }
             });
 
-            // 2. Créer l'utilisateur lié à cette boutique
+            // 2. Créer l'utilisateur lié à cette école
             await prisma.user.create({
               data: {
                 email: user.email as string,
                 name: user.name as string,
                 image: user.image as string,
-                role: "ADMIN",
+                role: "DIRECTEUR",
                 plan: "STARTER",
                 subscriptionStatus: "TRIALING",
                 trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                 hasSeenOnboarding: false,
-                storeId: store.id // Liaison immédiate
+                schoolId: school.id // Liaison immédiate
               }
             });
-            console.log("[AUTH_GOOGLE] Empire et Utilisateur créés avec succès.");
+            console.log("[AUTH_GOOGLE] École et Directeur créés avec succès.");
           } else {
             console.log("[AUTH_GOOGLE] Utilisateur existant trouvé.");
             
-            // Cas particulier : Utilisateur existe mais n'a pas de boutique (onboarding non fini)
-            if (!existingUser.storeId) {
-                console.log("[AUTH_GOOGLE] Utilisateur existant sans boutique. Création d'un Empire de secours...");
-                const store = await prisma.store.create({
+            if (!existingUser.schoolId) {
+                console.log("[AUTH_GOOGLE] Utilisateur existant sans école. Création d'une école par défaut...");
+                const school = await prisma.school.create({
                     data: {
-                        name: `Empire de ${existingUser.name?.split(' ')[0] || "Commandant"}`,
+                        name: `Établissement de ${existingUser.name?.split(' ')[0] || "Directeur"}`,
                         plan: "STARTER"
                     }
                 });
                 await prisma.user.update({
                     where: { id: existingUser.id },
-                    data: { storeId: store.id }
+                    data: { schoolId: school.id }
                 });
             }
           }
@@ -90,6 +88,57 @@ export const {
         }
       }
       return true;
+    },
+    async jwt({ token, user, trigger, session, account }) {
+      // Si c'est une connexion (user est défini), on récupère les vraies infos en BDD
+      if (user && user.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email }
+        });
+
+        if (dbUser) {
+          token.sub = dbUser.id; // Forcer l'ID de la BDD au lieu de l'ID Google
+          token.role = dbUser.role;
+          token.schoolId = dbUser.schoolId;
+          token.storeId = dbUser.schoolId;
+          token.plan = dbUser.plan;
+          token.hasSeenOnboarding = dbUser.hasSeenOnboarding;
+        }
+      }
+      
+      // Mise à jour dynamique de la session après création d'établissement
+      if (trigger === "update" && session?.user) {
+        token.role = session.user.role || token.role;
+        token.schoolId = session.user.schoolId || session.user.storeId || token.schoolId;
+        token.storeId = token.schoolId;
+        token.plan = session.user.plan || token.plan;
+        if (typeof session.user.hasSeenOnboarding === "boolean") {
+          token.hasSeenOnboarding = session.user.hasSeenOnboarding;
+        }
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+      }
+      if (token.role && session.user) {
+        session.user.role = token.role as any;
+      }
+      if (token.schoolId && session.user) {
+        session.user.schoolId = token.schoolId as string;
+      }
+      if (token.storeId && session.user) {
+        session.user.storeId = token.storeId as string;
+      }
+      if (token.plan && session.user) {
+        session.user.plan = token.plan as any;
+      }
+      if (typeof token.hasSeenOnboarding === "boolean" && session.user) {
+        session.user.hasSeenOnboarding = token.hasSeenOnboarding as boolean;
+      }
+      return session;
     },
   },
   events: {

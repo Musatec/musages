@@ -1,3 +1,4 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
 import createNextIntlPlugin from 'next-intl/plugin';
@@ -21,7 +22,15 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '**.**', // Permettre d'autres sources https
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatar.vercel.sh',
       },
     ],
   },

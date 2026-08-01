@@ -1,4 +1,4 @@
-import { Role, UserPlan } from "@prisma/client";
+import { Role, SchoolPlan } from "@prisma/client";
 import NextAuth, { type DefaultSession } from "next-auth";
 
 declare module "next-auth" {
@@ -6,16 +6,18 @@ declare module "next-auth" {
     user: {
       id: string;
       role: Role;
-      storeId: string | null;
-      plan: UserPlan;
+      schoolId: string | null;
+      storeId?: string | null;
+      plan: SchoolPlan;
       hasSeenOnboarding: boolean;
     } & DefaultSession["user"];
   }
 
   interface User {
     role: Role;
-    storeId: string | null;
-    plan: UserPlan;
+    schoolId: string | null;
+    storeId?: string | null;
+    plan: SchoolPlan;
     hasSeenOnboarding: boolean;
   }
 }
@@ -23,8 +25,9 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     role: Role;
-    storeId: string | null;
-    plan: UserPlan;
+    schoolId: string | null;
+    storeId?: string | null;
+    plan: SchoolPlan;
     hasSeenOnboarding: boolean;
   }
 }

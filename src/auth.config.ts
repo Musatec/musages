@@ -1,6 +1,8 @@
 import type { NextAuthConfig } from "next-auth";
 
 export const authConfig = {
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "7a6e1a2b-3c4d-5e6f-7a8b-9c0d1e2f3a4b",
+  trustHost: true,
   providers: [], // Providers are added in auth.ts for non-edge compatibility
   callbacks: {
     async session({ session, token }) {
@@ -9,6 +11,9 @@ export const authConfig = {
       }
       if (token.role && session.user) {
         session.user.role = token.role as any;
+      }
+      if (token.schoolId && session.user) {
+        session.user.schoolId = token.schoolId as string;
       }
       if (token.storeId && session.user) {
         session.user.storeId = token.storeId as string;
@@ -22,33 +27,19 @@ export const authConfig = {
       return session;
     },
     async jwt({ token, user, trigger, session }) {
-      // Chargement initial ou reconnexion
       if (user) {
-        // Pour les utilisateurs Google, on doit aller chercher les infos en DB car pas d'adaptateur
-        if (!user.storeId && user.email) {
-            const { prisma } = await import("@/lib/prisma");
-            const dbUser = await prisma.user.findUnique({
-                where: { email: user.email }
-            });
-            if (dbUser) {
-                token.role = dbUser.role;
-                token.storeId = dbUser.storeId;
-                token.plan = dbUser.plan;
-                token.hasSeenOnboarding = dbUser.hasSeenOnboarding;
-                return token;
-            }
-        }
-        
         token.role = user.role;
-        token.storeId = user.storeId;
+        token.schoolId = user.schoolId || user.storeId || null;
+        token.storeId = user.schoolId || user.storeId || null;
         token.plan = (user as any).plan;
         token.hasSeenOnboarding = user.hasSeenOnboarding;
       }
       
-      // Mise à jour dynamique de la session après création d'entreprise
+      // Mise à jour dynamique de la session après création d'établissement
       if (trigger === "update" && session?.user) {
         token.role = session.user.role || token.role;
-        token.storeId = session.user.storeId || token.storeId;
+        token.schoolId = session.user.schoolId || session.user.storeId || token.schoolId;
+        token.storeId = token.schoolId;
         token.plan = session.user.plan || token.plan;
         if (typeof session.user.hasSeenOnboarding === "boolean") {
           token.hasSeenOnboarding = session.user.hasSeenOnboarding;

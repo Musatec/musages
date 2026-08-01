@@ -6,6 +6,7 @@ export function PwaRegistrar() {
     useEffect(() => {
         if (
             typeof window !== "undefined" &&
+            process.env.NODE_ENV === "production" &&
             "serviceWorker" in navigator &&
             window.serivceWorkerReady === undefined
         ) {
