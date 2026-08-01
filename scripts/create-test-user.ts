@@ -25,13 +25,13 @@ async function main() {
       update: {
         password: hashedPassword,
         name,
-        role: "ADMIN",
+        role: "DIRECTEUR",
       },
       create: {
         email,
         password: hashedPassword,
         name,
-        role: "ADMIN",
+        role: "DIRECTEUR",
       },
     });
 

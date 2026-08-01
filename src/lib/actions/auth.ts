@@ -61,7 +61,7 @@ export async function register(data: z.infer<typeof RegisterSchema>) {
             email,
             name,
             password: hashedPassword,
-            role: "ADMIN",
+            role: "DIRECTEUR",
             subscriptionStatus: "TRIALING",
             trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         },

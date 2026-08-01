@@ -40,7 +40,7 @@ export function UserMenu() {
     }
 
     const planLabel = user.plan || "STARTER";
-    const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN";
+    const isAdmin = user.role === "DIRECTEUR" || user.role === "SUPER_ADMIN";
 
     return (
         <div className="relative" ref={menuRef}>

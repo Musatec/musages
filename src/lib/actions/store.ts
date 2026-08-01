@@ -46,7 +46,7 @@ export async function createStore(data: z.infer<typeof CreateStoreSchema>) {
       where: { id: session.user.id },
       data: {
         storeId: store.id,
-        role: "ADMIN",
+        role: "DIRECTEUR",
         plan: plan as any,
         subscriptionStatus: "TRIALING",
         trialEndsAt,

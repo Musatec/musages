@@ -27,13 +27,13 @@ export async function GET() {
       update: { 
         password: hashedPassword,
         storeId: store.id,
-        role: "ADMIN" 
+        role: "DIRECTEUR" 
       },
       create: {
         email,
         name: "Musa Admin",
         password: hashedPassword,
-        role: "ADMIN",
+        role: "DIRECTEUR",
         storeId: store.id
       }
     });

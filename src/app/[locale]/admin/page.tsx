@@ -49,8 +49,8 @@ export default async function AdminDashboardPage() {
         }
     }
 
-    // Only SUPER_ADMIN or ADMIN can access this page
-    if (userRole !== "SUPER_ADMIN" && userRole !== "ADMIN") {
+    // Only SUPER_ADMIN or DIRECTEUR can access this page
+    if (userRole !== "SUPER_ADMIN" && userRole !== "DIRECTEUR") {
         redirect("/dashboard");
     }
 

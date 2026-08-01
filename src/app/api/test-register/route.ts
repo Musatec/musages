@@ -16,7 +16,7 @@ export async function GET() {
         email,
         name: "Debug User",
         password: hashedPassword,
-        role: "ADMIN",
+        role: "DIRECTEUR",
         subscriptionStatus: "TRIALING",
         trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
       }

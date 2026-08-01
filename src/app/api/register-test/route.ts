@@ -14,7 +14,7 @@ export async function GET() {
       update: {
         password: hashedPassword,
         name: "Directeur Mamadou Diallo",
-        role: "ADMIN",
+        role: "DIRECTEUR",
         schoolId: defaultSchoolId,
         storeId: defaultSchoolId,
         hasSeenOnboarding: true,
@@ -23,7 +23,7 @@ export async function GET() {
         email,
         password: hashedPassword,
         name: "Directeur Mamadou Diallo",
-        role: "ADMIN",
+        role: "DIRECTEUR",
         schoolId: defaultSchoolId,
         storeId: defaultSchoolId,
         hasSeenOnboarding: true,
