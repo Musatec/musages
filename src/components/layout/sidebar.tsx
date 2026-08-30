@@ -1,17 +1,16 @@
 "use client";
-import { useState, useEffect } from "react";
 
 import { cn } from "@/lib/utils";
 import { 
     ChevronLeft, 
     Crown,
-    Zap
+    Zap,
+    LogOut
 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "@/i18n/routing";
 import { useSidebar } from "@/components/providers/sidebar-provider";
-
 import { NAV_SECTIONS, SUPER_ADMIN_NAV } from "@/config/nav";
 
 export function Sidebar() {
@@ -24,38 +23,37 @@ export function Sidebar() {
     return (
         <aside 
             className={cn(
-                "fixed left-0 top-0 h-screen transition-all duration-500 ease-in-out hidden md:flex flex-col z-[70] sidebar-container border-r border-border/50 bg-background",
+                "fixed left-0 top-0 h-screen transition-all duration-300 ease-in-out hidden md:flex flex-col z-[70] border-r border-[#1A2CA3] bg-[#0D1A63] text-white shadow-xl",
                 collapsed ? "w-20" : "w-64"
             )}
         >
-            {/* Mesh Texture Overlay */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '12px 12px' }} />
-            
-            {/* Logo Section - Horizontal Format */}
-            <div className="p-4 flex items-center justify-between overflow-hidden relative z-10 border-b border-white/5">
-                <Link href={userRole === "SUPER_ADMIN" ? "/admin" : "/dashboard"} className="flex items-center">
-                    <div className={cn(
-                        "relative transition-all duration-300 flex items-center",
-                        collapsed ? "w-10 h-10 overflow-hidden" : "h-10"
-                    )}>
-                        <img 
-                            src="/logo-taleem.png" 
-                            alt="TaleemApp Logo" 
-                            className="h-9 w-auto object-contain rounded-lg" 
-                        />
+            {/* Header Sidebar - Brand Logo */}
+            <div className="p-4 flex items-center justify-between overflow-hidden relative z-10 border-b border-[#1A2CA3]">
+                <Link href={userRole === "SUPER_ADMIN" ? "/admin" : "/dashboard"} className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#2845D6] text-white flex items-center justify-center font-black text-lg shadow-md shrink-0">
+                        T
                     </div>
+                    {!collapsed && (
+                        <div className="flex flex-col">
+                            <span className="font-extrabold text-xl tracking-tight text-white leading-none">
+                                Tahfiz<span className="text-[#F68048]">.sn</span>
+                            </span>
+                            <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest pt-0.5">Espace Daara</span>
+                        </div>
+                    )}
                 </Link>
-                {/* Collapse Control */}
+
                 <button 
                     onClick={() => setCollapsed(!collapsed)}
-                    className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-emerald-500 hover:text-black transition-all shadow-sm active:scale-90"
+                    className="p-1.5 bg-[#1A2CA3] border border-[#2845D6]/40 rounded-lg hover:bg-[#2845D6] text-white transition-all shadow-sm active:scale-90"
+                    aria-label="Toggle Sidebar"
                 >
-                    <ChevronLeft className={cn("w-3.5 h-3.5 transition-transform duration-500 text-muted-foreground hover:text-black", collapsed ? "rotate-180" : "rotate-0")} />
+                    <ChevronLeft className={cn("w-4 h-4 transition-transform duration-300 text-white", collapsed ? "rotate-180" : "rotate-0")} />
                 </button>
             </div>
- 
-            {/* Navigation */}
-            <nav className="flex-1 px-3 space-y-6 py-6 overflow-y-auto no-scrollbar relative z-10">
+
+            {/* Navigation Section */}
+            <nav className="flex-1 px-3 space-y-6 py-5 overflow-y-auto no-scrollbar relative z-10">
                 {currentNav.map((section) => {
                     const visibleItems = section.items.filter(item => {
                         const hasRole = !item.roles || item.roles.includes(userRole);
@@ -67,30 +65,27 @@ export function Sidebar() {
                     return (
                         <div key={section.title} className="space-y-1">
                             {!collapsed && (
-                                <p className="px-3 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 mb-3 italic">
+                                <p className="px-3 text-[9px] font-extrabold uppercase tracking-widest text-[#F68048] mb-2.5">
                                     {section.title}
                                 </p>
                             )}
-                            <div className="space-y-0.5">
+                            <div className="space-y-1">
                                 {visibleItems.map((item) => {
-                                    const isActive = pathname === item.href || pathname.startsWith(item.href);
+                                    const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
                                     return (
                                         <Link 
                                             key={item.href} 
                                             href={item.href}
                                             className={cn(
-                                                 "flex items-center gap-3 p-2.5 rounded-xl transition-all group relative overflow-hidden",
+                                                 "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-xs relative overflow-hidden",
                                                  isActive 
-                                                     ? "bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 scale-[1.02] font-black" 
-                                                     : "opacity-80 hover:opacity-100 hover:bg-white/5 text-foreground"
+                                                     ? "bg-[#2845D6] text-white shadow-md shadow-[#2845D6]/30 font-bold" 
+                                                     : "text-slate-200 hover:text-white hover:bg-[#1A2CA3]"
                                              )}
                                          >
-                                            <item.icon className={cn("w-4 h-4 transition-all relative z-10", isActive ? "scale-110" : "group-hover:scale-110")} />
+                                            <item.icon className={cn("w-4 h-4 shrink-0 transition-transform", isActive ? "scale-110 text-white" : "text-slate-300")} />
                                             {!collapsed && (
-                                                <span className={cn(
-                                                    "text-[12px] font-bold transition-all whitespace-nowrap relative z-10",
-                                                    isActive ? "opacity-100" : "opacity-90 group-hover:opacity-100"
-                                                )}>
+                                                <span className="truncate">
                                                     {item.label}
                                                 </span>
                                             )}
@@ -98,28 +93,37 @@ export function Sidebar() {
                                     );
                                 })}
                             </div>
-                            {!collapsed && section.title !== "DIRECTION" && <div className="mx-3 mt-4 h-[1px] bg-white/5" />}
                         </div>
                     );
                 })}
             </nav>
 
-            {/* Minimalist Plan Footer */}
-            <div className="p-3 border-t border-white/5 relative z-10">
+            {/* Footer Sidebar - Profil & Deconnexion */}
+            <div className="p-3 border-t border-[#1A2CA3] space-y-2 relative z-10">
                 <div className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-xl border transition-all",
-                    collapsed ? "justify-center" : "justify-between",
-                    session?.user?.plan === "BUSINESS" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-white/5 border-white/10 text-muted-foreground"
+                    "flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1A2CA3] border border-[#2845D6]/40 text-slate-200 text-xs font-semibold",
+                    collapsed ? "justify-center" : "justify-between"
                 )}>
                     <div className="flex items-center gap-2 overflow-hidden">
-                        {session?.user?.plan === "BUSINESS" ? <Crown className="w-3.5 h-3.5 shrink-0" /> : <Zap className="w-3.5 h-3.5 shrink-0" />}
+                        <Crown className="w-3.5 h-3.5 text-[#F68048] shrink-0" />
                         {!collapsed && (
-                            <span className="text-[10px] font-black uppercase tracking-[0.1em] truncate italic">
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#F68048] truncate">
                                 PLAN {session?.user?.plan || "STARTER"}
                             </span>
                         )}
                     </div>
                 </div>
+
+                <button
+                    onClick={() => signOut({ callbackUrl: "/login" })}
+                    className={cn(
+                        "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-[#1A2CA3] text-xs font-semibold transition-colors",
+                        collapsed ? "justify-center" : "justify-start"
+                    )}
+                >
+                    <LogOut className="w-4 h-4 text-slate-300 shrink-0" />
+                    {!collapsed && <span>Déconnexion</span>}
+                </button>
             </div>
         </aside>
     );

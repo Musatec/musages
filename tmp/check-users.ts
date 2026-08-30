@@ -1,16 +1,15 @@
-
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
+import { Pool } from "pg";
 
 async function main() {
-  const users = await prisma.user.findMany({
-    select: { email: true, name: true, storeId: true }
-  });
-  console.log("\n=== UTILISATEURS DÉTECTÉS DANS LA BASE ===");
-  users.forEach(u => {
-    console.log(`- Email: ${u.email} | Nom: ${u.name || 'N/A'} | StoreID: ${u.storeId || 'N/A'}`);
-  });
-  console.log("==========================================\n");
+  const pool = new Pool({ connectionString: "postgresql://postgres:postgres@localhost:5432/postgres", connectionTimeoutMillis: 3000 });
+  try {
+    const res = await pool.query('SELECT NOW()');
+    console.log("✅ SUCCÈS LOCAL POSTGRESQL:", res.rows[0].now);
+  } catch (err: any) {
+    console.error("❌ PAS DE POSTGRESQL LOCAL:", err.message);
+  } finally {
+    await pool.end();
+  }
 }
 
-main().catch(e => console.error(e)).finally(() => prisma.$disconnect());
+main();

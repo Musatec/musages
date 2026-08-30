@@ -1,15 +1,21 @@
-import { Sale, Product, SaleItem } from "@prisma/client";
+import { Transaction } from "@prisma/client";
 
-export interface InvoiceItem extends Omit<SaleItem, "createdAt"> {
-  product: Product;
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  amount: number;
+  quantity: number;
 }
 
-export interface Invoice extends Omit<Sale, "createdAt" | "updatedAt" | "deletedAt"> {
+export interface Invoice {
+  id: string;
+  number: string;
+  total: number;
+  status: string;
   items: InvoiceItem[];
-  seller: { name: string | null };
+  seller?: { name: string | null };
   createdAt: Date | string;
   updatedAt: Date | string;
-  deletedAt: Date | string | null;
 }
 
 export interface InvoicesMetrics {

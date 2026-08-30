@@ -8,10 +8,10 @@ export async function GET() {
         const password = "password123";
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // 1. Create a default school
-        const school = await prisma.school.create({
+        // 1. Create a default Daara
+        const daara = await prisma.daara.create({
             data: {
-                name: "TaleemApp École Démo",
+                name: "Daara Démo Taleem",
                 plan: "BUSINESS"
             }
         });
@@ -21,17 +21,17 @@ export async function GET() {
             where: { email },
             update: {
                 password: hashedPassword,
-                schoolId: school.id,
+                daaraId: daara.id,
                 role: "SUPER_ADMIN",
                 plan: "BUSINESS"
             },
             create: {
                 email,
-                name: "Directeur Taleem",
+                name: "Serigne Daara Taleem",
                 password: hashedPassword,
                 role: "SUPER_ADMIN",
                 plan: "BUSINESS",
-                schoolId: school.id
+                daaraId: daara.id
             }
         });
 

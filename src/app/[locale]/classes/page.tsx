@@ -17,34 +17,23 @@ export default async function ClassesPage({
     redirect(`/${locale}/login`);
   }
 
-  const schoolId = session.user.schoolId || session.user.storeId || session.user.id || "school_demo_123";
+  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
 
-  // Fetch all classes with student count
-  const classes = await prisma.class.findMany({
-    where: { schoolId },
+  // Fetch all halqas with talibes count
+  const halqas = await prisma.halqa.findMany({
+    where: { daaraId },
     orderBy: { name: "asc" },
     include: {
       _count: {
-        select: { students: { where: { deletedAt: null } } }
-      }
-    }
-  });
-
-  // Fetch all subjects
-  const subjects = await prisma.subject.findMany({
-    where: { schoolId },
-    orderBy: { name: "asc" },
-    include: {
-      _count: {
-        select: { grades: true }
+        select: { talibes: { where: { deletedAt: null } } }
       }
     }
   });
 
   return (
     <ClassesClient 
-      classes={classes}
-      subjects={subjects}
+      classes={halqas as any}
+      subjects={[]}
     />
   );
 }

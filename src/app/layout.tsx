@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import fs from "fs";
 import path from "path";
@@ -22,17 +21,10 @@ import { PwaRegistrar } from "@/components/providers/pwa-registrar";
 import { CSPostHogProvider } from "@/components/providers/posthog-provider";
 import PostHogPageView from "@/components/providers/posthog-pageview";
 import { CrispProvider } from "@/components/providers/crisp-provider";
-import { GuidedTour } from "@/components/ui/guided-tour";
 import { Suspense } from "react";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
 export const viewport: Viewport = {
-  themeColor: "#10B981",
+  themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -41,11 +33,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "TaleemApp | SaaS de Gestion Scolaire Franco-Arabe",
-    template: "%s | TaleemApp"
+    default: "Daara.net | SaaS de Gestion des Daaras & Écoles Coraniques",
+    template: "%s | Daara.net"
   },
-  description: "Plateforme SaaS tout-en-un de gestion pour les écoles franco-arabes et établissements privés au Sénégal. Recouvrement des écolages Wave/OM, bulletins de notes et relances WhatsApp.",
-  keywords: ["TaleemApp", "École Franco-Arabe Sénégal", "Gestion écolage Wave", "Logiciel école Dakar", "Médersa Sénégal", "Bulletins scolaires PDF"],
+  description: "Plateforme SaaS tout-en-un de gestion des Daaras et Écoles Coraniques au Sénégal et dans le monde. Suivi des 60 Hizb, Allwa, Ndeyi Daara et collecte de Sadaqa par Wave & Orange Money.",
+  keywords: ["Daara.net", "Daara Sénégal", "Suivi 60 Hizb", "Allwa Coran", "Ndeyi Daara", "Sadaqa Wave", "Gestion École Coranique"],
   metadataBase: new URL('https://musages.vercel.app'),
   manifest: "/manifest.json",
   icons: {
@@ -53,7 +45,7 @@ export const metadata: Metadata = {
     shortcut: '/logo-taleem.png',
     apple: '/logo-taleem.png',
   },
-  applicationName: "TaleemApp",
+  applicationName: "Daara.net",
 };
 
 export default async function RootLayout({
@@ -67,7 +59,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={dir} suppressHydrationWarning>
-      <body className={`${inter.variable} bg-background text-foreground antialiased selection:bg-emerald-500/30 selection:text-emerald-500 font-sans`}>
+      <body className="bg-background text-foreground antialiased selection:bg-emerald-500/30 selection:text-emerald-500 font-sans">
         <SessionProvider>
           <ThemeProvider
             attribute="class"
@@ -86,7 +78,6 @@ export default async function RootLayout({
                     <PwaRegistrar />
                     <CrispProvider />
                     <AppLayout>
-                      <GuidedTour />
                       {children}
                     </AppLayout>
                   </SidebarProvider>

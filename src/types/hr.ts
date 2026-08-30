@@ -1,4 +1,4 @@
-import { Employee } from "@prisma/client";
+import { User } from "@prisma/client";
 
 export interface HRMetrics {
   totalPayroll: number;
@@ -8,7 +8,7 @@ export interface HRMetrics {
 }
 
 export interface HRData {
-  employees: Employee[];
+  employees: User[];
   metrics: HRMetrics;
 }
 

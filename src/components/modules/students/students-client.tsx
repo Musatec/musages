@@ -97,7 +97,7 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight italic">Élèves & Inscriptions / الطلاب</h1>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Élèves & Inscriptions / الطلاب</h1>
           <p className="text-sm text-muted-foreground">Registre des effectifs et nouvelles inscriptions.</p>
         </div>
         <div className="flex gap-3">
@@ -195,7 +195,7 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
             >
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="text-2xl font-black uppercase tracking-tight italic">Nouvelle Inscription</h2>
+                  <h2 className="text-2xl font-black uppercase tracking-tight">Nouvelle Inscription</h2>
                   <p className="text-sm text-muted-foreground">Ajouter un élève à l'établissement.</p>
                 </div>
                 <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center text-primary">

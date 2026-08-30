@@ -190,52 +190,90 @@ export function JanguDashboardClient({
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-border/50 text-muted-foreground font-semibold uppercase tracking-wider">
-                  <th className="pb-3">Élève</th>
-                  <th className="pb-3">Classe</th>
-                  <th className="pb-3">Mois</th>
-                  <th className="pb-3">Montant</th>
-                  <th className="pb-3">Statut</th>
-                  <th className="pb-3 text-right">Actions WhatsApp</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/30">
-                {recentTuitions.map((item) => (
-                  <tr key={item.id} className="hover:bg-muted/30 transition-all">
-                    <td className="py-3 font-semibold">
-                      {item.student.firstName} {item.student.lastName}
-                      <div className="text-[10px] text-muted-foreground font-normal">Matricule: {item.student.matricule}</div>
-                    </td>
-                    <td className="py-3 text-muted-foreground font-medium">{item.student.class.name}</td>
-                    <td className="py-3 font-medium">{MONTH_NAMES[item.month - 1]} {item.year}</td>
-                    <td className="py-3 font-bold">{item.amount.toLocaleString('fr-FR')} FCFA</td>
-                    <td className="py-3">
+          <>
+            {/* Vue Desktop: Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-border/50 text-muted-foreground font-semibold uppercase tracking-wider">
+                    <th className="pb-3">Élève</th>
+                    <th className="pb-3">Classe</th>
+                    <th className="pb-3">Mois</th>
+                    <th className="pb-3">Montant</th>
+                    <th className="pb-3">Statut</th>
+                    <th className="pb-3 text-right">Actions WhatsApp</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/30">
+                  {recentTuitions.map((item) => (
+                    <tr key={item.id} className="hover:bg-muted/30 transition-all">
+                      <td className="py-3 font-semibold">
+                        {item.student.firstName} {item.student.lastName}
+                        <div className="text-[10px] text-muted-foreground font-normal">Matricule: {item.student.matricule}</div>
+                      </td>
+                      <td className="py-3 text-muted-foreground font-medium">{item.student.class.name}</td>
+                      <td className="py-3 font-medium">{MONTH_NAMES[item.month - 1]} {item.year}</td>
+                      <td className="py-3 font-bold">{item.amount.toLocaleString('fr-FR')} FCFA</td>
+                      <td className="py-3">
+                        {item.status === "PAID" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 font-bold text-[10px]">
+                            <CheckCircle2 className="w-3 h-3" /> PAYÉ
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 font-bold text-[10px]">
+                            <Clock className="w-3 h-3" /> EN ATTENTE
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 text-right space-x-2">
+                        <button
+                          onClick={() => handleSendWhatsAppReminder(item.student.parentPhone, item.student.parentName, item.student.firstName, item.amount)}
+                          className="px-3 py-1.5 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white font-bold rounded-lg transition-all inline-flex items-center gap-1"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" /> WhatsApp
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Vue Mobile: Cartes */}
+            <div className="md:hidden flex flex-col gap-3">
+              {recentTuitions.map((item) => (
+                <div key={item.id} className="bg-background border border-border/50 rounded-xl p-3 flex flex-col gap-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-bold text-sm">{item.student.firstName} {item.student.lastName}</span>
+                      <div className="text-xs text-muted-foreground">{item.student.class.name}</div>
+                    </div>
+                    <div>
                       {item.status === "PAID" ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 font-bold text-[10px]">
-                          <CheckCircle2 className="w-3 h-3" /> PAYÉ
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-600 font-bold text-[9px] uppercase">
+                          Payé
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 font-bold text-[10px]">
-                          <Clock className="w-3 h-3" /> EN ATTENTE
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 font-bold text-[9px] uppercase">
+                          En attente
                         </span>
                       )}
-                    </td>
-                    <td className="py-3 text-right space-x-2">
-                      <button
-                        onClick={() => handleSendWhatsAppReminder(item.student.parentPhone, item.student.parentName, item.student.firstName, item.amount)}
-                        className="px-3 py-1.5 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white font-bold rounded-lg transition-all inline-flex items-center gap-1"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" /> WhatsApp
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="font-black">{item.amount.toLocaleString('fr-FR')} FCFA</span>
+                    <span className="text-xs text-muted-foreground">{MONTH_NAMES[item.month - 1]} {item.year}</span>
+                  </div>
+                  <button
+                    onClick={() => handleSendWhatsAppReminder(item.student.parentPhone, item.student.parentName, item.student.firstName, item.amount)}
+                    className="w-full mt-2 py-2 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-1"
+                  >
+                    <MessageSquare className="w-4 h-4" /> Relancer via WhatsApp
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

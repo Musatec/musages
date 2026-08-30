@@ -24,10 +24,10 @@ export default function StoreManagerPage() {
     const [empPass, setEmpPass] = useState("");
 
     const fetchData = async () => {
-        const res = await getUserStores();
-        if (res.success) {
+        const res: any = await getUserStores();
+        if (res && res.success) {
             setData(res as any);
-        } else {
+        } else if (res && res.error) {
             toast.error(res.error);
         }
         setLoading(false);
@@ -46,10 +46,10 @@ export default function StoreManagerPage() {
     useEffect(() => {
         let isMounted = true;
         (async () => {
-            const res = await getUserStores();
+            const res: any = await getUserStores();
             if (isMounted) {
-                if (res.success) setData(res as any);
-                else toast.error(res.error);
+                if (res && res.success) setData(res as any);
+                else if (res && res.error) toast.error(res.error);
                 setLoading(false);
             }
         })();
@@ -58,12 +58,12 @@ export default function StoreManagerPage() {
 
     const handleCreateStore = async (e: React.FormEvent) => {
         e.preventDefault();
-        const res = await createStore(newStoreName);
-        if (res.success) {
+        const res: any = await createStore(newStoreName);
+        if (res && res.success) {
             toast.success(`Succursale "${newStoreName}" créée avec succès !`);
             setNewStoreName("");
             fetchData();
-        } else {
+        } else if (res && res.error) {
             toast.error(res.error);
         }
     };
@@ -71,28 +71,28 @@ export default function StoreManagerPage() {
     const handleCreateManager = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!activeStoreId) return;
-        const res = await createSubStoreManager({ 
+        const res: any = await createSubStoreManager({ 
             storeId: activeStoreId, 
             name: empName, 
             email: empEmail, 
             password: empPass 
         });
-        if (res.success) {
+        if (res && res.success) {
             toast.success(`Accès Manager créé pour ${empEmail} !`);
             setEmpName(""); setEmpEmail(""); setEmpPass("");
             setActiveStoreId(null);
             fetchData();
-        } else {
+        } else if (res && res.error) {
             toast.error(res.error);
         }
     };
 
     const handleSwitchStore = async (id: string, name: string) => {
-        const res = await switchStore(id);
-        if (res.success) {
+        const res: any = await switchStore(id);
+        if (res && res.success) {
             toast.success(`Connexion en cours à ${name}...`);
             router.push('/dashboard');
-        } else {
+        } else if (res && res.error) {
             toast.error(res.error);
         }
     };

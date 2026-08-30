@@ -17,20 +17,20 @@ export default async function TeachersPage({
     redirect(`/${locale}/login`);
   }
 
-  const schoolId = session.user.schoolId || session.user.storeId || session.user.id || "school_demo_123";
+  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
 
-  // Fetch all teachers
-  const teachers = await prisma.teacher.findMany({
-    where: { schoolId, deletedAt: null },
-    orderBy: { lastName: "asc" }
+  // Fetch all oustaz
+  const oustazList = await prisma.user.findMany({
+    where: { daaraId, role: "OUSTAZ", deletedAt: null },
+    orderBy: { name: "asc" }
   });
 
   // Fetch recent salary payments
   const recentPayments = await prisma.transaction.findMany({
     where: { 
-      schoolId, 
+      daaraId, 
       type: "EXPENSE",
-      category: "SALAIRE_ENSEIGNANT"
+      category: "SALAIRE_OUSTAZ"
     },
     orderBy: { createdAt: "desc" },
     take: 50
@@ -38,8 +38,8 @@ export default async function TeachersPage({
 
   return (
     <TeachersClient 
-      teachers={teachers}
-      recentPayments={recentPayments}
+      teachers={oustazList as any}
+      recentPayments={recentPayments as any}
     />
   );
 }

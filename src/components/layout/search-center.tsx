@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
-import { globalSearch } from "@/lib/actions/search";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -58,8 +57,8 @@ export function SearchCenter() {
 
         const handler = setTimeout(async () => {
             setLoading(true);
-            const res = await globalSearch(query);
-            if (res.results) setResults(res.results);
+            // const res = await globalSearch(query);
+            // if (res.results) setResults(res.results);
             setLoading(false);
         }, 300);
 
@@ -139,16 +138,16 @@ export function SearchCenter() {
                                 {/* Actions Rapides Par Défaut */}
                                 <Command.Group heading="Accès Rapide" className="px-2 py-3 border-t border-border mt-2">
                                     <CommandItem 
-                                        onSelect={() => runCommand(() => router.push('/sales'))}
-                                        icon={ShoppingCart}
-                                        title="Nouvelle Vente"
-                                        subtitle="Terminal POS"
+                                        onSelect={() => runCommand(() => router.push('/students'))}
+                                        icon={User}
+                                        title="Élèves"
+                                        subtitle="Gestion des élèves"
                                     />
                                     <CommandItem 
-                                        onSelect={() => runCommand(() => router.push('/inventory'))}
-                                        icon={Package}
-                                        title="Inventaire"
-                                        subtitle="Stocks et produits"
+                                        onSelect={() => runCommand(() => router.push('/tuition'))}
+                                        icon={FileText}
+                                        title="Écolages"
+                                        subtitle="Paiements et reçus"
                                     />
                                     <CommandItem 
                                         onSelect={() => runCommand(() => router.push('/settings'))}

@@ -14,8 +14,6 @@ import { toast } from "sonner";
 import { EliteMetricCard } from "@/components/ui/metric-card";
 import { ElitePageHeader } from "@/components/ui/page-header";
 
-import { SaleStatus } from "@prisma/client";
-
 interface InvoiceItem {
     id: string;
     product: { name: string };
@@ -28,7 +26,7 @@ interface Invoice {
     customerName?: string;
     totalAmount: number;
     amountPaid: number;
-    status: SaleStatus;
+    status: string;
     paymentMethod: string;
     createdAt: string;
     items?: InvoiceItem[];

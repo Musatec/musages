@@ -11,17 +11,21 @@ export async function updateSchoolSettings(data: {
   email?: string;
   ninea?: string;
   slogan?: string;
+  gradingSystem?: string;
+  averageBase?: number;
+  reportHeaderLeft?: string;
+  reportHeaderRight?: string;
 }) {
   try {
     const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) return { error: "Session non valide ou école non configurée." };
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide ou Daara non configuré." };
 
-    const school = await prisma.school.findUnique({ where: { id: schoolId } });
-    const currentConfig = school?.config as any || {};
+    const daara = await prisma.daara.findUnique({ where: { id: daaraId } });
+    const currentConfig = (daara?.config as any) || {};
 
-    const updatedSchool = await prisma.school.update({
-      where: { id: schoolId },
+    const updatedDaara = await prisma.daara.update({
+      where: { id: daaraId },
       data: {
         name: data.name,
         address: data.address,
@@ -30,15 +34,19 @@ export async function updateSchoolSettings(data: {
         ninea: data.ninea,
         config: {
           ...currentConfig,
-          slogan: data.slogan
+          slogan: data.slogan,
+          gradingSystem: data.gradingSystem || "BASE_20_COEF",
+          averageBase: data.averageBase || 20,
+          reportHeaderLeft: data.reportHeaderLeft || "",
+          reportHeaderRight: data.reportHeaderRight || ""
         }
       }
     });
 
     revalidatePath("/settings");
-    revalidatePath("/grades"); // Le bulletin utilise ces infos
-    revalidatePath("/tuition"); // Les reçus utilisent ces infos
-    return { success: true, school: updatedSchool };
+    revalidatePath("/grades");
+    revalidatePath("/tuition");
+    return { success: true, school: updatedDaara, daara: updatedDaara };
   } catch (error: any) {
     console.error("[UPDATE_SETTINGS_ERROR]", error);
     return { error: error.message || "Erreur lors de la mise à jour des paramètres." };

@@ -238,9 +238,12 @@ export default function HRPage() {
                                     <tr>
                                         <td colSpan={7} className="py-20 text-center text-muted-foreground italic">Aucun membre d'équipe enregistré.</td>
                                     </tr>
-                                ) : filteredEmployees?.map((employee) => {
-                                    const net = employee.salary - employee.advances;
-                                    const advPercent = Math.min(100, (employee.advances / employee.salary) * 100);
+                                ) : filteredEmployees?.map((employee: any) => {
+                                    const salary = Number(employee.salary) || 0;
+                                    const advances = Number(employee.advances) || 0;
+                                    const net = salary - advances;
+                                    const advPercent = salary > 0 ? Math.min(100, (advances / salary) * 100) : 0;
+                                    const displayName = employee.name || `${employee.firstName || ''} ${employee.lastName || ''}`.trim() || "Collaborateur";
 
                                     return (
                                         <tr key={employee.id} className="group hover:bg-muted/20 transition-all">
@@ -250,21 +253,21 @@ export default function HRPage() {
                                                         <UserIcon className="w-4 h-4 opacity-40 group-hover:opacity-100" />
                                                     </div>
                                                     <div className="overflow-hidden">
-                                                        <h3 className="font-bold text-foreground text-sm uppercase truncate mb-0.5">{employee.firstName} {employee.lastName}</h3>
+                                                        <h3 className="font-bold text-foreground text-sm uppercase truncate mb-0.5">{displayName}</h3>
                                                         <p className="text-[10px] text-muted-foreground font-mono uppercase truncate opacity-60">{employee.phone || "Non renseigné"}</p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-xs font-medium text-muted-foreground">
-                                                {new Date(employee.startDate).toLocaleDateString('fr-FR')}
+                                                {employee.createdAt ? new Date(employee.createdAt).toLocaleDateString('fr-FR') : "-"}
                                             </td>
                                             <td className="px-6 py-4 text-sm font-bold text-foreground">
-                                                {formatMoney(employee.salary)} F
+                                                {formatMoney(salary)} F
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-col gap-1 w-32">
                                                     <div className="flex justify-between items-end mb-1">
-                                                        <span className="text-xs font-bold text-amber-600">-{formatMoney(employee.advances)} F</span>
+                                                        <span className="text-xs font-bold text-amber-600">-{formatMoney(advances)} F</span>
                                                     </div>
                                                     <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
                                                         <div className={cn("h-full transition-all duration-700", advPercent > 70 ? "bg-red-500" : "bg-amber-500")} style={{ width: `${advPercent}%` }} />
@@ -286,10 +289,10 @@ export default function HRPage() {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => handleAdvance(employee.id, employee.firstName)} className="p-2 bg-background border border-border rounded-lg hover:bg-amber-500 hover:text-white transition-colors shadow-sm" title="Verser acompte">
+                                                    <button onClick={() => handleAdvance(employee.id, displayName)} className="p-2 bg-background border border-border rounded-lg hover:bg-amber-500 hover:text-white transition-colors shadow-sm" title="Verser acompte">
                                                         <Wallet className="w-3.5 h-3.5" />
                                                     </button>
-                                                    <button onClick={() => handleSalaryPayment(employee.id, employee.firstName, net)} disabled={net <= 0} className={cn("p-2 bg-background border border-border rounded-lg transition-colors shadow-sm", net <= 0 ? "opacity-20 cursor-not-allowed" : "hover:bg-primary hover:text-primary-foreground")}>
+                                                    <button onClick={() => handleSalaryPayment(employee.id, displayName, net)} disabled={net <= 0} className={cn("p-2 bg-background border border-border rounded-lg transition-colors shadow-sm", net <= 0 ? "opacity-20 cursor-not-allowed" : "hover:bg-primary hover:text-primary-foreground")}>
                                                         <ArrowUpRight className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
@@ -308,8 +311,11 @@ export default function HRPage() {
                     <div className="md:hidden divide-y divide-border/20">
                         {filteredEmployees?.length === 0 ? (
                             <div className="py-20 text-center text-muted-foreground italic">Aucun collaborateur trouvé.</div>
-                        ) : filteredEmployees?.map((employee) => {
-                            const net = employee.salary - employee.advances;
+                        ) : filteredEmployees?.map((employee: any) => {
+                            const salary = Number(employee.salary) || 0;
+                            const advances = Number(employee.advances) || 0;
+                            const net = salary - advances;
+                            const displayName = employee.name || `${employee.firstName || ''} ${employee.lastName || ''}`.trim() || "Collaborateur";
                             return (
                                 <div key={employee.id} className="p-4 space-y-4">
                                     <div className="flex items-center gap-3">
@@ -317,7 +323,7 @@ export default function HRPage() {
                                             <UserIcon className="w-4 h-4 opacity-40" />
                                         </div>
                                         <div className="flex-1 overflow-hidden">
-                                            <h3 className="font-bold text-foreground text-sm uppercase truncate">{employee.firstName} {employee.lastName}</h3>
+                                            <h3 className="font-bold text-foreground text-sm uppercase truncate">{displayName}</h3>
                                             <p className="text-[10px] text-muted-foreground font-mono uppercase">{employee.phone || "Non renseigné"}</p>
                                         </div>
                                         <span className={cn(
@@ -330,7 +336,7 @@ export default function HRPage() {
                                     <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/40">
                                         <div className="space-y-0.5">
                                             <p className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest">Salaire Net</p>
-                                            <p className="text-sm font-black italic">{formatMoney(employee.salary)} F</p>
+                                            <p className="text-sm font-black italic">{formatMoney(salary)} F</p>
                                         </div>
                                         <div className="space-y-0.5 text-right">
                                             <p className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest">Solde Actuel</p>
@@ -338,8 +344,8 @@ export default function HRPage() {
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-end gap-2 pt-2">
-                                        <button onClick={() => handleAdvance(employee.id, employee.firstName)} className="px-4 py-2 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Acompte</button>
-                                        <button onClick={() => handleSalaryPayment(employee.id, employee.firstName, net)} disabled={net <= 0} className={cn("px-4 py-2 bg-primary text-primary-foreground rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-primary/10", net <= 0 && "opacity-20")}>Payer Solde</button>
+                                        <button onClick={() => handleAdvance(employee.id, displayName)} className="px-4 py-2 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Acompte</button>
+                                        <button onClick={() => handleSalaryPayment(employee.id, displayName, net)} disabled={net <= 0} className={cn("px-4 py-2 bg-primary text-primary-foreground rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-primary/10", net <= 0 && "opacity-20")}>Payer Solde</button>
                                     </div>
                                 </div>
                             );

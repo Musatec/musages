@@ -11,32 +11,29 @@ export async function addTeacher(data: {
   phone: string;
   email?: string;
   mainSubject?: string;
-  contractType: string;
-  hourlyRate: number;
+  contractType?: string;
+  hourlyRate?: number;
 }) {
   try {
     const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) return { error: "Session non valide ou école non configurée." };
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide ou Daara non configuré." };
 
-    const teacher = await prisma.teacher.create({
+    const user = await prisma.user.create({
       data: {
-        schoolId,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        daaraId,
+        name: `${data.firstName} ${data.lastName}`,
         phone: data.phone,
-        email: data.email,
-        mainSubject: data.mainSubject,
-        contractType: data.contractType,
-        hourlyRate: Number(data.hourlyRate),
+        email: data.email || null,
+        role: "OUSTAZ",
       }
     });
 
     revalidatePath("/teachers");
-    return { success: true, teacher };
+    return { success: true, teacher: user, user };
   } catch (error: any) {
-    console.error("[ADD_TEACHER_ERROR]", error);
-    return { error: error.message || "Erreur lors de l'ajout de l'enseignant." };
+    console.error("[ADD_OUSTAZ_ERROR]", error);
+    return { error: error.message || "Erreur lors de l'ajout de l'Oustaz." };
   }
 }
 
@@ -47,24 +44,24 @@ export async function payTeacher(data: {
 }) {
   try {
     const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) return { error: "Session non valide." };
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide." };
 
-    const teacher = await prisma.teacher.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: data.teacherId }
     });
 
-    if (!teacher || teacher.schoolId !== schoolId) {
-      return { error: "Enseignant introuvable." };
+    if (!user || user.daaraId !== daaraId) {
+      return { error: "Oustaz introuvable." };
     }
 
     const transaction = await prisma.transaction.create({
       data: {
-        schoolId,
+        daaraId,
         amount: Number(data.amount),
         type: TransactionType.EXPENSE,
-        category: "SALAIRE_ENSEIGNANT",
-        description: `Paiement ${teacher.firstName} ${teacher.lastName} - ${data.description}`,
+        category: "SALAIRE_OUSTAZ",
+        description: `Paiement ${user.name || "Oustaz"} - ${data.description}`,
       }
     });
 
@@ -72,7 +69,7 @@ export async function payTeacher(data: {
     revalidatePath("/expenses");
     return { success: true, transaction };
   } catch (error: any) {
-    console.error("[PAY_TEACHER_ERROR]", error);
+    console.error("[PAY_OUSTAZ_ERROR]", error);
     return { error: "Erreur lors du paiement." };
   }
 }
@@ -80,17 +77,17 @@ export async function payTeacher(data: {
 export async function deleteTeacher(id: string) {
   try {
     const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) return { error: "Session non valide." };
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide." };
 
-    await prisma.teacher.update({
-      where: { id, schoolId },
+    await prisma.user.update({
+      where: { id },
       data: { deletedAt: new Date() }
     });
 
     revalidatePath("/teachers");
     return { success: true };
   } catch (error: any) {
-    return { error: "Impossible de supprimer l'enseignant." };
+    return { error: "Impossible de supprimer l'Oustaz." };
   }
 }

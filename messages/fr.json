@@ -1,53 +1,60 @@
 {
     "Sidebar": {
-        "main": "Principal",
-        "school": "Vie Scolaire",
-        "finance": "Écolages & Finances",
-        "pedagogy": "Pédagogie",
+        "main": "Général",
+        "daara": "Vie du Daara",
+        "hifz": "Mémorisation & Coran",
+        "solidarity": "Solidarité & Parrainage",
+        "finance": "Caisse & Donateurs",
         "dashboard": "Tableau de Bord",
-        "tuition": "Recouvrement Écolages",
-        "grades": "Notes & Bulletins",
-        "attendance": "Présences & Retards",
-        "students": "Élèves & Inscriptions",
-        "classes": "Classes & Matières",
-        "teachers": "Enseignants & Vacations",
+        "talibes": "Gestion des Talibés",
+        "halqas": "Halqas & Maîtres (Oustaz)",
+        "hifz_tracker": "Suivi des 60 Hizb",
+        "khatm": "Diplômes & Khatm Coran",
+        "parrainage": "Ndeyi Daara & Parrains",
+        "sadaqa": "Dons & Sadaqa (Riz, Cash)",
+        "attendance": "Présences & Halqas",
         "expenses": "Trésorerie & Dépenses",
-        "settings": "Paramètres École",
-        "admin": "Console Jangu",
+        "settings": "Paramètres Daara",
+        "admin": "Console Daara.net",
         "logout": "Déconnexion"
     },
     "Common": {
         "save": "Sauvegarder",
         "delete": "Supprimer",
         "cancel": "Annuler",
-        "loading": "Chargement..."
+        "loading": "Chargement en cours...",
+        "allwa": "Planche en Bois (Allwa)",
+        "hizb": "Hizb",
+        "juz": "Juz",
+        "surah": "Sourate"
     },
     "Settings": {
         "appearance": "Apparence",
         "language": "Langue",
         "security": "Sécurité",
-        "profile": "Profil École"
+        "profile": "Profil du Daara"
     },
     "Landing": {
-        "badge": "Solution Globale de Gestion Scolaire pour le Sénégal",
-        "title1": "GÉRER VOTRE ÉCOLE.",
-        "title2": "SANS ERREURS.",
-        "subtitle": "Jangu — Recouvrement des écolages par Wave & Orange Money, bulletins automatiques et suivi des absences par WhatsApp.",
-        "cta_main": "Accéder à l'Établissement",
-        "cta_secondary": "Découvrir la Démo",
-        "features_title": "L'ÉCOSYSTÈME JANGU.",
-        "features_subtitle": "Écolages, Bulletins, Présences et Communication WhatsApp unifiés."
+        "badge": "La Plateforme SaaS de Référence pour les Daaras du Sénégal et du Monde",
+        "title1": "GÉRER VOTRE DAARA.",
+        "title2": "AVEC EXCELLENCE & SPIRITUALITÉ.",
+        "subtitle": "Daara.net — Suivi individuel des 60 Hizb, gestion des Talibés pensionnaires, parrainages Ndeyi Daara et collecte de Sadaqa par Wave & Orange Money.",
+        "cta_main": "Accéder à mon Daara",
+        "cta_secondary": "Voir la Démo Daara.net",
+        "features_title": "L'ÉCOSYSTÈME DAARA.NET.",
+        "features_subtitle": "Suivi des 60 Hizb, Ndeyi Daara, Dons de Sadaqa et WhatsApp unifiés."
     },
     "Dashboard": {
-        "welcome": "Bienvenue sur Jangu",
-        "greeting_morning": "Bonjour",
-        "greeting_afternoon": "Bon après-midi",
-        "greeting_evening": "Bonsoir",
-        "today_tasks": "Tâches du jour",
-        "stats": "Statistiques de l'Établissement",
-        "active_students": "Élèves Inscrits",
-        "tuition_rate": "Taux de Recouvrement Écolages",
-        "wave_collected": "Collecté via Wave / OM",
-        "absences_today": "Absences du Jour"
+        "welcome": "Bienvenue sur Daara.net",
+        "greeting_morning": "Salam Alaykoum / Bonjour",
+        "greeting_afternoon": "Salam Alaykoum / Bon après-midi",
+        "greeting_evening": "Salam Alaykoum / Bonsoir",
+        "today_tasks": "Hifz & Tâches du jour",
+        "stats": "Statistiques Globales du Daara",
+        "active_talibes": "Talibés Inscrits",
+        "internes_count": "Pensionnaires Internes",
+        "hizb_completed_today": "Hizb Validés Aujourd'hui",
+        "sadaqa_collected": "Dons & Sadaqa Collectés",
+        "active_sponsorships": "Talibés Parrainés (Ndeyi Daara)"
     }
 }

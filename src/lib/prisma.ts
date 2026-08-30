@@ -1,27 +1,16 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import Database from "better-sqlite3";
+import path from "path";
 import "dotenv/config";
 
-// Ignorer les avertissements et contrôles TLS de certificats auto-signés
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
-const rawUrl = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/postgres";
-const connectionString = rawUrl.split("?")[0];
+const dbPath = path.join(process.cwd(), "prisma", "dev.db");
+const db = new Database(dbPath);
+const adapter = new (PrismaBetterSqlite3 as any)({ db, url: `file:${dbPath}` });
 
 const globalForPrisma = global as unknown as { 
-  prisma: PrismaClient | undefined,
-  pool: Pool | undefined 
+  prisma: PrismaClient | undefined
 };
-
-const pool = globalForPrisma.pool || new Pool({ 
-  connectionString,
-  ssl: { rejectUnauthorized: false }
-});
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.pool = pool;
-
-const adapter = new PrismaPg(pool);
 
 export const prisma =
   globalForPrisma.prisma ||

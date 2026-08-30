@@ -6,16 +6,15 @@ import { revalidatePath } from "next/cache";
 import { AttendanceStatus } from "@prisma/client";
 
 export async function saveAttendance(data: {
-  studentId: string;
+  studentId: string; // talibeId
   status: AttendanceStatus;
   date: Date;
-  arrivalTime?: string;
   reason?: string;
 }) {
   try {
     const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) return { error: "Session non valide ou école non configurée." };
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide ou Daara non configuré." };
 
     // Vérifier si une présence existe déjà pour cette date
     const startOfDay = new Date(data.date);
@@ -25,8 +24,8 @@ export async function saveAttendance(data: {
 
     const existing = await prisma.attendance.findFirst({
       where: {
-        schoolId,
-        studentId: data.studentId,
+        daaraId,
+        talibeId: data.studentId,
         date: {
           gte: startOfDay,
           lte: endOfDay,
@@ -39,18 +38,16 @@ export async function saveAttendance(data: {
         where: { id: existing.id },
         data: {
           status: data.status,
-          arrivalTime: data.arrivalTime,
           reason: data.reason,
         }
       });
     } else {
       await prisma.attendance.create({
         data: {
-          schoolId,
-          studentId: data.studentId,
+          daaraId,
+          talibeId: data.studentId,
           date: data.date,
           status: data.status,
-          arrivalTime: data.arrivalTime,
           reason: data.reason,
         }
       });
@@ -67,10 +64,10 @@ export async function saveAttendance(data: {
 export async function markParentNotified(attendanceId: string) {
   try {
     const session = await auth();
-    if (!session?.user?.schoolId) return { error: "Non autorisé" };
+    if (!session?.user?.daaraId) return { error: "Non autorisé" };
 
     await prisma.attendance.update({
-      where: { id: attendanceId, schoolId: session.user.schoolId },
+      where: { id: attendanceId },
       data: { parentNotified: true }
     });
 

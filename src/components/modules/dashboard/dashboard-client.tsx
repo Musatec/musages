@@ -11,7 +11,7 @@ import {
     ShoppingCart, Package, AlertTriangle, Zap,
     ArrowUpRight, ArrowDownRight, Activity
 } from "lucide-react";
-import { DashboardMetrics, SerializedSale } from "@/types/dashboard";
+import { DashboardMetrics } from "@/types/dashboard";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -24,7 +24,7 @@ export function DashboardClient({
     userSubscription
 }: { 
     metrics: DashboardMetrics, 
-    recentSales: SerializedSale[], 
+    recentSales: any[], 
     metadata?: { userName: string, enterpriseName: string, topProducts?: any[] },
     userRole: string,
     userSubscription?: { status: string, daysRemaining: number, isTrialOver: boolean }

@@ -17,39 +17,30 @@ export default async function GradesPage({
     redirect(`/${locale}/login`);
   }
 
-  const schoolId = session.user.schoolId || session.user.storeId || session.user.id || "school_demo_123";
+  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
 
-  // Fetch all classes for filtering
-  const classes = await prisma.class.findMany({
-    where: { schoolId },
-    orderBy: { name: "asc" },
-    include: { students: true }
-  });
-
-  // Fetch all subjects
-  const subjects = await prisma.subject.findMany({
-    where: { schoolId },
+  // Fetch all halqas for filtering
+  const halqasRaw = await prisma.halqa.findMany({
+    where: { daaraId },
     orderBy: { name: "asc" }
   });
 
-  // We don't fetch all grades here as it could be huge. The client component will handle selecting a student to view/add their grades, or we fetch recent grades.
-  // For now, let's fetch recent grades.
-  const recentGrades = await prisma.grade.findMany({
-    where: { schoolId },
-    include: {
-      student: { include: { class: true } },
-      subject: true
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 100,
+  const allTalibes = await prisma.talibe.findMany({
+    where: { daaraId, deletedAt: null },
+    orderBy: { firstName: "asc" }
   });
+
+  const classes = halqasRaw.map(c => ({
+    ...c,
+    students: allTalibes.filter(s => s.halqaId === c.id)
+  }));
 
   return (
     <GradesClient 
-      classes={classes}
-      subjects={subjects}
-      recentGrades={recentGrades}
-      schoolName={session.user.name || "École"}
+      classes={classes as any}
+      subjects={[]}
+      recentGrades={[]}
+      schoolName={session.user.name || "Daara"}
     />
   );
 }

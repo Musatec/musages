@@ -19,7 +19,7 @@ export const {
   debug: process.env.NODE_ENV === "development",
   callbacks: {
     ...authConfig.callbacks,
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       console.log("[AUTH_DEBUG] signIn callback triggered for:", user.email);
       if (account?.provider === "google") {
         if (!user.email) {
@@ -35,12 +35,12 @@ export const {
           });
 
           if (!existingUser) {
-            console.log("[AUTH_GOOGLE] Nouvel utilisateur détecté. Création automatique de l'Empire...");
+            console.log("[AUTH_GOOGLE] Nouvel utilisateur détecté. Création automatique du Daara...");
             
-            // 1. Créer une école par défaut avec les infos Google
-            const school = await prisma.school.create({
+            // 1. Créer un Daara par défaut avec les infos Google
+            const daara = await prisma.daara.create({
                 data: {
-                    name: `Établissement de ${user.name?.split(' ')[0] || "Directeur"}`,
+                    name: `Daara de ${user.name?.split(' ')[0] || "Serigne"}`,
                     plan: "STARTER",
                     config: {
                         logo: user.image,
@@ -49,68 +49,63 @@ export const {
                 }
             });
 
-            // 2. Créer l'utilisateur lié à cette école
+            // 2. Créer l'utilisateur lié à ce Daara
             await prisma.user.create({
               data: {
                 email: user.email as string,
                 name: user.name as string,
                 image: user.image as string,
-                role: "DIRECTEUR",
+                role: "SERIGNE_DAARA",
                 plan: "STARTER",
                 subscriptionStatus: "TRIALING",
                 trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                 hasSeenOnboarding: false,
-                schoolId: school.id // Liaison immédiate
+                daaraId: daara.id // Liaison immédiate
               }
             });
-            console.log("[AUTH_GOOGLE] École et Directeur créés avec succès.");
+            console.log("[AUTH_GOOGLE] Daara et Serigne Daara créés avec succès.");
           } else {
             console.log("[AUTH_GOOGLE] Utilisateur existant trouvé.");
             
-            if (!existingUser.schoolId) {
-                console.log("[AUTH_GOOGLE] Utilisateur existant sans école. Création d'une école par défaut...");
-                const school = await prisma.school.create({
+            if (!existingUser.daaraId) {
+                console.log("[AUTH_GOOGLE] Utilisateur existant sans Daara. Création d'un Daara par défaut...");
+                const daara = await prisma.daara.create({
                     data: {
-                        name: `Établissement de ${existingUser.name?.split(' ')[0] || "Directeur"}`,
+                        name: `Daara de ${existingUser.name?.split(' ')[0] || "Serigne"}`,
                         plan: "STARTER"
                     }
                 });
                 await prisma.user.update({
                     where: { id: existingUser.id },
-                    data: { schoolId: school.id }
+                    data: { daaraId: daara.id }
                 });
             }
           }
         } catch (error: any) {
           console.error("[AUTH_GOOGLE_ERROR] ÉCHEC CRITIQUE lors de la gestion OAuth:", error);
-          // On renvoie false pour déclencher Access Denied mais on a loggé l'erreur
           return false;
         }
       }
       return true;
     },
-    async jwt({ token, user, trigger, session, account }) {
-      // Si c'est une connexion (user est défini), on récupère les vraies infos en BDD
+    async jwt({ token, user, trigger, session }) {
       if (user && user.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email }
         });
 
         if (dbUser) {
-          token.sub = dbUser.id; // Forcer l'ID de la BDD au lieu de l'ID Google
+          token.sub = dbUser.id;
           token.role = dbUser.role;
-          token.schoolId = dbUser.schoolId;
-          token.storeId = dbUser.schoolId;
+          token.daaraId = dbUser.daaraId;
           token.plan = dbUser.plan;
           token.hasSeenOnboarding = dbUser.hasSeenOnboarding;
         }
       }
       
-      // Mise à jour dynamique de la session après création d'établissement
       if (trigger === "update" && session?.user) {
         token.role = session.user.role || token.role;
-        token.schoolId = session.user.schoolId || session.user.storeId || token.schoolId;
-        token.storeId = token.schoolId;
+        token.daaraId = session.user.daaraId || token.daaraId;
         token.plan = session.user.plan || token.plan;
         if (typeof session.user.hasSeenOnboarding === "boolean") {
           token.hasSeenOnboarding = session.user.hasSeenOnboarding;
@@ -126,11 +121,8 @@ export const {
       if (token.role && session.user) {
         session.user.role = token.role as any;
       }
-      if (token.schoolId && session.user) {
-        session.user.schoolId = token.schoolId as string;
-      }
-      if (token.storeId && session.user) {
-        session.user.storeId = token.storeId as string;
+      if (token.daaraId && session.user) {
+        session.user.daaraId = token.daaraId as string;
       }
       if (token.plan && session.user) {
         session.user.plan = token.plan as any;

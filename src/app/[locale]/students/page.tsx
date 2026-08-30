@@ -17,28 +17,27 @@ export default async function StudentsPage({
     redirect(`/${locale}/login`);
   }
 
-  const schoolId = session.user.schoolId || session.user.storeId || session.user.id || "school_demo_123";
+  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
 
-  // Fetch all classes
-  const classes = await prisma.class.findMany({
-    where: { schoolId },
+  // Fetch all halqas
+  const halqas = await prisma.halqa.findMany({
+    where: { daaraId },
     orderBy: { name: "asc" }
   });
 
-  // Fetch all students (in a real app you'd paginate this)
-  const students = await prisma.student.findMany({
-    where: { schoolId, deletedAt: null },
-    include: { class: true },
+  // Fetch all talibes
+  const talibes = await prisma.talibe.findMany({
+    where: { daaraId, deletedAt: null },
+    include: { halqa: true },
     orderBy: [
-      { class: { name: "asc" } },
       { lastName: "asc" }
     ]
   });
 
   return (
     <StudentsClient 
-      classes={classes}
-      students={students}
+      classes={halqas as any}
+      students={talibes as any}
     />
   );
 }

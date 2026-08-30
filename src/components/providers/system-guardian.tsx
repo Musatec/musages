@@ -97,7 +97,7 @@ export function SystemGuardian({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col flex-1">
             {/* BROADCAST BANNER */}
             {broadcast && (
-                <div className="fixed top-0 left-0 right-0 z-[100] bg-gradient-to-r from-[#F97316] to-amber-500 py-1.5 px-4 text-center overflow-hidden animate-in slide-in-from-top duration-500 shadow-2xl">
+                <div className="fixed top-0 left-0 right-0 z-[100] bg-black border-b border-white/10 py-1.5 px-4 text-center overflow-hidden animate-in slide-in-from-top duration-500 shadow-2xl">
                     <div className="absolute inset-0 bg-white/10 animate-pulse" />
                     <div className="relative z-10 flex items-center justify-center gap-3">
                         <Zap className="w-3.5 h-3.5 text-white" />

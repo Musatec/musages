@@ -39,8 +39,9 @@ export function ClassesClient({ classes: initialClasses, subjects: initialSubjec
     toast.loading("Création de la classe...");
 
     const res = await addClass({
-      ...classForm,
-      tuitionFee: Number(classForm.tuitionFee) || 0
+      name: classForm.name,
+      level: classForm.level,
+      description: classForm.description
     });
     toast.dismiss();
 
@@ -103,7 +104,7 @@ export function ClassesClient({ classes: initialClasses, subjects: initialSubjec
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight italic">Classes & Matières / الفصول والمواد</h1>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Classes & Matières / الفصول والمواد</h1>
           <p className="text-sm text-muted-foreground">Configuration pédagogique de l'établissement.</p>
         </div>
         <div className="flex bg-card p-1 rounded-2xl border border-border/50">
@@ -256,7 +257,7 @@ export function ClassesClient({ classes: initialClasses, subjects: initialSubjec
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-md bg-card border border-border/50 rounded-[2rem] p-6 shadow-2xl z-10"
             >
-              <h2 className="text-xl font-black uppercase tracking-tight italic mb-6">Nouvelle Classe</h2>
+              <h2 className="text-xl font-black uppercase tracking-tight mb-6">Nouvelle Classe</h2>
               <form onSubmit={handleAddClass} className="space-y-4">
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Nom de la classe</label>
@@ -325,7 +326,7 @@ export function ClassesClient({ classes: initialClasses, subjects: initialSubjec
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-md bg-card border border-border/50 rounded-[2rem] p-6 shadow-2xl z-10"
             >
-              <h2 className="text-xl font-black uppercase tracking-tight italic mb-6">Nouvelle Matière</h2>
+              <h2 className="text-xl font-black uppercase tracking-tight mb-6">Nouvelle Matière</h2>
               <form onSubmit={handleAddSubject} className="space-y-4">
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Nom de la matière</label>

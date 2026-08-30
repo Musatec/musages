@@ -1,55 +1,57 @@
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
+  engineType = "library"
 }
 
-// --- ENUMS ---
+// --- ENUMS DAARA.NET ---
 enum Role {
   SUPER_ADMIN
-  DIRECTEUR
-  SECRETAIRE
-  PROFESSEUR
-  SURVEILLANT
+  SERIGNE_DAARA
+  OUSTAZ
+  NDEYI_DAARA
   PARENT
+  GESTIONNAIRE
 }
 
-enum SchoolPlan {
+enum DaaraPlan {
   STARTER
   GROWTH
   BUSINESS
 }
 
-enum SubscriptionStatus {
-  TRIALING
-  ACTIVE
-  EXPIRED
-  CANCELED
+enum DaaraType {
+  TRADITIONNEL
+  MODERNE
+  FRANCO_ARABE
 }
 
-enum TuitionStatus {
-  PENDING
-  PARTIAL
-  PAID
-  OVERDUE
+enum TalibeStatus {
+  INTERNE     // Pensionnaire à temps plein dans le Daara
+  EXTERNE     // Apprenant venant pour les cours du matin/soir
 }
 
-enum PaymentMethod {
-  CASH
-  WAVE
-  ORANGE_MONEY
-  BANK_TRANSFER
-  CHEQUE
+enum HifzEvaluation {
+  MUMTAZ        // Excellent (ممتاز)
+  JAYYID_JIDDAN // Très Bien (جيد جداً)
+  JAYYID        // Bien (جيد)
+  A_REVISER     // À Réviser (يحتاج مراجعة)
 }
 
-enum Term {
-  TRIMESTRE_1
-  TRIMESTRE_2
-  TRIMESTRE_3
-  SEMESTRE_1
-  SEMESTRE_2
+enum HifzCategory {
+  SABI            // Nouveau verset / leçon du jour sur l'Allwa (لوح)
+  MURAJAA_QARIBA  // Révision récente (derniers Hizb)
+  MURAJAA_BAIDA   // Révision générale (Tillawa)
+}
+
+enum AttendanceSession {
+  HALQA_FAJR     // Séance après la prière du Subh
+  HALQA_MORNING  // Séance du matin
+  HALQA_AFTERNOON// Séance de l'après-midi
+  HALQA_EVENING  // Séance de la nuit / Isha
 }
 
 enum AttendanceStatus {
@@ -59,39 +61,54 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  EXPIRED
+  CANCELED
+}
+
+enum DonationType {
+  FINANCIER   // Don d'argent (Wave, OM, Cash)
+  DON_NATURE  // Sacs de riz, huile, vêtements, nattes, savon
+}
+
 enum TransactionType {
   INCOME
   EXPENSE
 }
 
-// --- MULTI-TENANCY & AUTH (ÉTABLISSEMENTS SCOLAIRES) ---
-model School {
+// --- STRUCTURE DAARA.NET (ÉTABLISSEMENT CORANIQUE) ---
+model Daara {
   id          String     @id @default(cuid())
-  name        String     // Nom de l'école (ex: Collège Sacré-Cœur, Complexe Educatif Jangu)
+  name        String     // Nom du Daara (ex: Daara Serigne Touba, Daara Coki, Daara El-Hadj Malick)
+  type        DaaraType  @default(TRADITIONNEL)
   address     String?
+  city        String?    // Ex: Dakar, Touba, Tivaouane, Saint-Louis, Kaolack, Kolda
+  country     String     @default("Sénégal")
   phone       String?
   email       String?
-  logo        String?    // URL du logo de l'école pour les reçus et bulletins
-  ninea       String?    // NINEA / Numéro d'enregistrement (Optionnel)
-  plan        SchoolPlan @default(STARTER)
-  config      Json?      // Paramètres personnalisés (entête bulletins, message WhatsApp, etc.)
+  logo        String?    // URL du logo du Daara pour les attestations & reçus
+  ninea       String?    // Numéro d'enregistrement ou agrément officiel
+  plan        DaaraPlan  @default(STARTER)
+  config      Json?      // Paramètres personnalisés (Intitlé des parrainages, lecture Warsh/Hafs, etc.)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   deletedAt   DateTime?
 
   ownerId     String?
-  owner       User?      @relation("SchoolOwner", fields: [ownerId], references: [id])
+  owner       User?      @relation("DaaraOwner", fields: [ownerId], references: [id])
   
-  users       User[]
-  classes     Class[]
-  subjects    Subject[]
-  students    Student[]
-  tuitionFees TuitionFee[]
-  grades      Grade[]
-  attendances Attendance[]
-  teachers    Teacher[]
+  users        User[]
+  halqas       Halqa[]
+  talibes      Talibe[]
+  hifzRecords  HifzProgress[]
+  sponsorships Sponsorship[]
+  donations    Donation[]
+  khatmRecords KhatmRecord[]
+  attendances  Attendance[]
   transactions Transaction[]
-  auditLogs   AuditLog[]
+  auditLogs    AuditLog[]
   notifications Notification[]
 }
 
@@ -99,38 +116,42 @@ model User {
   id                 String             @id @default(cuid())
   name               String?
   email              String?            @unique
+  phone              String?
   emailVerified      DateTime?
   image              String?
   password           String?
-  role               Role               @default(DIRECTEUR)
-  plan               SchoolPlan         @default(STARTER)
+  role               Role               @default(SERIGNE_DAARA)
+  plan               DaaraPlan          @default(STARTER)
   subscriptionStatus SubscriptionStatus @default(TRIALING)
   trialEndsAt        DateTime?
   subscriptionEndsAt DateTime?
   hasSeenOnboarding  Boolean            @default(false)
-  schoolId           String?
-  school             School?            @relation(fields: [schoolId], references: [id])
+  daaraId            String?
+  daara              Daara?             @relation(fields: [daaraId], references: [id])
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   deletedAt          DateTime?
 
   accounts           Account[]
   sessions           Session[]
-  payments           Payment[]          // Abonnements SaaS payés par l'école
-  ownedSchools       School[]           @relation("SchoolOwner")
+  payments           Payment[]
+  ownedDaaras        Daara[]            @relation("DaaraOwner")
+  sponsorships       Sponsorship[]      @relation("NdeyiDaaraSponsorships")
+  givenDonations     Donation[]         @relation("UserDonations")
+  hifzTaught         HifzProgress[]     @relation("OustazHifz")
   auditLogs          AuditLog[]
   notifications      Notification[]     @relation("UserNotifications")
 }
 
-// Model de paiement d'abonnement SaaS (PayTech / PayDunya pour utiliser l'app Jangu)
+// Model de paiement d'abonnement SaaS (PayTech / PayDunya / Wave)
 model Payment {
   id          String     @id @default(cuid())
   userId      String
   user        User       @relation(fields: [userId], references: [id])
   amount      Float
-  plan        SchoolPlan
+  plan        DaaraPlan
   status      String     // SUCCESS, PENDING, FAILED
-  provider    String     // PayTech, PayDunya
+  provider    String     // PayTech, Wave, Orange Money
   providerRef String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
@@ -143,12 +164,12 @@ model Account {
   type               String
   provider           String
   providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
+  refresh_token      String?
+  access_token       String?
   expires_at         Int?
   token_type         String?
   scope              String?
-  id_token           String? @db.Text
+  id_token           String?
   session_state      String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -172,170 +193,191 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// --- STRUCTURE ACADÉMIQUE ---
-model Class {
-  id        String   @id @default(cuid())
-  schoolId  String
-  school    School   @relation(fields: [schoolId], references: [id])
-  name      String   // ex: "CM2 A", "3ème B", "Terminale S2"
-  level     String?  // ex: "ÉLÉMENTAIRE", "COLLÈGE", "LYCÉE"
-  monthlyFee Float   @default(0) // Tarif d'écolage par défaut de cette classe
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  students Student[]
-
-  @@index([schoolId])
-}
-
-model Subject {
+// --- HALQAS (CERCLES D'ÉTUDes CORANIQUES) ---
+model Halqa {
   id          String   @id @default(cuid())
-  schoolId    String
-  school      School   @relation(fields: [schoolId], references: [id])
-  name        String   // ex: "Mathématiques", "Français", "SVT"
-  coefficient Int      @default(1) // Coefficient pour le calcul des bulletins
-  code        String?  // ex: "MATH", "FRA"
+  daaraId     String
+  daara       Daara    @relation(fields: [daaraId], references: [id])
+  name        String   // Ex: "Halqa Juz Amma", "Halqa Al-Baqara", "Halqa Warsh"
+  level       String?  // Ex: "DÉBUTANT (Mouqadima)", "MÉMORISATION (Hifz)", "PERFECTIONNEMENT (Tajwid)"
+  oustazName  String?  // Nom du maître coranique référent
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  grades Grade[]
+  talibes Talibe[]
 
-  @@index([schoolId])
+  @@index([daaraId])
 }
 
-// --- ÉLÈVES & PARENTS ---
-model Student {
-  id          String   @id @default(cuid())
-  schoolId    String
-  school      School   @relation(fields: [schoolId], references: [id])
-  classId     String
-  class       Class    @relation(fields: [classId], references: [id])
-  matricule   String   // Numéro matricule unique de l'élève
+// --- TALIBÉS (APPRENANTS CORANIQUES) ---
+model Talibe {
+  id          String       @id @default(cuid())
+  daaraId     String
+  daara       Daara        @relation(fields: [daaraId], references: [id])
+  halqaId     String?
+  halqa       Halqa?       @relation(fields: [halqaId], references: [id])
+  matricule   String       // Numéro matricule unique (Ex: DAA-2026-0042)
   firstName   String
   lastName    String
-  gender      String?  // M / F
+  gender      String       @default("M") // M / F
   dateOfBirth DateTime?
-  photo       String?  // Photo de l'élève
+  photo       String?
+  status      TalibeStatus @default(INTERNE) // Pensionnaire Interne ou Externe
+  healthNotes String?      // Allergies, traitements, suivi médical du Talibé
 
-  parentName  String   // Nom du tuteur / parent
-  parentPhone String   // Numéro WhatsApp du parent pour relances & reçus
+  parentName  String?      // Père / Mère / Tuteur légal
+  parentPhone String?      // Numéro WhatsApp pour alertes mémorisation et santé
   parentEmail String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   deletedAt   DateTime?
 
-  tuitionFees TuitionFee[]
-  grades      Grade[]
-  attendances Attendance[]
+  hifzRecords  HifzProgress[]
+  sponsorships Sponsorship[]
+  khatmRecords KhatmRecord[]
+  attendances  Attendance[]
 
-  @@unique([schoolId, matricule])
-  @@index([schoolId, classId])
+  @@unique([daaraId, matricule])
+  @@index([daaraId, halqaId])
 }
 
-// --- RECOUVREMENT DES ÉCOLAGES & MENSUALITÉS ---
-model TuitionFee {
-  id            String        @id @default(cuid())
-  schoolId      String
-  school        School        @relation(fields: [schoolId], references: [id])
-  studentId     String
-  student       Student       @relation(fields: [studentId], references: [id])
-  month         Int           // 1 à 12 (ex: 10 pour Octobre, 11 pour Novembre...)
-  year          Int           // ex: 2026
-  amount        Float         // Montant de l'écolage dû
-  amountPaid    Float         @default(0) // Montant versé
-  status        TuitionStatus @default(PENDING)
-  dueDate       DateTime
-  paidAt        DateTime?
-  paymentMethod PaymentMethod?
-  receiptNumber String?       // Numéro de reçu généré (ex: REC-2026-00412)
-  notes         String?       // ex: "Payé au guichet par la maman" ou "Wave Direct"
+// --- SUIVI DE MÉMORISATION DU SAINT CORAN (HIFZ, MURAJAA & ALLWA) ---
+model HifzProgress {
+  id          String         @id @default(cuid())
+  daaraId     String
+  daara       Daara          @relation(fields: [daaraId], references: [id])
+  talibeId    String
+  talibe      Talibe         @relation(fields: [talibeId], references: [id])
+  oustazId    String?
+  oustaz      User?          @relation("OustazHifz", fields: [oustazId], references: [id])
+  
+  date        DateTime       @default(now())
+  hizbNumber  Int            // Numéro du Hizb (1 à 60)
+  juzNumber   Int?           // Numéro du Juz (1 à 30)
+  surahName   String?        // Nom de la Sourate (Ex: Al-Baqara, Al-Kahf, Yasin)
+  surahNumber Int?           // Numéro de la Sourate (1 à 114)
+  ayahStart   Int?           // Verset de début
+  ayahEnd     Int?           // Verset de fin
+  
+  category    HifzCategory   @default(SABI)
+  evaluation  HifzEvaluation @default(JAYYID)
+  allwaNotes  String?        // Remarques sur l'écriture sur la planche en bois (Allwa / لوح)
+  comments    String?        // Appréciation de l'Oustaz
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
-  @@index([schoolId, month, year])
-  @@index([schoolId, status])
+  @@index([daaraId, talibeId])
+  @@index([daaraId, date])
 }
 
-// --- NOTES & BULLETINS TRIMEESTRIELS ---
-model Grade {
-  id          String   @id @default(cuid())
-  schoolId    String
-  school      School   @relation(fields: [schoolId], references: [id])
-  studentId   String
-  student     Student  @relation(fields: [studentId], references: [id])
-  subjectId   String
-  subject     Subject  @relation(fields: [subjectId], references: [id])
-  term        Term     @default(TRIMESTRE_1)
-  title       String   // ex: "Devoir 1", "Composition 1er Trimestre"
-  gradeValue  Float    // Note obtenue (ex: 15.5 sur 20)
-  maxGrade    Float    @default(20)
-  coefficient Int      @default(1)
-  comments    String?  // Appréciation du professeur
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+// --- PARRAINAGE TAKAFUL & NDEYI DAARA ---
+model Sponsorship {
+  id          String    @id @default(cuid())
+  daaraId     String
+  daara       Daara     @relation(fields: [daaraId], references: [id])
+  talibeId    String
+  talibe      Talibe    @relation(fields: [talibeId], references: [id])
+  sponsorId   String?
+  sponsor     User?     @relation("NdeyiDaaraSponsorships", fields: [sponsorId], references: [id])
+  
+  sponsorName String    // Nom de la Ndeyi Daara ou du Parrain
+  sponsorPhone String   // Téléphone WhatsApp
+  monthlyAmount Float   // Montant du parrainage mensuel (ex: 15 000 FCFA)
+  status      String    @default("ACTIVE") // ACTIVE, PAUSED, ENDED
+  startDate   DateTime  @default(now())
+  notes       String?   // Ex: "Prise en charge de l'alimentation et vêtements"
 
-  @@index([schoolId, studentId, term])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([daaraId, talibeId])
 }
 
-// --- PRÉSENCES & DISCIPLINE (ALERTES WHATSAPP) ---
+// --- DONS & SADAQA (FINANCIER ET DONS EN NATURE) ---
+model Donation {
+  id            String       @id @default(cuid())
+  daaraId       String
+  daara         Daara        @relation(fields: [daaraId], references: [id])
+  donorId       String?
+  donor         User?        @relation("UserDonations", fields: [donorId], references: [id])
+  
+  donorName     String       // Nom du donateur ou anonyme
+  donorPhone    String?
+  type          DonationType @default(FINANCIER)
+  amount        Float?       // Montant si financier (FCFA, EUR, USD)
+  natureDetails String?      // Ex: "10 sacs de riz de 50kg, 2 bidons d'huile 20L"
+  paymentMethod String?      // Wave, Orange Money, Cash, Virement
+  receiptNumber String?      // Numéro de reçu généré (REC-SADAQA-001)
+  notes         String?      // Zakat Al-Mal, Tabaski, Korité, Magal
+  date          DateTime     @default(now())
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([daaraId, date])
+}
+
+// --- KHATM AL-QURAN & IJAZAH (MEMORISATION INTEGRALE COMPLÈTE) ---
+model KhatmRecord {
+  id             String    @id @default(cuid())
+  daaraId        String
+  daara          Daara     @relation(fields: [daaraId], references: [id])
+  talibeId       String
+  talibe         Talibe    @relation(fields: [talibeId], references: [id])
+  
+  completionDate DateTime  @default(now())
+  qiraatVersion  String    @default("Warsh 'an Nafi'") // Warsh, Hafs, etc.
+  oustazName     String    // Maître ayant certifié le Khatm
+  certificateUrl String?   // URL du diplôme d'Ijazah PDF généré
+  notes          String?
+
+  createdAt      DateTime  @default(now())
+
+  @@index([daaraId, talibeId])
+}
+
+// --- PRÉSENCE & ASSIDUITÉ DES TALIBÉS ---
 model Attendance {
-  id             String           @id @default(cuid())
-  schoolId       String
-  school         School           @relation(fields: [schoolId], references: [id])
-  studentId      String
-  student        Student          @relation(fields: [studentId], references: [id])
-  date           DateTime         @default(now())
-  status         AttendanceStatus @default(PRESENT)
-  arrivalTime    String?          // ex: "08h25"
-  reason         String?          // Motif d'absence ou retard
-  parentNotified Boolean          @default(false) // Alerte WhatsApp envoyée
-  createdAt      DateTime         @default(now())
+  id             String            @id @default(cuid())
+  daaraId        String
+  daara          Daara             @relation(fields: [daaraId], references: [id])
+  talibeId       String
+  talibe         Talibe            @relation(fields: [talibeId], references: [id])
+  date           DateTime          @default(now())
+  session        AttendanceSession @default(HALQA_MORNING)
+  status         AttendanceStatus  @default(PRESENT)
+  reason         String?
+  parentNotified Boolean           @default(false)
+  createdAt      DateTime          @default(now())
 
-  @@index([schoolId, date])
+  @@index([daaraId, date])
 }
 
-// --- ENSEIGNANTS & VACATIONS ---
-model Teacher {
-  id           String   @id @default(cuid())
-  schoolId     String
-  school       School   @relation(fields: [schoolId], references: [id])
-  firstName    String
-  lastName     String
-  email        String?
-  phone        String
-  mainSubject  String?
-  hourlyRate   Float    @default(0) // Tarif horaire de vacation (ex: 3 500 FCFA/h)
-  contractType String   @default("VACATAIRE") // PERMANENT, VACATAIRE
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  deletedAt    DateTime?
-}
-
-// --- COMPTABILITÉ & TRÉSORERIE ÉCOLE ---
+// --- COMPTABILITÉ & TRÉSORERIE DAARA ---
 model Transaction {
   id          String          @id @default(cuid())
-  schoolId    String
-  school      School          @relation(fields: [schoolId], references: [id])
+  daaraId     String
+  daara       Daara           @relation(fields: [daaraId], references: [id])
   amount      Float
   type        TransactionType
-  category    String          // ex: "ECOLAGE_CASH", "SALAIRE_VACATAIRE", "FOURNITURES"
+  category    String          // Ex: "SADAQA", "PARRAINAGE", "NOURRITURE", "SANTE", "REPARATION"
   description String?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  @@index([schoolId, createdAt])
+  @@index([daaraId, createdAt])
 }
 
 // --- AUDIT LOGS & NOTIFICATIONS ---
 model AuditLog {
   id        String   @id @default(cuid())
-  schoolId  String
-  school    School   @relation(fields: [schoolId], references: [id])
+  daaraId   String
+  daara     Daara    @relation(fields: [daaraId], references: [id])
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  action    String   // ex: "PAID_TUITION", "ENTERED_GRADES"
+  action    String   // Ex: "RECORDED_HIFZ", "ADDED_SADAQA", "CREATED_TALIBE"
   details   Json?
   createdAt DateTime @default(now())
 }
@@ -344,8 +386,8 @@ model Notification {
   id          String   @id @default(cuid())
   userId      String
   user        User     @relation("UserNotifications", fields: [userId], references: [id])
-  schoolId    String?
-  school      School?  @relation(fields: [schoolId], references: [id])
+  daaraId     String?
+  daara       Daara?   @relation(fields: [daaraId], references: [id])
   title       String
   description String
   type        String

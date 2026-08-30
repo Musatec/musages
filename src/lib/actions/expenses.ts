@@ -12,12 +12,12 @@ export async function addExpense(data: {
 }) {
   try {
     const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) return { error: "Session non valide." };
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide." };
 
     const transaction = await prisma.transaction.create({
       data: {
-        schoolId,
+        daaraId,
         amount: Number(data.amount),
         type: TransactionType.EXPENSE,
         category: data.category,
@@ -33,14 +33,16 @@ export async function addExpense(data: {
   }
 }
 
+export const createExpense = addExpense;
+
 export async function deleteTransaction(id: string) {
   try {
     const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) return { error: "Session non valide." };
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide." };
 
     await prisma.transaction.delete({
-      where: { id, schoolId }
+      where: { id }
     });
 
     revalidatePath("/expenses");

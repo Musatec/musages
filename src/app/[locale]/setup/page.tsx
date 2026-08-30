@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { StoreOnboarding } from "@/components/modules/store/store-onboarding";
 
 export default async function SetupPage({
   params,
@@ -13,10 +12,9 @@ export default async function SetupPage({
   if (!session) {
     redirect(`/${locale}/login`);
   }
-
-  if (session.user.storeId) {
+  if (session.user.daaraId) {
     redirect(`/${locale}/dashboard`);
   }
 
-  return <StoreOnboarding />;
+  redirect(`/${locale}/dashboard`);
 }

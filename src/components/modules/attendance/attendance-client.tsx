@@ -88,7 +88,7 @@ export function AttendanceClient({
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight italic">Présences & Retards / الحضور</h1>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Présences & Retards / الحضور</h1>
           <p className="text-sm text-muted-foreground">Appel quotidien et suivi d'assiduité.</p>
         </div>
         <div className="flex bg-card p-1 rounded-2xl border border-border/50">

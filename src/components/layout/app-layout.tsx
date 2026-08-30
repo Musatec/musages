@@ -1,65 +1,55 @@
 "use client";
 
-import { usePathname } from "@/i18n/routing";
-import { Sidebar } from "@/components/layout/sidebar";
-import { MobileNav } from "@/components/layout/mobile-nav";
+import { usePathname } from "next/navigation";
 import { MobileHeader } from "@/components/layout/mobile-header";
-import { useSidebar } from "@/components/providers/sidebar-provider";
-import { cn } from "@/lib/utils";
+import { Sidebar } from "@/components/layout/sidebar";
 import { TopLoader } from "@/components/ui/top-loader";
 import { Suspense } from "react";
-import { EliteHeader } from "@/components/layout/elite-header";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const { collapsed } = useSidebar();
     
-    const isLoginPage = pathname?.includes("/login");
-    const isLandingPage = pathname === "/";
-    const showLayout = !isLoginPage && !isLandingPage;
+    // Check if the current route is a public standalone page (landing, login, sos, directories)
+    const isPublicPage = 
+        !pathname || 
+        pathname === "/" || 
+        pathname === "/fr" || 
+        pathname === "/ar" || 
+        pathname === "/en" || 
+        pathname.includes("/login") || 
+        pathname.includes("/sos-disparus") || 
+        pathname.includes("/daaras") || 
+        pathname.includes("/oustazs");
+
+    if (isPublicPage) {
+        return (
+            <div className="w-full min-h-screen relative bg-[#F8FAFC] selection:bg-[#2845D6] selection:text-white overflow-x-hidden">
+                <Suspense fallback={null}>
+                    <TopLoader />
+                </Suspense>
+                {children}
+            </div>
+        );
+    }
 
     return (
-        <div className="flex min-h-screen relative overflow-x-hidden bg-background selection:bg-primary/20">
+        <div className="flex min-h-screen relative overflow-x-hidden bg-[#F8FAFC] selection:bg-[#2845D6] selection:text-white">
             <Suspense fallback={null}>
                 <TopLoader />
             </Suspense>
 
-            {/* Premium Atmosphere Elements */}
-            <div className="fixed inset-0 z-[-1] pointer-events-none">
-                <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-emerald-500/5 rounded-full blur-[100px] opacity-20" />
-                <div className="absolute top-[20%] -right-[5%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px] opacity-10" />
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]" />
-            </div>
+            {/* Sidebar Desktop Fixe */}
+            <Sidebar />
 
-            {/* Navigation - Sidebar (Desktop) */}
-            {showLayout && <Sidebar />}
-            {showLayout && <MobileHeader />}
+            {/* Barre de navigation mobile */}
+            <MobileHeader />
 
-            {/* Main Content Area - Synchronized Margin */}
-            <main className={`flex-1 min-h-screen relative transition-all ease-in-out duration-500 ${
-                showLayout 
-                    ? (collapsed ? 'md:ml-20' : 'md:ml-64') 
-                    : ''
-            }`}>
-                {/* Global Command Bar (Fixed) */}
-                {showLayout && (
-                    <div className={cn(
-                        "fixed top-0 right-0 z-[60] transition-all duration-500 left-0",
-                        collapsed ? "md:left-20" : "md:left-64"
-                    )}>
-                        <EliteHeader />
-                    </div>
-                )}
-
-                <div className={cn("flex flex-col flex-1", showLayout && "pt-[60px] md:pt-[72px]")}>
-                    <div className="flex-1">
-                        {children}
-                    </div>
+            {/* Zone de contenu principal avec marge d'espacement Sidebar (md:pl-64) */}
+            <main className="flex-1 relative flex flex-col pt-16 md:pt-6 md:pl-64 w-full min-h-screen transition-all">
+                <div className="flex-1 px-4 md:px-8 pb-10 flex flex-col max-w-7xl w-full mx-auto">
+                    {children}
                 </div>
             </main>
-
-            {/* Navigation - Mobile Elements */}
-            {showLayout && <MobileNav />}
         </div>
     );
 }

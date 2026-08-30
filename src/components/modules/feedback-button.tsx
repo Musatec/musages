@@ -39,7 +39,7 @@ export function FeedbackButton() {
         });
 
         if (result.success) {
-            toast.success(result.message);
+            toast.success("Feedback envoyé ! Merci.");
             setIsOpen(false);
             setRating(0);
             setComment("");

@@ -17,40 +17,24 @@ export default async function TuitionPage({
     redirect(`/${locale}/login`);
   }
 
-  const schoolId = session.user.schoolId || session.user.storeId || session.user.id || "school_demo_123";
+  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
 
-  // Fetch all classes for filtering
-  const classes = await prisma.class.findMany({
-    where: { schoolId },
+  // Fetch all halqas for filtering
+  const halqas = await prisma.halqa.findMany({
+    where: { daaraId },
     orderBy: { name: "asc" }
   });
 
-  // Fetch all tuitions (you would typically paginate this)
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
 
-  const tuitions = await prisma.tuitionFee.findMany({
-    where: { schoolId },
-    include: {
-      student: {
-        include: { class: true }
-      }
-    },
-    orderBy: [
-      { year: 'desc' },
-      { month: 'desc' },
-      { student: { firstName: 'asc' } }
-    ],
-    take: 500, // Limit for performance
-  });
-
   return (
     <TuitionClient 
-      tuitions={tuitions} 
-      classes={classes}
+      tuitions={[]} 
+      classes={halqas as any}
       currentMonth={currentMonth}
       currentYear={currentYear}
-      schoolName={session.user.name || "École"}
+      schoolName={session.user.name || "Daara"}
     />
   );
 }

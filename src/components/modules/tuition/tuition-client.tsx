@@ -112,7 +112,7 @@ export function TuitionClient({
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight italic">Recouvrement Écolages</h1>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Recouvrement Écolages</h1>
           <p className="text-sm text-muted-foreground">Gérez les paiements Wave, Orange Money et Cash.</p>
         </div>
         <button 
@@ -161,9 +161,10 @@ export function TuitionClient({
         </div>
       </div>
 
-      {/* Data Table */}
+      {/* Data Table / Mobile Cards */}
       <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Vue Desktop: Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wider">
               <tr>
@@ -238,6 +239,77 @@ export function TuitionClient({
             </tbody>
           </table>
         </div>
+
+        {/* Vue Mobile: Cartes */}
+        <div className="md:hidden flex flex-col p-4 gap-4">
+          {filteredTuitions.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              Aucun écolage trouvé.
+            </div>
+          ) : (
+            filteredTuitions.map((t) => (
+              <div key={t.id} className="bg-background border border-border/50 rounded-xl p-4 flex flex-col gap-3 relative overflow-hidden">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-bold text-sm leading-tight">{t.student.firstName} {t.student.lastName}</h3>
+                    <p className="text-xs text-muted-foreground font-mono mt-0.5">{t.student.class.name} • {MONTH_NAMES[t.month - 1]} {t.year}</p>
+                  </div>
+                  <div>
+                    {t.status === "PAID" ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 font-black text-[9px] uppercase tracking-wider">
+                        Payé
+                      </span>
+                    ) : t.status === "PARTIAL" ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 text-amber-500 font-black text-[9px] uppercase tracking-wider">
+                        Partiel
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-red-500/10 text-red-500 font-black text-[9px] uppercase tracking-wider">
+                        En attente
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center bg-muted/30 p-2.5 rounded-lg border border-border/50">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Montant Dû</span>
+                    <span className="font-black text-sm">{t.amount.toLocaleString('fr-FR')} F</span>
+                  </div>
+                  {t.amountPaid > 0 && (
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] text-emerald-500 uppercase font-black tracking-widest">Payé</span>
+                      <span className="font-black text-sm text-emerald-500">{t.amountPaid.toLocaleString('fr-FR')} F</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 mt-1">
+                  {t.status !== "PAID" ? (
+                    <>
+                      <button 
+                        onClick={() => setSelectedTuition(t)}
+                        className="flex-1 py-2 bg-primary/10 text-primary font-bold text-[10px] uppercase tracking-widest rounded-lg flex justify-center items-center gap-1.5"
+                      >
+                        <CreditCard className="w-3.5 h-3.5" /> Encaisser
+                      </button>
+                      <button 
+                        onClick={() => handleSendReminder(t.student.parentPhone, t.student.parentName, t.student.firstName, t.amount, t.month)}
+                        className="flex-1 py-2 bg-emerald-500/10 text-emerald-500 font-bold text-[10px] uppercase tracking-widest rounded-lg flex justify-center items-center gap-1.5"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" /> Relancer
+                      </button>
+                    </>
+                  ) : (
+                    <button className="flex-1 py-2 bg-muted text-muted-foreground font-bold text-[10px] uppercase tracking-widest rounded-lg flex justify-center items-center gap-1.5">
+                      <Download className="w-3.5 h-3.5" /> Reçu
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Payment Modal */}
@@ -257,7 +329,7 @@ export function TuitionClient({
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-md bg-card border border-border/50 rounded-[2rem] p-6 shadow-2xl z-10"
             >
-              <h2 className="text-xl font-black uppercase tracking-tight italic mb-1 text-primary">Encaisser Paiement</h2>
+              <h2 className="text-xl font-black uppercase tracking-tight mb-1 text-primary">Encaisser Paiement</h2>
               <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-6">
                 Écolage {MONTH_NAMES[selectedTuition.month - 1]} {selectedTuition.year} - {selectedTuition.student.firstName}
               </p>

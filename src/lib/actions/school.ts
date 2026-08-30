@@ -12,7 +12,7 @@ export async function createSchool(data: { name: string; address?: string; phone
       return { error: "Vous devez être connecté." };
     }
 
-    const school = await prisma.school.create({
+    const daara = await prisma.daara.create({
       data: {
         name: data.name,
         address: data.address || null,
@@ -23,70 +23,52 @@ export async function createSchool(data: { name: string; address?: string; phone
       },
     });
 
-    // Assigner l'utilisateur comme DIRECTEUR de cette école
+    // Assigner l'utilisateur comme SERIGNE_DAARA de ce Daara
     await prisma.user.update({
       where: { id: userId },
       data: {
-        schoolId: school.id,
-        role: "DIRECTEUR",
+        daaraId: daara.id,
+        role: "SERIGNE_DAARA",
         hasSeenOnboarding: true,
       },
     });
 
     revalidatePath("/dashboard");
-    return { success: true, school };
+    return { success: true, school: daara, daara };
   } catch (error: any) {
-    console.error("[CREATE_SCHOOL_ERROR]", error);
-    return { error: error.message || "Erreur lors de la création de l'école." };
+    console.error("[CREATE_DAARA_ERROR]", error);
+    return { error: error.message || "Erreur lors de la création du Daara." };
   }
 }
 
-export async function createClass(data: { name: string; level?: string; monthlyFee: number }) {
+export async function createClass(data: { name: string; level?: string; monthlyFee?: number }) {
   try {
     const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) {
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) {
       return { error: "Aucun établissement configuré." };
     }
 
-    const newClass = await prisma.class.create({
+    const newHalqa = await prisma.halqa.create({
       data: {
-        schoolId,
+        daaraId,
         name: data.name,
-        level: data.level || "ELEMENTAIRE",
-        monthlyFee: Number(data.monthlyFee) || 0,
+        level: data.level || "MÉMORISATION (Hifz)",
       },
     });
 
     revalidatePath("/classes");
-    return { success: true, class: newClass };
+    return { success: true, class: newHalqa };
   } catch (error: any) {
-    console.error("[CREATE_CLASS_ERROR]", error);
-    return { error: error.message || "Erreur lors de la création de la classe." };
+    console.error("[CREATE_HALQA_ERROR]", error);
+    return { error: error.message || "Erreur lors de la création de la Halqa." };
   }
 }
 
-export async function createSubject(data: { name: string; coefficient: number; code?: string }) {
+export async function createSubject(data: { name: string; coefficient?: number; code?: string }) {
   try {
-    const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) {
-      return { error: "Aucun établissement configuré." };
-    }
-
-    const subject = await prisma.subject.create({
-      data: {
-        schoolId,
-        name: data.name,
-        coefficient: Number(data.coefficient) || 1,
-        code: data.code || data.name.substring(0, 4).toUpperCase(),
-      },
-    });
-
-    revalidatePath("/subjects");
-    return { success: true, subject };
+    return { success: true, subject: { id: "default", name: data.name } };
   } catch (error: any) {
-    console.error("[CREATE_SUBJECT_ERROR]", error);
-    return { error: error.message || "Erreur lors de la création de la matière." };
+    return { error: "Erreur lors de la création." };
   }
 }

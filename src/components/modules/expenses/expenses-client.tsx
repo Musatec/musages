@@ -75,7 +75,7 @@ export function ExpensesClient({ transactions: initialTransactions }: ExpensesCl
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight italic">Trésorerie & Dépenses</h1>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Trésorerie & Dépenses</h1>
           <p className="text-sm text-muted-foreground">Suivi des encaissements et décaissements.</p>
         </div>
         <button 
@@ -205,7 +205,7 @@ export function ExpensesClient({ transactions: initialTransactions }: ExpensesCl
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-md bg-card border border-border/50 rounded-[2rem] p-6 shadow-2xl z-10"
             >
-              <h2 className="text-xl font-black uppercase tracking-tight italic mb-6">Enregistrer une Dépense</h2>
+              <h2 className="text-xl font-black uppercase tracking-tight mb-6">Enregistrer une Dépense</h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Montant (FCFA)</label>

@@ -71,8 +71,8 @@ export async function POST(req: Request) {
                         subscriptionEndsAt: endsAt
                     }
                 }),
-                // Synchroniser toutes les boutiques possédées par cet utilisateur
-                prisma.store.updateMany({
+                // Synchroniser tous les Daaras possédés par cet utilisateur
+                prisma.daara.updateMany({
                     where: { ownerId: payment.userId },
                     data: { plan: payment.plan as any }
                 })

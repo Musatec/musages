@@ -17,7 +17,11 @@ export function SettingsClient({ school }: SettingsClientProps) {
     phone: school.phone || "",
     email: school.email || "",
     ninea: school.ninea || "",
-    slogan: school.config?.slogan || ""
+    slogan: school.config?.slogan || "",
+    gradingSystem: school.config?.gradingSystem || "BASE_20_COEF",
+    averageBase: school.config?.averageBase || 20,
+    reportHeaderLeft: school.config?.reportHeaderLeft || "",
+    reportHeaderRight: school.config?.reportHeaderRight || ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,7 +43,7 @@ export function SettingsClient({ school }: SettingsClientProps) {
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
       <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight italic">Paramètres de l'Établissement</h1>
+        <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Paramètres de l'Établissement</h1>
         <p className="text-sm text-muted-foreground">Ces informations apparaîtront sur les bulletins et reçus.</p>
       </div>
 
@@ -68,7 +72,7 @@ export function SettingsClient({ school }: SettingsClientProps) {
                 value={formData.slogan}
                 onChange={(e) => setFormData({...formData, slogan: e.target.value})}
                 placeholder="Ex: Excellence et Rigueur"
-                className="w-full bg-background border border-border/50 rounded-xl pl-12 pr-4 py-3 text-sm italic focus:outline-none focus:border-primary/50"
+                className="w-full bg-background border border-border/50 rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-primary/50"
               />
             </div>
           </div>
@@ -121,6 +125,57 @@ export function SettingsClient({ school }: SettingsClientProps) {
                 onChange={(e) => setFormData({...formData, ninea: e.target.value})}
                 className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-primary/50"
               />
+            </div>
+          </div>
+
+          <div className="border-t border-border/50 pt-6 mt-8">
+            <h2 className="text-xl font-black uppercase tracking-tight mb-4">Système de Notation & Bulletins</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Système d'évaluation</label>
+                <select
+                  value={formData.gradingSystem}
+                  onChange={(e) => setFormData({...formData, gradingSystem: e.target.value})}
+                  className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
+                >
+                  <option value="BASE_20_COEF">Classique (Moyenne sur 20 & Coefficients)</option>
+                  <option value="SUM_OF_MAX_GRADES">Primaire (Somme des notes brutes)</option>
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">Le mode Primaire additionne les notes sans les ramener sur 20.</p>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Base de la moyenne</label>
+                <input 
+                  type="number"
+                  value={formData.averageBase}
+                  onChange={(e) => setFormData({...formData, averageBase: Number(e.target.value)})}
+                  className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
+                />
+                <p className="text-xs text-muted-foreground mt-1">La moyenne finale sera affichée sur cette base (ex: 10, 20).</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">En-tête Gauche (IA, IEF...)</label>
+                <textarea
+                  value={formData.reportHeaderLeft}
+                  onChange={(e) => setFormData({...formData, reportHeaderLeft: e.target.value})}
+                  placeholder="IA : DAKAR&#10;IEF : DAKAR"
+                  rows={3}
+                  className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">En-tête Droite (Optionnel)</label>
+                <textarea
+                  value={formData.reportHeaderRight}
+                  onChange={(e) => setFormData({...formData, reportHeaderRight: e.target.value})}
+                  placeholder="Informations supplémentaires..."
+                  rows={3}
+                  className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
+                />
+              </div>
             </div>
           </div>
 

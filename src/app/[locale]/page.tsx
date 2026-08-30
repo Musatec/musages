@@ -1,197 +1,147 @@
 "use client";
 
 import { Link } from "@/i18n/routing";
-import {
-    ArrowRight,
-    Play,
-    Zap,
-    GraduationCap,
-    BookOpen,
-    ChevronRight,
-    Sparkles,
-    Users,
-    ShieldCheck,
-    CreditCard,
-    MessageSquare
+import { 
+  BookOpen, 
+  Users, 
+  CreditCard
 } from "lucide-react";
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
 
 export default function LandingPage() {
-    const [scrolled, setScrolled] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 20);
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
-
-    const fadeInUp = {
-        initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
-    };
-
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-emerald-500/30 font-sans overflow-x-hidden">
+        <div className="w-full min-h-screen bg-[#F8FAFC] text-[#0D1A63] font-sans selection:bg-[#2845D6] selection:text-white flex flex-col justify-between">
+            
+            {/* EN-TÊTE ULTRA ÉPURÉ */}
+            <header className="w-full bg-white border-b border-slate-200/80 h-16 px-6 md:px-12 flex items-center justify-between sticky top-0 z-50">
+                <Link href="/" className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-[#2845D6] text-white flex items-center justify-center font-black text-base">
+                        T
+                    </div>
+                    <span className="font-extrabold text-xl tracking-tight text-[#0D1A63] leading-none">
+                        Tahfiz<span className="text-[#F68048]">.sn</span>
+                    </span>
+                </Link>
 
-            {/* 1. NAVBAR (Dark Theme) */}
-            <nav className={cn(
-                "fixed top-0 inset-x-0 z-50 transition-all duration-500 border-b",
-                scrolled
-                    ? "bg-[#0a0a0a]/90 backdrop-blur-xl border-white/10 py-4"
-                    : "bg-[#0a0a0a]/40 backdrop-blur-md border-transparent py-4"
-            )}>
-                <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <img
-                            src="/logo-taleem.png"
-                            alt="TaleemApp Logo"
-                            className="h-10 w-auto transition-transform group-hover:scale-105 drop-shadow-lg mix-blend-screen"
-                        />
-                        <span className="font-black text-xl tracking-tight text-white italic">
-                            Taleem<span className="text-emerald-500">App</span>
-                        </span>
+                <div className="flex items-center gap-3">
+                    <Link
+                        href="/login"
+                        className="text-xs sm:text-sm font-semibold text-slate-700 hover:text-[#0D1A63] px-3 py-1.5 transition-colors"
+                    >
+                        Connexion
                     </Link>
+                    <Link
+                        href="/login?mode=signup"
+                        className="text-xs font-semibold px-4 py-2 bg-[#2845D6] hover:bg-[#1A2CA3] text-white rounded-lg transition-colors shadow-xs active:scale-95"
+                    >
+                        Créer un Daara
+                    </Link>
+                </div>
+            </header>
 
-                    <div className="hidden md:flex items-center gap-4">
-                        <Link
-                            href="/login"
-                            className="text-[11px] font-black uppercase tracking-[0.2em] px-6 py-2.5 border border-emerald-500/50 text-emerald-400 rounded-full hover:bg-emerald-500/10 transition-all active:scale-95"
-                        >
-                            Se Connecter
-                        </Link>
+            {/* CONTENU PRINCIPAL */}
+            <main className="w-full flex-1 max-w-4xl mx-auto px-6 py-12 sm:py-20 space-y-12 sm:space-y-16">
+                
+                {/* HERO SECTION */}
+                <div className="w-full text-center space-y-6 max-w-2xl mx-auto">
+                    <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#0D1A63] leading-[1.15] tracking-tight">
+                        La gestion simple et moderne des <span className="text-[#2845D6]">Daaras</span>.
+                    </h1>
+
+                    <p className="text-slate-700 text-sm sm:text-base font-semibold leading-relaxed max-w-lg mx-auto">
+                        Suivi du Coran (60 Hizbs), pointage des présences et paiement de la scolarité par Wave & Orange Money.
+                    </p>
+
+                    {/* BOUTONS TEXTE PUR (SANS ICÔNES DÉCORDATIVES) */}
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
                         <Link
                             href="/login?mode=signup"
-                            className="text-[11px] font-black uppercase tracking-[0.2em] px-6 py-2.5 bg-emerald-500 text-black rounded-full hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] active:scale-95"
+                            className="w-full sm:w-auto px-7 py-3 bg-[#2845D6] hover:bg-[#1A2CA3] text-white font-semibold text-sm rounded-lg transition-colors shadow-sm active:scale-95 text-center"
                         >
-                            Inscrire l&apos;École
+                            Accéder à la plateforme
                         </Link>
-                    </div>
-
-                    <div className="md:hidden">
                         <Link
-                            href="/login"
-                            className="text-[10px] font-black uppercase tracking-[0.1em] px-4 py-2 bg-emerald-500 text-black rounded-full active:scale-95 shadow-lg"
+                            href="/daaras"
+                            className="w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-[#0D1A63] font-semibold text-sm rounded-lg transition-colors text-center"
                         >
-                            Connexion
+                            Annuaire des Daaras
                         </Link>
                     </div>
                 </div>
-            </nav>
 
-            <main>
-                {/* 2. HERO SECTION */}
-                <section className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-20 px-6 overflow-hidden">
-                    <div className="absolute top-[20%] left-[10%] w-[40%] h-[40%] bg-emerald-500/20 blur-[150px] rounded-full pointer-events-none animate-pulse" />
-                    <div className="absolute bottom-[20%] right-[10%] w-[30%] h-[30%] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
-
-                    <div className="max-w-7xl mx-auto w-full relative z-10 text-center space-y-8">
-                        <motion.div
-                            initial="initial"
-                            animate="animate"
-                            variants={{
-                                animate: { transition: { staggerChildren: 0.15 } }
-                            }}
-                            className="space-y-8"
-                        >
-
-
-                            <motion.h1
-                                variants={fadeInUp}
-                                className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter leading-[0.9] uppercase"
-                            >
-                                Gérer votre École. <br />
-                                <span className="text-emerald-500 italic relative">
-                                    Sans Impayés.
-                                </span>
-                            </motion.h1>
-
-                            <motion.p
-                                variants={fadeInUp}
-                                className="max-w-2xl mx-auto text-lg md:text-xl text-muted-foreground font-medium leading-relaxed"
-                            >
-                                Recouvrement automatique des écolages par Wave & Orange Money, bulletins de notes bilingues (Français & Arabe) et relances WhatsApp directes aux parents.
-                            </motion.p>
-
-                            <motion.div
-                                variants={fadeInUp}
-                                className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4"
-                            >
-                                <Link
-                                    href="/login?mode=signup"
-                                    className="group w-full sm:w-auto px-10 py-5 bg-emerald-500 text-black rounded-[2rem] font-black text-lg hover:bg-emerald-400 transition-all shadow-[0_20px_50px_rgba(16,185,129,0.3)] active:scale-95 flex items-center justify-center gap-3 uppercase italic"
-                                >
-                                    Configurer mon École <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                </Link>
-                                <Link
-                                    href="/login"
-                                    className="w-full sm:w-auto px-10 py-5 bg-white/5 border border-white/10 backdrop-blur-xl rounded-[2rem] font-black text-lg hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase italic"
-                                >
-                                    Accès Démo
-                                </Link>
-                            </motion.div>
-
-                        </motion.div>
-                    </div>
-                </section>
-
-                {/* 3. BENTO GRID FEATURES */}
-                <section className="py-24 px-6 max-w-7xl mx-auto">
-                    <div className="text-center mb-16 space-y-4">
-                        <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">Conçu pour les <span className="text-emerald-500 italic">Établissements Modernes.</span></h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="p-8 bg-card border border-border shadow-md rounded-[2.5rem] space-y-6">
-                            <div className="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center">
-                                <CreditCard className="w-7 h-7 text-emerald-500" />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-xl font-black uppercase tracking-tight">Recouvrement Wave</h3>
-                                <p className="text-muted-foreground text-sm font-medium">
-                                    Factures d&apos;écolage envoyées par WhatsApp avec lien Wave direct et reçus PDF automatisés.
-                                </p>
-                            </div>
+                {/* LES 3 CARTES AVEC DESIGN MINIMALISTE */}
+                <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-5">
+                    
+                    {/* 1. Tahfiz */}
+                    <Link 
+                        href="/hifz"
+                        className="bg-white border border-slate-200 p-6 rounded-xl space-y-3 hover:border-[#2845D6] transition-all group"
+                    >
+                        <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#2845D6] flex items-center justify-center font-bold">
+                            <BookOpen className="w-4 h-4" />
                         </div>
+                        <h2 className="text-base font-bold text-[#0D1A63] group-hover:text-[#2845D6] transition-colors">
+                            1. Tahfiz & Allwa (لوح)
+                        </h2>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                            Suivi des 60 Hizbs, Sabi (leçon du jour) et Muraja'a (révisions) pour chaque Talibé.
+                        </p>
+                    </Link>
 
-                        <div className="p-8 bg-card border border-border shadow-md rounded-[2.5rem] space-y-6">
-                            <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center">
-                                <GraduationCap className="w-7 h-7 text-amber-500" />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-xl font-black uppercase tracking-tight">Bulletins Bilingues</h3>
-                                <p className="text-muted-foreground text-sm font-medium">
-                                    Bulletins trimestriels certifiés en Français et en Arabe aux coefficients nationaux.
-                                </p>
-                            </div>
+                    {/* 2. Présences */}
+                    <Link 
+                        href="/attendance"
+                        className="bg-white border border-slate-200 p-6 rounded-xl space-y-3 hover:border-[#2845D6] transition-all group"
+                    >
+                        <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#2845D6] flex items-center justify-center font-bold">
+                            <Users className="w-4 h-4" />
                         </div>
+                        <h2 className="text-base font-bold text-[#0D1A63] group-hover:text-[#2845D6] transition-colors">
+                            2. Présences WhatsApp
+                        </h2>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                            Pointage rapide aux sessions de Halqa et notification instantanée des parents.
+                        </p>
+                    </Link>
 
-                        <div className="p-8 bg-card border border-border shadow-md rounded-[2.5rem] space-y-6">
-                            <div className="w-14 h-14 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center">
-                                <MessageSquare className="w-7 h-7 text-blue-500" />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-xl font-black uppercase tracking-tight">Relances WhatsApp</h3>
-                                <p className="text-muted-foreground text-sm font-medium">
-                                    Alertes automatiques d&apos;absences, de retards et de rappel de cotisation envoyées aux parents.
-                                </p>
-                            </div>
+                    {/* 3. Scolarité */}
+                    <Link 
+                        href="/tuition"
+                        className="bg-white border border-slate-200 p-6 rounded-xl space-y-3 hover:border-[#2845D6] transition-all group"
+                    >
+                        <div className="w-9 h-9 rounded-lg bg-blue-50 text-[#2845D6] flex items-center justify-center font-bold">
+                            <CreditCard className="w-4 h-4" />
                         </div>
+                        <h2 className="text-base font-bold text-[#0D1A63] group-hover:text-[#2845D6] transition-colors">
+                            3. Cotisations Wave & OM
+                        </h2>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                            Paiement direct des scolarités mensuelles avec reçus PDF automatiques.
+                        </p>
+                    </Link>
+
+                </div>
+
+                {/* BANNIÈRE SOS ÉPURÉE */}
+                <div className="w-full bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#F68048] shrink-0" />
+                        <span className="text-xs font-bold text-[#0D1A63]">Réseau SOS Talibés Disparus</span>
                     </div>
-                </section>
+                    <Link 
+                        href="/sos-disparus" 
+                        className="text-xs font-semibold text-[#2845D6] hover:underline"
+                    >
+                        Signaler ou rechercher un enfant
+                    </Link>
+                </div>
+
             </main>
 
-            <footer className="py-16 px-6 border-t border-border text-center space-y-4">
-                <div className="flex items-center justify-center gap-2">
-                    <img src="/logo-taleem.png" alt="TaleemApp" className="h-6 w-auto rounded" />
-                    <span className="text-xs font-black tracking-[0.3em] uppercase">TaleemApp 2026</span>
-                </div>
-                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
-                    SaaS de Gestion Scolaire Franco-Arabe & Général — Sénégal & Afrique de l&apos;Ouest
-                </p>
+            {/* PIED DE PAGE */}
+            <footer className="w-full bg-white border-t border-slate-200 py-6 px-6 text-center text-xs text-slate-400 font-medium">
+                © {new Date().getFullYear()} Tahfiz.sn • Plateforme de gestion des Daaras au Sénégal.
             </footer>
+
         </div>
     );
 }

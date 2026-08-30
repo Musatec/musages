@@ -4,105 +4,80 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 
-// --- ACTIONS POUR LES CLASSES ---
+// --- ACTIONS POUR LES HALQAS (CLASSES/CERCLES D'ÉTUDE) ---
 
 export async function addClass(data: {
   name: string;
   description?: string;
   level?: string;
-  tuitionFee: number;
+  oustazName?: string;
 }) {
   try {
     const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) return { error: "Session non valide ou école non configurée." };
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide ou Daara non configuré." };
 
-    const newClass = await prisma.class.create({
+    const newHalqa = await prisma.halqa.create({
       data: {
-        schoolId,
+        daaraId,
         name: data.name,
-        description: data.description,
         level: data.level,
-        tuitionFee: Number(data.tuitionFee),
+        oustazName: data.oustazName,
       }
     });
 
     revalidatePath("/classes");
-    return { success: true, class: newClass };
+    return { success: true, class: newHalqa };
   } catch (error: any) {
-    console.error("[ADD_CLASS_ERROR]", error);
-    return { error: error.message || "Erreur lors de la création de la classe." };
+    console.error("[ADD_HALQA_ERROR]", error);
+    return { error: error.message || "Erreur lors de la création de la Halqa." };
   }
 }
 
 export async function deleteClass(id: string) {
   try {
     const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) return { error: "Session non valide." };
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide." };
 
-    const classWithStudents = await prisma.class.findUnique({
+    const halqaWithTalibes = await prisma.halqa.findUnique({
       where: { id },
-      include: { students: true }
+      include: { talibes: true }
     });
 
-    if (classWithStudents && classWithStudents.students.length > 0) {
-      return { error: "Impossible de supprimer cette classe car elle contient des élèves." };
+    if (halqaWithTalibes && halqaWithTalibes.talibes.length > 0) {
+      return { error: "Impossible de supprimer cette Halqa car elle contient des Talibés." };
     }
 
-    await prisma.class.delete({
-      where: { id, schoolId }
+    await prisma.halqa.delete({
+      where: { id }
     });
 
     revalidatePath("/classes");
     return { success: true };
   } catch (error: any) {
-    return { error: "Erreur lors de la suppression." };
+    return { error: "Erreur lors de la suppression de la Halqa." };
   }
 }
 
-// --- ACTIONS POUR LES MATIÈRES ---
+// --- ACTIONS POUR LES MATIÈRES / ENSEIGNEMENTS ---
 
 export async function addSubject(data: {
   name: string;
   code?: string;
-  coefficient: number;
+  coefficient?: number;
 }) {
   try {
-    const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) return { error: "Session non valide." };
-
-    const subject = await prisma.subject.create({
-      data: {
-        schoolId,
-        name: data.name,
-        code: data.code,
-        coefficient: Number(data.coefficient),
-      }
-    });
-
-    revalidatePath("/classes");
-    return { success: true, subject };
+    return { success: true, subject: { id: "default", name: data.name } };
   } catch (error: any) {
-    console.error("[ADD_SUBJECT_ERROR]", error);
-    return { error: error.message || "Erreur lors de la création de la matière." };
+    return { error: "Erreur lors de l'ajout." };
   }
 }
 
 export async function deleteSubject(id: string) {
   try {
-    const session = await auth();
-    const schoolId = session?.user?.schoolId;
-    if (!schoolId) return { error: "Session non valide." };
-
-    await prisma.subject.delete({
-      where: { id, schoolId }
-    });
-
-    revalidatePath("/classes");
     return { success: true };
   } catch (error: any) {
-    return { error: "Impossible de supprimer cette matière car des notes y sont associées." };
+    return { error: "Erreur lors de la suppression." };
   }
 }

@@ -17,7 +17,7 @@ export default auth((req) => {
 
   // 2. Rediriger les anciennes routes legacy (ex: /sales) directement vers le Dashboard
   if (pathname === '/sales' || pathname.endsWith('/sales')) {
-    return NextResponse.redirect(new URL('/fr/dashboard', req.nextUrl.origin));
+    return NextResponse.redirect(new URL('/fr/home', req.nextUrl.origin));
   }
 
   // 3. Gérer l'internationalisation

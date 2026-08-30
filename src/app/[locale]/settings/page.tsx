@@ -17,20 +17,20 @@ export default async function SettingsPage({
     redirect(`/${locale}/login`);
   }
 
-  const schoolId = session.user.schoolId || session.user.storeId || session.user.id || "school_demo_123";
+  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
 
-  // Fetch school details
-  const school = await prisma.school.findUnique({
-    where: { id: schoolId }
+  // Fetch daara details
+  const daara = await prisma.daara.findUnique({
+    where: { id: daaraId }
   });
 
-  if (!school) {
-    return <div>École introuvable</div>;
+  if (!daara) {
+    return <div>Daara introuvable</div>;
   }
 
   return (
     <SettingsClient 
-      school={school}
+      school={daara as any}
     />
   );
 }

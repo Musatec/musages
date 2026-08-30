@@ -17,18 +17,18 @@ export default async function ExpensesPage({
     redirect(`/${locale}/login`);
   }
 
-  const schoolId = session.user.schoolId || session.user.storeId || session.user.id || "school_demo_123";
+  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
 
   // Fetch all transactions
   const transactions = await prisma.transaction.findMany({
-    where: { schoolId },
+    where: { daaraId },
     orderBy: { createdAt: "desc" },
     take: 100
   });
 
   return (
     <ExpensesClient 
-      transactions={transactions}
+      transactions={transactions as any}
     />
   );
 }

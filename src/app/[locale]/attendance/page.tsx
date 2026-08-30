@@ -17,14 +17,14 @@ export default async function AttendancePage({
     redirect(`/${locale}/login`);
   }
 
-  const schoolId = session.user.schoolId || session.user.storeId || session.user.id || "school_demo_123";
+  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
 
-  // Fetch all classes and their students
-  const classes = await prisma.class.findMany({
-    where: { schoolId },
+  // Fetch all halqas and their talibes
+  const halqas = await prisma.halqa.findMany({
+    where: { daaraId },
     orderBy: { name: "asc" },
     include: { 
-      students: {
+      talibes: {
         orderBy: { firstName: "asc" }
       } 
     }
@@ -38,14 +38,14 @@ export default async function AttendancePage({
 
   const todaysAttendances = await prisma.attendance.findMany({
     where: {
-      schoolId,
+      daaraId,
       date: {
         gte: startOfDay,
         lte: endOfDay,
       }
     },
     include: {
-      student: { include: { class: true } }
+      talibe: { include: { halqa: true } }
     }
   });
 
@@ -55,12 +55,12 @@ export default async function AttendancePage({
 
   const recentIssues = await prisma.attendance.findMany({
     where: {
-      schoolId,
+      daaraId,
       date: { gte: thirtyDaysAgo },
       status: { in: ["ABSENT", "RETARD"] }
     },
     include: {
-      student: { include: { class: true } }
+      talibe: { include: { halqa: true } }
     },
     orderBy: { date: "desc" },
     take: 50
@@ -68,10 +68,10 @@ export default async function AttendancePage({
 
   return (
     <AttendanceClient 
-      classes={classes}
-      todaysAttendances={todaysAttendances}
-      recentIssues={recentIssues}
-      schoolName={session.user.name || "École"}
+      classes={halqas as any}
+      todaysAttendances={todaysAttendances as any}
+      recentIssues={recentIssues as any}
+      schoolName={session.user.name || "Daara"}
     />
   );
 }

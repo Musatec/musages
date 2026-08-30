@@ -43,8 +43,7 @@ export function NewExpenseSheet({ trigger }: { trigger: React.ReactNode }) {
             const res = await createExpense({
                 amount: Number(amount),
                 category,
-                description: motif,
-                author: author || undefined
+                description: author ? `${motif} (Par: ${author})` : motif
             });
 
             if (res.success) {

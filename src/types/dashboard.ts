@@ -1,4 +1,4 @@
-import { Sale, AuditLog } from "@prisma/client";
+import { Transaction, AuditLog } from "@prisma/client";
 import { LucideIcon } from "lucide-react";
 import React from "react";
 
@@ -11,10 +11,9 @@ export interface DashboardMetrics {
   netCashflow: number;
 }
 
-export type SerializedSale = Omit<Sale, "createdAt" | "updatedAt" | "deletedAt"> & {
+export type SerializedTransaction = Omit<Transaction, "createdAt" | "updatedAt"> & {
   createdAt: string;
   updatedAt: string;
-  deletedAt: string | null;
 };
 
 export type SerializedAuditLog = Omit<AuditLog, "createdAt"> & {
@@ -32,5 +31,5 @@ export interface DashboardMetricItem {
 
 export interface DashboardClientProps {
   metrics: DashboardMetrics;
-  recentSales: SerializedSale[];
+  recentSales?: any[];
 }

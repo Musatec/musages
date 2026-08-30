@@ -1,130 +1,104 @@
-# 📑 Rapport de Diagnostic Technique Complet - Musages SaaS (Avril 2026)
+# 📑 Rapport de Diagnostic Technique Mis à Jour - Musages / Jangu SaaS (Août 2026)
 
 ---
 
 ## Executive Summary
 
-Ce diagnostic complet évalue l'architecture, la sécurité, la qualité du code, la base de données et l'expérience utilisateur de la plateforme SaaS **Musages** (Next.js 16, React 19, Prisma, Supabase, NextAuth v5).
+Ce diagnostic technique évalue la santé globale, la sécurité, la compilation TypeScript, les tests unitaires et la cohérence de l'architecture du projet **Musages / Jangu SaaS** (Next.js 16 App Router, React 19, Prisma ORM, Supabase PostgreSQL, NextAuth.js v5, Tailwind CSS).
+
+### Synthèse Globale
 
 | Domaine | Statut | Criticité | Résumé des constats |
 | :--- | :--- | :--- | :--- |
-| 🛡️ **Middleware & Route Protection** | ❌ **CRITIQUE** | **HAUTE** | Le fichier middleware est nommé `src/proxy.ts` au lieu de `src/middleware.ts`, neutralisant la protection automatique des routes d'API/pages. |
-| 🔐 **Sécurité Multi-Tenant** | ⚠️ **ATTENTION** | **HAUTE** | `createProduct` accepte un `data.storeId` fourni par le client sans vérifier s'il correspond au `session.user.storeId`. |
-| ⚡ **Typage TypeScript** | ✅ **OPÉRATIONNEL** | **AUCUNE** | `tsc --noEmit` passe sans aucune erreur de compilation (0 erreur). |
-| 🗄️ **Base de Données & Prisma** | 🟡 **OPTIMISATION** | **MOYENNE** | Pooler PgBouncer bien configuré. Manque d'index composés sur `Sale`, `Transaction` et `StockMovement`. |
-| 💳 **Paiement PayTech** | ✅ **SOLIDE** | **AUCUNE** | Validation SHA256 des Webhooks IPN et transactions atomiques `$transaction` conformes. |
-| 🎨 **UI/UX & Performance** | ✅ **STUNNING** | **FAIBLE** | Next.js 16 + React 19 + Tailwind + Framer Motion + Sentry + PWA. Wildcard `**.**` dans `next.config.ts` à restreindre. |
+| 🛡️ **Middleware & Routing** | ✅ **OPÉRATIONNEL** | **AUCUNE** | `src/middleware.ts` est bien présent et gère la protection des routes NextAuth ainsi que l'internationalisation (`next-intl`). |
+| ⚡ **Compilation TypeScript** | ❌ **61 ERREURS** | **HAUTE** | Conflit lié au pivot fonctionnel (passages de l'ancienne version *Magasin/Store* vers la version *Établissement Scolaire/School*). |
+| 🧪 **Tests Unitaires (Vitest)** | ✅ **100% SUCCÈS** | **AUCUNE** | 10/10 tests unitaires réussis (`finance.test.ts`, `utils.test.ts`). |
+| 🗄️ **Schéma Prisma & BDD** | ✅ **SOLIDE** | **AUCUNE** | Le schéma Prisma est parfaitement structuré pour les écoles (`School`, `Student`, `TuitionFee`, `Grade`, `Attendance`, `Transaction`, etc.) avec des index multi-tenant optimisés. |
+| 💳 **Paiement PayTech (SaaS)** | ✅ **SOLIDE** | **AUCUNE** | Validation SHA256 des Webhooks IPN et transactions atomiques `$transaction` valides. |
+| 🎨 **UI / UX & Dépendances** | ✅ **MODERNE** | **FAIBLE** | React 19, Next.js 16, Lucide React, Framer Motion, Radix UI, Sonner. |
 
 ---
 
-## 1. Analyse Architectural & Routing
+## 1. Diagnostic TypeScript & Résidus du Pivot Functional
 
-### ❌ 1.1 Fichier Middleware non reconnu (`src/proxy.ts`)
-* **Problème :** Next.js App Router exige que le middleware soit nommé exactement `middleware.ts` ou `src/middleware.ts`. Le fichier est actuellement nommé `src/proxy.ts`.
-* **Impact :** Les requêtes entrantes ne traversent pas le middleware d'authentification et d'internationalisation. Les pages protégées ne redirigent pas automatiquement les utilisateurs non authentifiés vers `/login` au niveau Edge.
-* **Recommandation :** Renommer `src/proxy.ts` en `src/middleware.ts` ou re-exporter le middleware depuis `src/middleware.ts`.
+### ❌ 1.1 Incohérences des modèles (Store vs School)
+Le projet a évolué vers une solution SaaS de gestion d'établissements scolaires (*Jangu*), mais plusieurs fichiers et composants font encore référence à l'ancien modèle *Boutique/Store* :
+* **Propriété `user.storeId` :** Désormais remplacée par `user.schoolId` dans le schéma Prisma et dans `src/types/next-auth.d.ts`.
+  * *Fichiers impactés :*
+    * `src/app/[locale]/inventory/page.tsx`
+    * `src/app/[locale]/inventory/movements/page.tsx`
+    * `src/app/[locale]/sales/journal/page.tsx`
+    * `src/app/[locale]/settings/page.tsx`
+    * `tmp/check-users.ts`
 
-### ⚠️ 1.2 Import Dynamique Prisma dans l'Edge Runtime (`auth.config.ts`)
-* **Problème :** Dans `src/auth.config.ts`, le callback `jwt` effectue un import dynamique de `@/lib/prisma` :
-  ```typescript
-  const { prisma } = await import("@/lib/prisma");
-  ```
-* **Impact :** Si ce callback est invoqué dans le Middleware (Edge Runtime), l'adaptateur Prisma `@prisma/adapter-pg` tentera de charger les modules Node `net` et `tls` non pris en compte dans Edge, générant un crash runtime Edge.
-* **Recommandation :** Transférer l'enrichissement des tokens JWT dans les callbacks s'exécutant en environnement Node.js (`src/auth.ts`) ou utiliser l'API REST Supabase pour les requêtes Edge lightweight.
+* **Types Prisma obsolètes importés :**
+  * `SaleStatus`, `Sale`, `Product`, `SaleItem`, `Employee` n'existent plus dans le nouveau `prisma/schema.prisma`.
+  * *Fichiers impactés :*
+    * `src/types/dashboard.ts`
+    * `src/types/hr.ts`
+    * `src/types/invoices.ts`
+    * `src/app/[locale]/invoices/page.tsx`
 
-### 📁 1.3 Scripts de maintenance situés dans `src/app/api/`
-* **Problème :** Les fichiers `src/app/api/promote-user.js` et `src/app/api/test-prisma.js` sont situés directement sous l'arborescence des routes Next.js.
-* **Impact :** Risque de confusion pour le router Next.js et pollue l'arborescence des endpoints API.
-* **Recommandation :** Déplacer ces deux fichiers dans le dossier `scripts/`.
-
----
-
-## 2. Audit de Sécurité & Isolation Multi-Tenant
-
-### 🚨 2.1 Contournement potentiel de périmètre d'établissement (`createProduct`)
-* **Localisation :** [inventory.ts](file:///c:/Users/HP/Desktop/musages/src/lib/actions/inventory.ts#L23)
-* **Constat :**
-  ```typescript
-  const storeId = data.storeId || session?.user?.storeId;
-  ```
-* **Vulnérabilité :** Si un utilisateur authentifié d'un magasin A envoie un payload avec `storeId` pointant vers le magasin B, le produit est créé dans le magasin B.
-* **Correctif Recommandé :**
-  ```typescript
-  const storeId = session.user.role === "SUPER_ADMIN" && data.storeId 
-    ? data.storeId 
-    : session.user.storeId;
-  ```
-
-### ✅ 2.2 Intégration Webhook PayTech (IPN)
-* **Localisation :** [route.ts](file:///c:/Users/HP/Desktop/musages/src/app/api/webhooks/paytech/route.ts)
-* **Points Forts :**
-  - Vérification cryptographique des hashs `api_key_sha256` et `api_secret_sha256`.
-  - Idempotence vérifiée (si `payment.status === "SUCCESS"`, renvoie immédiatement).
-  - Mise à jour atomique (`prisma.$transaction`) des tables `Payment`, `User` et `Store`.
+### ⚠️ 1.2 Actions Serveur Stubs et Imports Manquants
+* **Stubs d'actions serveur :** Fichiers comme `src/lib/actions/inventory.ts`, `src/lib/actions/expenses.ts`, `src/lib/actions/hr.ts`, `src/lib/actions/capital.ts` sont des stubs incomplets ou exportent des signatures obsolètes.
+* **Composants avec modules introuvables :**
+  * `sales-journal-client` dans `src/app/[locale]/sales/journal/page.tsx`
+  * `store-onboarding` dans `src/app/[locale]/setup/page.tsx`
+  * `@/types/capital` dans `src/components/capital/new-transaction-sheet.tsx`
 
 ---
 
-## 3. Analyse Base de Données (Prisma & Supabase)
+## 2. Infrastructure, Authentification & Sécurité
 
-### 3.1 Architecture du Schéma Prisma
-Le schéma couvre 17 modèles clés :
-- **Logistique/Procurement :** `Supplier`, `Purchase`, `PurchaseItem`
-- **Inventaire/POS :** `Product`, `Stock`, `StockMovement`, `Sale`, `SaleItem`
-- **Finance/Trésorerie :** `Transaction`, `Payment`
-- **RH/Audit :** `Employee`, `AuditLog`, `Notification`, `Feedback`
-- **Multi-tenant/Auth :** `Store`, `User`, `Account`, `Session`, `VerificationToken`
+### ✅ 2.1 Middleware NextAuth & Internationalisation
+Le middleware Edge `src/middleware.ts` est correctement configuré :
+* Protection automatique des routes privées.
+* Redirection des utilisateurs non authentifiés vers `/fr/login`.
+* Support multilingue natif avec `next-intl`.
+* Exemption des routes d'API (`/api`) et des actifs statiques.
 
-### 3.2 Indexation et Performances de Requêtes
-* **Index existants :** `Notification(userId, createdAt)`, `Product(storeId, sku)`, `Stock(storeId, productId)`, `Account(provider, providerAccountId)`.
-* **Manque d'Index Composés :**
-  - `Sale` : Pas d'index sur `(storeId, createdAt)` -> Requêtes de ventes quotidiennes lentes sur grosses tables.
-  - `Transaction` : Pas d'index sur `(storeId, createdAt)` -> Calcul du solde de caisse sous-optimal.
-  - `StockMovement` : Pas d'index sur `(storeId, productId, createdAt)`.
-* **Recommandation :** Ajouter ces index dans `prisma/schema.prisma` pour pérennaliser la montée en charge.
-
----
-
-## 4. Bilan Qualité Code & Outillage
-
-### TypeScript (`tsc --noEmit`)
-- **Statut :** **0 Erreur**.
-- Tous les types d'action, props Next.js et extensions de sessions NextAuth (`src/types/next-auth.d.ts`) sont parfaitement déclarés.
-
-### Nettoyage des Scripts Racine
-- Plusieurs scripts temporaires existent à la racine : `clean_colors.js`, `fix_contrast.js`, `replace.js`, `standardize_orange.js`, `simulate-paytech.js`, `test-db.js`, `test-email.js`, `test-paytech-api.js`, `test-redis.js`.
-- **Recommandation :** Consolider ces utilitaires sous le répertoire `scripts/` pour maintenir une racine de dépôt propre.
-
-### Configuration Images (`next.config.ts`)
-- Le pattern `{ protocol: 'https', hostname: '**.**' }` autorise le proxying d'images depuis n'importe quel domaine externe.
-- **Recommandation :** Remplacer par une liste blanche explicite des domaines d'images autorisés (ex: Supabase storage, Unsplash, Gravatar/Google).
+### ✅ 2.2 Modèle de Données & Indexation Prisma
+Le fichier `prisma/schema.prisma` comporte des index multi-tenant stratégiques pour garantir de très hautes performances :
+* `TuitionFee` : `@@index([schoolId, month, year])` et `@@index([schoolId, status])`
+* `Grade` : `@@index([schoolId, studentId, term])`
+* `Attendance` : `@@index([schoolId, date])`
+* `Transaction` : `@@index([schoolId, createdAt])`
+* `Student` : `@@unique([schoolId, matricule])` et `@@index([schoolId, classId])`
 
 ---
 
-## 5. Plan d'Action Recommandé (Roadmap de Résolution)
+## 3. Qualité du Code & Tests Unitaires
+
+### 🧪 Tests Vitest
+L'exécution de la suite de tests unitaires renvoie **100% de passage** :
+* `src/lib/__tests__/finance.test.ts` (7 tests) 🟢 PASSED
+* `src/lib/__tests__/utils.test.ts` (3 tests) 🟢 PASSED
+
+---
+
+## 4. Plan de Résolution (Roadmap d'Assainissement)
 
 ```mermaid
 graph TD
-    A["1. Renommer src/proxy.ts -> src/middleware.ts"] --> B["2. Sécuriser storeId dans inventory.ts"]
-    B --> C["3. Déplacer scripts racine & app/api vers scripts/"]
-    C --> D["4. Ajouter index Prisma (Sale, Transaction, StockMovement)"]
-    D --> E["5. Restreindre hostname Next Image dans next.config.ts"]
+    A["1. Remplacer storeId par schoolId dans les pages app/"] --> B["2. Nettoyer les imports Prisma obsolètes (Sale, Product, Employee)"]
+    B --> C["3. Mettre à jour les Server Actions (inventory, hr, capital, expenses)"]
+    C --> D["4. Corriger/Désactiver les routes legacy non scolaires"]
+    D --> E["5. Valider avec npx tsc --noEmit (0 erreur)"]
 ```
 
-### Priorité 1 (Immédiat - Sécurité & Routing)
-1. **Renommer `src/proxy.ts` en `src/middleware.ts`** pour activer la protection des routes par NextAuth.
-2. **Corriger l'isolation Multi-Tenant** dans `src/lib/actions/inventory.ts`.
+### Priorité 1 : Nettoyage du Pivot (Remplacer `storeId` par `schoolId`)
+1. Remplacer toutes les occurrences de `session.user.storeId` par `session.user.schoolId` dans les composants et pages de `src/app/[locale]`.
 
-### Priorité 2 (Nettoyage & Robustesse)
-1. Déplacer `src/app/api/promote-user.js` et `src/app/api/test-prisma.js` dans `scripts/`.
-2. Déplacer les 9 scripts `.js` de la racine vers `scripts/`.
-3. Corriger l'import dynamique `@/lib/prisma` dans `src/auth.config.ts`.
+### Priorité 2 : Harmonisation des Types Prisma & Server Actions
+1. Supprimer/Remplacer les types Prisma supprimés (`Sale`, `Product`, `Employee`, `SaleItem`, `SaleStatus`) par leurs équivalents scolaires (`TuitionFee`, `Transaction`, `Teacher`, `Student`).
+2. Mettre à jour les Server Actions dans `src/lib/actions/` pour correspondre au domaine scolaire.
 
-### Priorité 3 (Optimisations & Scalabilité)
-1. Ajouter les index composés dans `prisma/schema.prisma` et exécuter `npx prisma db push`.
-2. Restreindre les `remotePatterns` dans `next.config.ts`.
+### Priorité 3 : Validation du Build & CI/CD
+1. Lancer `npx tsc --noEmit` pour confirmer 0 erreur de compilation.
+2. Lancer `npm test` pour s'assurer que les tests continuent de passer.
 
 ---
 
 ## Conclusion
 
-Le projet **Musages SaaS** présente une architecture très solide (Next.js 16 + React 19 + Prisma + Supabase + NextAuth v5). Les correctifs de typage apportés précédemment ont stabilisé la compilation. En appliquant la réorganisation du middleware et la sécurisation du `storeId`, la plateforme atteindra un niveau d'étanchéité et de préparation de classe production.
+L'infrastructure du projet **Musages / Jangu SaaS** est très moderne et saine. Les mécanismes clés (Authentification NextAuth v5, Middleware, BDD PostgreSQL / Supabase, Paiements PayTech, Tests Vitest) sont 100% opérationnels. La seule dette technique actuelle provient des résidus du pivot fonctionnel du modèle Boutique vers le modèle Établissement Scolaire, qui peut être assainie rapidement.

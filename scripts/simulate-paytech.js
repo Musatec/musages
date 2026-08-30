@@ -1,8 +1,10 @@
+
 const { PrismaClient } = require('@prisma/client');
 const crypto = require('crypto');
 require('dotenv').config();
 
 async function simulate() {
+    // Force the DATABASE_URL if it's not picked up
     const dbUrl = process.env.DATABASE_URL;
     if (!dbUrl) {
         console.error("❌ DATABASE_URL missing from process.env");
@@ -14,6 +16,7 @@ async function simulate() {
     
     console.log("--- PayTech Simulation ---");
     
+    // 1. Trouver ou Créer un paiement en attente
     let payment = await prisma.payment.findFirst({
         where: { status: 'PENDING' },
         include: { user: true }
@@ -40,12 +43,14 @@ async function simulate() {
 
     console.log(`Working with payment: ${payment.id} for ${payment.user.email}`);
 
+    // 2. Générer les hashes de sécurité
     const apiKey = process.env.PAYTECH_API_KEY || "";
     const apiSecret = process.env.PAYTECH_SECRET_KEY || "";
     
     const myApiKeyHash = crypto.createHash("sha256").update(apiKey).digest("hex");
     const myApiSecretHash = crypto.createHash("sha256").update(apiSecret).digest("hex");
 
+    // 3. Simuler l'IPN de PayTech
     const payload = new URLSearchParams();
     payload.append("type_event", "sale_complete");
     payload.append("ref_command", payment.id);
@@ -69,6 +74,7 @@ async function simulate() {
         console.log("Webhook Response:", result);
 
         if (response.ok) {
+            // Vérifier que l'utilisateur a été mis à jour
             const updatedUser = await prisma.user.findUnique({
                 where: { id: payment.userId }
             });

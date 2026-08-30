@@ -114,7 +114,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight italic">Enseignants & Vacations / المعلمون</h1>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Enseignants & Vacations / المعلمون</h1>
           <p className="text-sm text-muted-foreground">Gestion du corps professoral et de la paie.</p>
         </div>
         <div className="flex bg-card p-1 rounded-2xl border border-border/50">
@@ -229,7 +229,8 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
                 + Nouveau Paiement
               </button>
             </div>
-            <div className="overflow-x-auto">
+            {/* Vue Desktop: Table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wider">
                   <tr>
@@ -261,6 +262,29 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
                 </tbody>
               </table>
             </div>
+
+            {/* Vue Mobile: Cartes */}
+            <div className="md:hidden flex flex-col p-4 gap-3">
+              {initialPayments.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  Aucun paiement enregistré.
+                </div>
+              ) : (
+                initialPayments.map((p) => (
+                  <div key={p.id} className="bg-background border border-border/50 rounded-xl p-4 flex flex-col gap-2">
+                    <div className="flex justify-between items-start">
+                      <span className="font-medium text-sm leading-tight">{p.description}</span>
+                      <span className="font-black text-red-500 whitespace-nowrap ml-4">
+                        - {p.amount.toLocaleString('fr-FR')} F
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground font-mono">
+                      {new Date(p.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -282,7 +306,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-2xl bg-card border border-border/50 rounded-[2rem] p-6 shadow-2xl z-10 max-h-[90vh] overflow-y-auto"
             >
-              <h2 className="text-xl font-black uppercase tracking-tight italic mb-6">Ajouter un Enseignant</h2>
+              <h2 className="text-xl font-black uppercase tracking-tight mb-6">Ajouter un Enseignant</h2>
               <form onSubmit={handleAddTeacher} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -382,7 +406,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-md bg-card border border-border/50 rounded-[2rem] p-6 shadow-2xl z-10"
             >
-              <h2 className="text-xl font-black uppercase tracking-tight italic mb-6">Enregistrer un Paiement</h2>
+              <h2 className="text-xl font-black uppercase tracking-tight mb-6">Enregistrer un Paiement</h2>
               <form onSubmit={handlePayTeacher} className="space-y-4">
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Enseignant</label>
