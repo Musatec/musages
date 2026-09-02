@@ -15,15 +15,15 @@ export function LanguageSwitcher() {
     };
 
     return (
-        <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 dark:bg-muted border border-slate-200 dark:border-border shadow-xs text-xs font-bold">
+        <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 shadow-xs text-xs sm:text-sm font-semibold">
             <button
                 type="button"
                 onClick={() => switchLocale('fr')}
                 className={cn(
-                    "px-3 py-1 rounded-full transition-all duration-200 font-bold",
+                    "px-3 sm:px-4 py-1.5 rounded-lg transition-all duration-200 font-bold",
                     locale === 'fr'
-                        ? "bg-emerald-600 text-white shadow-xs font-black"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                        ? "bg-[#0C5A34] text-white shadow-xs font-bold"
+                        : "text-slate-700 hover:text-[#0C5A34]"
                 )}
             >
                 Français
@@ -33,10 +33,10 @@ export function LanguageSwitcher() {
                 type="button"
                 onClick={() => switchLocale('ar')}
                 className={cn(
-                    "px-3 py-1 rounded-full font-arabic transition-all duration-200 font-bold",
+                    "px-3 sm:px-4 py-1.5 rounded-lg font-arabic transition-all duration-200 font-bold",
                     locale === 'ar'
-                        ? "bg-emerald-600 text-white shadow-xs font-black"
-                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                        ? "bg-[#0C5A34] text-white shadow-xs font-bold"
+                        : "text-slate-700 hover:text-[#0C5A34]"
                 )}
                 dir="rtl"
             >

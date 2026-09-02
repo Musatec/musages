@@ -63,11 +63,11 @@ export default function ResetPasswordPage() {
                     <div className="inline-flex items-center justify-center p-4 bg-[#1C1C1E] rounded-3xl border border-border/50 shadow-2xl relative group">
                         <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary))]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-xl" />
                         <SafeImage
-                            src="/logo.svg?v=4"
-                            alt="Logo MINDOS"
-                            width={120}
-                            height={48}
-                            className="relative z-10 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)] h-12 w-auto"
+                            src="/logo-daara-ibnoul-khayim.png"
+                            alt="Daara Ibnoul Khayim Al Diawziya"
+                            width={140}
+                            height={56}
+                            className="relative z-10 drop-shadow-[0_0_15px_rgba(212,175,55,0.5)] h-14 w-auto object-contain"
                             priority
                         />
                     </div>

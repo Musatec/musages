@@ -17,15 +17,15 @@ export function EliteHeader() {
                 <div className="flex items-center gap-2 md:gap-4 shrink-0">
                     {/* --- SCHOOL BRANDING WITH HORIZONTAL LOGO --- */}
                     <div className="flex items-center gap-3 shrink-0">
-                        <div className="h-9 md:h-10 flex items-center overflow-hidden">
-                            <img src="/logo-taleem.png" alt="TaleemApp" className="h-9 md:h-10 w-auto object-contain mix-blend-screen drop-shadow-md" />
+                        <div className="h-10 md:h-12 flex items-center overflow-hidden">
+                            <img src="/logo-daara-ibnoul-khayim.png" alt="Daara Ibnoul Khayim Al Diawziya" className="h-10 md:h-12 w-auto object-contain rounded-lg drop-shadow-md" />
                         </div>
                         <div className="hidden lg:flex flex-col border-l border-white/20 pl-3">
-                            <span className="text-xs font-black uppercase tracking-tight text-white italic leading-tight">
-                                {session?.user?.name || "Établissement Scolaire"}
+                            <span className="text-xs font-black uppercase tracking-tight text-[#D4AF37] leading-tight">
+                                École Ibnoul Khayim Al Jawziya
                             </span>
-                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest leading-tight">
-                                Espace Directeur
+                            <span className="text-[9px] font-bold text-emerald-400 font-serif dir-rtl leading-tight">
+                                مدرسة ابن القيم الجوزية
                             </span>
                         </div>
                     </div>

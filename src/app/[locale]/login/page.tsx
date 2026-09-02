@@ -77,7 +77,7 @@ export default function LoginPage() {
                     throw new Error("Identifiants invalides (Email ou mot de passe incorrect)");
                 }
 
-                toast.success("Bienvenue sur Tahfiz.sn !");
+                toast.success("Bienvenue sur DigiDaara !");
                 router.push("/dashboard");
             }
         } catch (err: any) {
@@ -96,17 +96,20 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="h-screen max-h-screen w-full bg-[#0D1A63] text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden font-sans selection:bg-[#2845D6] selection:text-white">
+        <div className="h-screen max-h-screen w-full bg-[#0A192F] text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden font-sans selection:bg-[#0C5A34] selection:text-white">
             
             {/* HEADER COMPACT (ZÉRO SCROLL) */}
-            <header className="w-full flex items-center justify-between pb-2 border-b border-[#1A2CA3]/80">
-                <Link href="/" className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-lg bg-[#2845D6] text-white flex items-center justify-center font-extrabold text-xl shadow-md">
-                        T
+            <header className="w-full flex items-center justify-between pb-2 border-b border-[#0C5A34]/50">
+                <Link href="/" className="flex items-center gap-3">
+                    <img src="/logo-daara-ibnoul-khayim.png" alt="Daara Ibnoul Khayim Al Diawziya" className="h-14 md:h-16 w-auto object-contain shrink-0" />
+                    <div className="flex flex-col">
+                        <span className="text-xs font-black text-[#D4AF37] uppercase tracking-wider">
+                            École Ibnoul Khayim
+                        </span>
+                        <span className="text-[10px] font-bold text-emerald-400 font-serif dir-rtl">
+                            مدرسة ابن القيم الجوزية
+                        </span>
                     </div>
-                    <span className="font-extrabold text-xl md:text-2xl tracking-tight text-white">
-                        Tahfiz<span className="text-[#F68048]">.sn</span>
-                    </span>
                 </Link>
 
                 <Link href="/" className="text-xs font-bold text-slate-300 hover:text-white transition-colors">
@@ -116,7 +119,7 @@ export default function LoginPage() {
 
             {/* MAIN FORM CARD - COMPACT 100% FIT IN VIEWPORT */}
             <main className="w-full flex-1 flex items-center justify-center py-2">
-                <div className="w-full max-w-sm bg-[#1A2CA3] border border-[#2845D6] rounded-2xl p-6 sm:p-7 shadow-2xl space-y-4">
+                <div className="w-full max-w-sm bg-[#081325] border border-[#0C5A34] rounded-2xl p-6 sm:p-7 shadow-2xl space-y-4">
                     
                     {/* TITLE */}
                     <div className="text-center space-y-1">
@@ -124,7 +127,7 @@ export default function LoginPage() {
                             {isSignUp ? "Créer un Daara" : "Connexion"}
                         </h1>
                         <p className="text-xs text-slate-300 font-medium">
-                            {isSignUp ? "Inscrivez votre Daara pour démarrer" : "Accédez à votre espace Tahfiz"}
+                            {isSignUp ? "Inscrivez votre Daara pour démarrer" : "Accédez à votre espace E-Daara"}
                         </p>
                     </div>
 
@@ -133,7 +136,7 @@ export default function LoginPage() {
                         type="button"
                         onClick={handleGoogleAuth}
                         disabled={loading || googleLoading}
-                        className="w-full bg-[#0D1A63] hover:bg-[#12237e] text-white font-bold text-xs h-10 rounded-xl border border-[#2845D6] transition-all flex items-center justify-center gap-2.5 shadow-sm"
+                        className="w-full bg-[#0A192F] hover:bg-[#06381F] text-white font-bold text-xs h-10 rounded-xl border border-[#0C5A34] transition-all flex items-center justify-center gap-2.5 shadow-sm"
                     >
                         {googleLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -151,8 +154,8 @@ export default function LoginPage() {
                     </button>
 
                     <div className="relative flex items-center justify-center text-[10px] font-bold text-slate-300">
-                        <div className="w-full border-t border-[#2845D6]/60" />
-                        <span className="bg-[#1A2CA3] px-2.5 absolute">OU EMAIL</span>
+                        <div className="w-full border-t border-[#0C5A34]/60" />
+                        <span className="bg-[#081325] px-2.5 absolute">OU EMAIL</span>
                     </div>
 
                     {/* FORM */}
@@ -172,7 +175,7 @@ export default function LoginPage() {
                                             type="text"
                                             required
                                             placeholder="El Hadji Mouhamadou Fall"
-                                            className="w-full bg-[#0D1A63] border border-[#2845D6] rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-400 focus:border-[#F68048] outline-none font-medium text-xs"
+                                            className="w-full bg-[#0A192F] border border-[#0C5A34] rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-400 focus:border-[#D4AF37] outline-none font-medium text-xs"
                                             value={fullName}
                                             onChange={(e) => setFullName(e.target.value)}
                                         />
@@ -189,7 +192,7 @@ export default function LoginPage() {
                                     type="email"
                                     required
                                     placeholder="contact@daara.sn"
-                                    className="w-full bg-[#0D1A63] border border-[#2845D6] rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-400 focus:border-[#F68048] outline-none font-medium text-xs"
+                                    className="w-full bg-[#0A192F] border border-[#0C5A34] rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-400 focus:border-[#D4AF37] outline-none font-medium text-xs"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                 />
@@ -204,7 +207,7 @@ export default function LoginPage() {
                                     type="password"
                                     required
                                     placeholder="••••••••••••"
-                                    className="w-full bg-[#0D1A63] border border-[#2845D6] rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-400 focus:border-[#F68048] outline-none font-medium text-xs"
+                                    className="w-full bg-[#0A192F] border border-[#0C5A34] rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-400 focus:border-[#D4AF37] outline-none font-medium text-xs"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
@@ -220,25 +223,25 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading || googleLoading}
-                            className="w-full bg-[#2845D6] hover:bg-[#3453ea] text-white font-black text-xs uppercase tracking-wider h-11 rounded-xl transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
+                            className="w-full bg-[#0C5A34] hover:bg-[#06381F] text-white font-black text-xs uppercase tracking-wider h-11 rounded-xl transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
                         >
                             {loading ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                                 <>
                                     <span>{isSignUp ? "Inscrire mon Daara" : "Se Connecter"}</span>
-                                    <ArrowRight className="h-4 w-4" />
+                                    <ArrowRight className="h-4 w-4 text-[#FFE57F]" />
                                 </>
                             )}
                         </button>
                     </form>
 
                     {/* QUICK DEMO & TOGGLE */}
-                    <div className="pt-2 border-t border-[#2845D6]/60 flex flex-col gap-1.5 text-center">
+                    <div className="pt-2 border-t border-[#0C5A34]/60 flex flex-col gap-1.5 text-center">
                         <button
                             type="button"
                             onClick={handleQuickFill}
-                            className="text-[11px] font-bold text-[#F68048] hover:underline"
+                            className="text-[11px] font-bold text-[#D4AF37] hover:underline"
                         >
                             ⚡ Identifiants de démonstration
                         </button>
@@ -264,7 +267,7 @@ export default function LoginPage() {
 
             {/* FOOTER COMPACT */}
             <footer className="w-full py-2 text-center text-[11px] font-medium text-slate-400 border-t border-[#1A2CA3]/80">
-                <p>© 2026 Tahfiz.sn — Connexion & Gestion des Daaras au Sénégal</p>
+                <p>© 2026 DigiDaara — Connexion & Gestion des Daaras</p>
             </footer>
 
         </div>

@@ -60,10 +60,10 @@ export const NAV_SECTIONS: NavSection[] = [
 
 export const SUPER_ADMIN_NAV: NavSection[] = [
     {
-        title: "PILOTAGE SAAS DAARA.NET",
+        title: "PILOTAGE SAAS DIGIDAARA",
         titleAr: "إدارة النظام",
         items: [
-            { label: "Console Daara.net", labelAr: "وحدة التحكم", icon: LayoutDashboard, href: "/admin" },
+            { label: "Console DigiDaara", labelAr: "وحدة التحكم", icon: LayoutDashboard, href: "/admin" },
             { label: "Daaras Partenaires", labelAr: "المحاضر الشريكة", icon: Server, href: "/admin/stores" },
             { label: "Audit Global", labelAr: "التدقيق الشامل", icon: Activity, href: "/admin/audit" },
         ]

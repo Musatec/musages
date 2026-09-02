@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,700&family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,32 +6,34 @@
 
 @layer base {
     :root {
-        /* Crisp Luminous Light Theme */
-        --color-bg-light: #F8FAFC;        /* Soft Light Gray Background */
-        --color-card-light: #FFFFFF;      /* Pure White Cards */
-        --color-navy: #0D1A63;            /* Deep Navy Text */
-        --color-primary-blue: #2845D6;   /* Electric Royal Blue Primary */
-        --color-accent-coral: #F68048;   /* Sunset Coral Accent */
+        /* Daara Ibnoul Khayim Al Diawziya Theme */
+        --color-emerald-deep: #0C5A34;       /* Primary Emerald Green */
+        --color-emerald-light: #127844;      /* Lighter Emerald */
+        --color-gold-noble: #D4AF37;         /* Royal Gold */
+        --color-gold-light: #FFE57F;         /* Bright Gold */
+        --color-ruby-accent: #9E2A2B;        /* Ruby Accent */
+        --color-bg-cream: #FAFAF7;           /* Elegant Off-White / Cream */
+        --color-navy-dark: #0A192F;          /* Deep Islamic Navy */
 
-        --background: 210 40% 98%;       /* #F8FAFC */
-        --foreground: 228 77% 22%;       /* #0D1A63 */
-        --card: 0 0% 100%;               /* #FFFFFF */
-        --card-foreground: 228 77% 22%;
+        --background: 60 20% 98%;            /* #FAFAF7 */
+        --foreground: 217 65% 11%;           /* #0A192F */
+        --card: 0 0% 100%;                   /* #FFFFFF */
+        --card-foreground: 217 65% 11%;
         --popover: 0 0% 100%;
-        --popover-foreground: 228 77% 22%;
-        --primary: 230 68% 50%;          /* #2845D6 */
+        --popover-foreground: 217 65% 11%;
+        --primary: 151 77% 20%;              /* #0C5A34 Emerald */
         --primary-foreground: 0 0% 100%;
-        --secondary: 210 40% 96%;
-        --secondary-foreground: 228 77% 22%;
-        --muted: 210 40% 96%;
-        --muted-foreground: 215 16% 47%;
-        --accent: 19 90% 62%;            /* #F68048 */
-        --accent-foreground: 0 0% 100%;
-        --destructive: 0 84.2% 60.2%;
+        --secondary: 46 65% 52%;             /* #D4AF37 Gold */
+        --secondary-foreground: 217 65% 11%;
+        --muted: 150 15% 94%;
+        --muted-foreground: 215 16% 40%;
+        --accent: 46 65% 52%;                /* #D4AF37 Gold */
+        --accent-foreground: 217 65% 11%;
+        --destructive: 359 58% 39%;          /* Ruby */
         --destructive-foreground: 0 0% 100%;
-        --border: 214 32% 91%;
-        --input: 214 32% 91%;
-        --ring: 230 68% 50%;
+        --border: 150 15% 88%;
+        --input: 150 15% 88%;
+        --ring: 151 77% 20%;
         --radius: 1rem;
     }
 }
@@ -43,28 +45,36 @@
     }
 
     body, button, input, select, textarea {
-        background-color: #F8FAFC;
-        color: #0D1A63;
-        font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-weight: 500;
+        background-color: #FAFAF7;
+        color: #0A192F;
+        font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-weight: 450;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         overflow-x: hidden;
     }
 
     h1, h2, h3, h4, h5, h6 {
-        font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-        color: #0D1A63;
-        font-weight: 800;
-        letter-spacing: -0.02em;
+        font-family: 'Cinzel', 'Amiri', 'Outfit', serif;
+        color: #0A192F;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+    }
+
+    .font-classic {
+        font-family: 'Cinzel', 'Amiri', Georgia, serif;
+    }
+
+    .font-arabic {
+        font-family: 'Amiri', 'Traditional Arabic', serif;
     }
 
     p, span, label {
-        font-weight: 500;
+        font-weight: 450;
     }
 
     ::selection {
-        background: #2845D6;
+        background: #0C5A34;
         color: #FFFFFF;
     }
 }
@@ -79,24 +89,24 @@
 .glass-card-light {
     background: #FFFFFF;
     border: 1px solid #E2E8F0;
-    box-shadow: 0 10px 30px -10px rgba(13, 26, 99, 0.08);
+    box-shadow: 0 10px 30px -10px rgba(12, 90, 52, 0.08);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card-light:hover {
-    border-color: #2845D6;
+    border-color: #0C5A34;
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px -15px rgba(40, 69, 214, 0.15);
+    box-shadow: 0 20px 40px -15px rgba(12, 90, 52, 0.15);
 }
 
 /* --- SCROLLBAR --- */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #F8FAFC;
+    background: #FAFAF7;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -105,5 +115,5 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #2845D6;
+    background: #0C5A34;
 }

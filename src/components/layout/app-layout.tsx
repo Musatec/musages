@@ -23,7 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     if (isPublicPage) {
         return (
-            <div className="w-full min-h-screen relative bg-[#F8FAFC] selection:bg-[#2845D6] selection:text-white overflow-x-hidden">
+            <div className="w-full min-h-screen relative bg-[#FAFAF7] selection:bg-[#0C5A34] selection:text-white overflow-x-hidden">
                 <Suspense fallback={null}>
                     <TopLoader />
                 </Suspense>
@@ -33,7 +33,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <div className="flex min-h-screen relative overflow-x-hidden bg-[#F8FAFC] selection:bg-[#2845D6] selection:text-white">
+        <div className="flex min-h-screen relative overflow-x-hidden bg-[#FAFAF7] selection:bg-[#0C5A34] selection:text-white">
             <Suspense fallback={null}>
                 <TopLoader />
             </Suspense>

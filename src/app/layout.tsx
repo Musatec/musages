@@ -33,19 +33,19 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Daara.net | SaaS de Gestion des Daaras & Écoles Coraniques",
-    template: "%s | Daara.net"
+    default: "Daara Ibnoul Khayim Al Diawziya | École Ibnoul Khayim Al Jawziya (مدرسة ابن القيم الجوزية)",
+    template: "%s | Daara Ibnoul Khayim Al Diawziya"
   },
-  description: "Plateforme SaaS tout-en-un de gestion des Daaras et Écoles Coraniques au Sénégal et dans le monde. Suivi des 60 Hizb, Allwa, Ndeyi Daara et collecte de Sadaqa par Wave & Orange Money.",
-  keywords: ["Daara.net", "Daara Sénégal", "Suivi 60 Hizb", "Allwa Coran", "Ndeyi Daara", "Sadaqa Wave", "Gestion École Coranique"],
+  description: "Plateforme officielle de l'École Ibnoul Khayim Al Jawziya pour la Mémorisation du Saint Coran et l'Éducation Islamique. Suivi des 60 Hizbs, Ahkam, Tajweed et portail E-Daara.",
+  keywords: ["Daara Ibnoul Khayim Al Diawziya", "Ecole Ibnoul Khayim Al Jawziya", "مدرسة ابن القيم الجوزية", "Mémorisation Coran", "60 Hizbs", "Tajweed", "E-Daara"],
   metadataBase: new URL('https://musages.vercel.app'),
   manifest: "/manifest.json",
   icons: {
-    icon: '/logo-taleem.png',
-    shortcut: '/logo-taleem.png',
-    apple: '/logo-taleem.png',
+    icon: '/logo-daara-ibnoul-khayim.png',
+    shortcut: '/logo-daara-ibnoul-khayim.png',
+    apple: '/logo-daara-ibnoul-khayim.png',
   },
-  applicationName: "Daara.net",
+  applicationName: "Daara Ibnoul Khayim Al Diawziya",
 };
 
 export default async function RootLayout({

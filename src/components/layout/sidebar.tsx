@@ -23,32 +23,32 @@ export function Sidebar() {
     return (
         <aside 
             className={cn(
-                "fixed left-0 top-0 h-screen transition-all duration-300 ease-in-out hidden md:flex flex-col z-[70] border-r border-[#1A2CA3] bg-[#0D1A63] text-white shadow-xl",
+                "fixed left-0 top-0 h-screen transition-all duration-300 ease-in-out hidden md:flex flex-col z-[70] border-r border-[#0C5A34]/30 bg-[#0A192F] text-white shadow-xl",
                 collapsed ? "w-20" : "w-64"
             )}
         >
             {/* Header Sidebar - Brand Logo */}
-            <div className="p-4 flex items-center justify-between overflow-hidden relative z-10 border-b border-[#1A2CA3]">
-                <Link href={userRole === "SUPER_ADMIN" ? "/admin" : "/dashboard"} className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#2845D6] text-white flex items-center justify-center font-black text-lg shadow-md shrink-0">
-                        T
-                    </div>
+            <div className="p-3.5 flex items-center justify-between overflow-hidden relative z-10 border-b border-[#0C5A34]/40 bg-[#081325]">
+                <Link href={userRole === "SUPER_ADMIN" ? "/admin" : "/dashboard"} className="flex items-center gap-2.5">
+                    <img src="/logo-daara-ibnoul-khayim.png" alt="Daara Ibnoul Khayim Logo" className="h-11 w-auto object-contain shrink-0" />
                     {!collapsed && (
-                        <div className="flex flex-col">
-                            <span className="font-extrabold text-xl tracking-tight text-white leading-none">
-                                Tahfiz<span className="text-[#F68048]">.sn</span>
+                        <div className="flex flex-col leading-tight">
+                            <span className="text-[11px] font-black text-[#D4AF37] uppercase tracking-wider truncate">
+                                Ibnoul Khayim
                             </span>
-                            <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest pt-0.5">Espace Daara</span>
+                            <span className="text-[9px] font-bold text-emerald-400 font-serif dir-rtl truncate">
+                                مدرسة ابن القيم
+                            </span>
                         </div>
                     )}
                 </Link>
 
                 <button 
                     onClick={() => setCollapsed(!collapsed)}
-                    className="p-1.5 bg-[#1A2CA3] border border-[#2845D6]/40 rounded-lg hover:bg-[#2845D6] text-white transition-all shadow-sm active:scale-90"
+                    className="p-1.5 bg-[#0C5A34]/40 border border-[#D4AF37]/30 rounded-lg hover:bg-[#0C5A34] text-white transition-all shadow-sm active:scale-90"
                     aria-label="Toggle Sidebar"
                 >
-                    <ChevronLeft className={cn("w-4 h-4 transition-transform duration-300 text-white", collapsed ? "rotate-180" : "rotate-0")} />
+                    <ChevronLeft className={cn("w-4 h-4 transition-transform duration-300 text-[#D4AF37]", collapsed ? "rotate-180" : "rotate-0")} />
                 </button>
             </div>
 
@@ -65,7 +65,7 @@ export function Sidebar() {
                     return (
                         <div key={section.title} className="space-y-1">
                             {!collapsed && (
-                                <p className="px-3 text-[9px] font-extrabold uppercase tracking-widest text-[#F68048] mb-2.5">
+                                <p className="px-3 text-[9px] font-extrabold uppercase tracking-widest text-[#D4AF37] mb-2.5">
                                     {section.title}
                                 </p>
                             )}
@@ -79,11 +79,11 @@ export function Sidebar() {
                                             className={cn(
                                                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-xs relative overflow-hidden",
                                                  isActive 
-                                                     ? "bg-[#2845D6] text-white shadow-md shadow-[#2845D6]/30 font-bold" 
-                                                     : "text-slate-200 hover:text-white hover:bg-[#1A2CA3]"
+                                                     ? "bg-[#0C5A34] text-white shadow-md shadow-[#0C5A34]/40 font-bold border border-[#D4AF37]/30" 
+                                                     : "text-slate-300 hover:text-white hover:bg-[#0C5A34]/30"
                                              )}
                                          >
-                                            <item.icon className={cn("w-4 h-4 shrink-0 transition-transform", isActive ? "scale-110 text-white" : "text-slate-300")} />
+                                            <item.icon className={cn("w-4 h-4 shrink-0 transition-transform", isActive ? "scale-110 text-[#FFE57F]" : "text-slate-300")} />
                                             {!collapsed && (
                                                 <span className="truncate">
                                                     {item.label}
@@ -99,16 +99,16 @@ export function Sidebar() {
             </nav>
 
             {/* Footer Sidebar - Profil & Deconnexion */}
-            <div className="p-3 border-t border-[#1A2CA3] space-y-2 relative z-10">
+            <div className="p-3 border-t border-[#0C5A34]/40 space-y-2 relative z-10">
                 <div className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-xl bg-[#1A2CA3] border border-[#2845D6]/40 text-slate-200 text-xs font-semibold",
+                    "flex items-center gap-2 px-3 py-2 rounded-xl bg-[#081325] border border-[#0C5A34]/50 text-slate-200 text-xs font-semibold",
                     collapsed ? "justify-center" : "justify-between"
                 )}>
                     <div className="flex items-center gap-2 overflow-hidden">
-                        <Crown className="w-3.5 h-3.5 text-[#F68048] shrink-0" />
+                        <Crown className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
                         {!collapsed && (
-                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#F68048] truncate">
-                                PLAN {session?.user?.plan || "STARTER"}
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D4AF37] truncate">
+                                PLAN {session?.user?.plan || "E-DAARA"}
                             </span>
                         )}
                     </div>
@@ -117,7 +117,7 @@ export function Sidebar() {
                 <button
                     onClick={() => signOut({ callbackUrl: "/login" })}
                     className={cn(
-                        "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-[#1A2CA3] text-xs font-semibold transition-colors",
+                        "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-[#0C5A34]/30 text-xs font-semibold transition-colors",
                         collapsed ? "justify-center" : "justify-start"
                     )}
                 >
