@@ -21,6 +21,7 @@ import { PwaRegistrar } from "@/components/providers/pwa-registrar";
 import { CSPostHogProvider } from "@/components/providers/posthog-provider";
 import PostHogPageView from "@/components/providers/posthog-pageview";
 import { CrispProvider } from "@/components/providers/crisp-provider";
+import { SpaceProvider } from "@/components/providers/space-provider";
 import { Suspense } from "react";
 
 export const viewport: Viewport = {
@@ -74,13 +75,15 @@ export default async function RootLayout({
               <NextIntlClientProvider messages={messages}>
               <AuthProvider>
                 <SystemGuardian>
-                  <SidebarProvider>
-                    <PwaRegistrar />
-                    <CrispProvider />
-                    <AppLayout>
-                      {children}
-                    </AppLayout>
-                  </SidebarProvider>
+                  <SpaceProvider>
+                    <SidebarProvider>
+                      <PwaRegistrar />
+                      <CrispProvider />
+                      <AppLayout>
+                        {children}
+                      </AppLayout>
+                    </SidebarProvider>
+                  </SpaceProvider>
                 </SystemGuardian>
                 <Toaster richColors position="bottom-right" />
               </AuthProvider>

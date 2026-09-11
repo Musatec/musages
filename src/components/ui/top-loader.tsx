@@ -8,12 +8,17 @@ export function TopLoader() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
+    const startTimer = setTimeout(() => {
+      setLoading(true);
+    }, 0);
+    const endTimer = setTimeout(() => {
       setLoading(false);
     }, 400);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(startTimer);
+      clearTimeout(endTimer);
+    };
   }, [pathname]);
 
   if (!loading) return null;

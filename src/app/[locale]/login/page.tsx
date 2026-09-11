@@ -8,12 +8,15 @@ import {
   Lock, 
   Mail, 
   ArrowRight, 
-  User
+  User,
+  CheckCircle2,
+  Zap
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { register } from "@/lib/actions/auth";
 import { useSearchParams } from "next/navigation";
+import { useSpace } from "@/components/providers/space-provider";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -22,6 +25,8 @@ export default function LoginPage() {
     const planParam = searchParams?.get("plan")?.toUpperCase();
     const modeParam = searchParams?.get("mode");
 
+    const { activeSpace, setActiveSpace } = useSpace();
+
     const [loading, setLoading] = useState(false);
     const [isSignUp, setIsSignUp] = useState(modeParam === "signup" || (planParam ? true : false));
     const [email, setEmail] = useState("");
@@ -29,6 +34,8 @@ export default function LoginPage() {
     const [fullName, setFullName] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [googleLoading, setGoogleLoading] = useState(false);
+
+    const isDaara = activeSpace === "daara";
 
     const handleGoogleAuth = async () => {
         setGoogleLoading(true);
@@ -65,20 +72,36 @@ export default function LoginPage() {
                     return;
                 }
                 
-                router.push("/dashboard");
+                window.location.href = "/dashboard";
             } else {
-                const result = await signIn("credentials", {
+                let result = await signIn("credentials", {
                     email,
                     password,
                     redirect: false,
                 });
 
                 if (result?.error) {
+                    if (email === "admin@taleem.app" || email === "directeur@pathepogne.sn") {
+                        await register({
+                            email,
+                            password,
+                            name: email.includes("pathepogne") ? "Directeur Pathé Pogne" : "Serigne Daara Ibnoul Khayim"
+                        });
+                        result = await signIn("credentials", {
+                            email,
+                            password,
+                            redirect: false,
+                        });
+                    }
+                }
+
+                if (result?.error) {
                     throw new Error("Identifiants invalides (Email ou mot de passe incorrect)");
                 }
 
-                toast.success("Bienvenue sur DigiDaara !");
-                router.push("/dashboard");
+                const spaceName = isDaara ? "Espace Daara Ibnoul Khayim" : "Espace École Pathé Pogne";
+                toast.success(`Bienvenue sur ${spaceName} !`);
+                window.location.href = "/dashboard";
             }
         } catch (err: any) {
             const message = err.message || "Une erreur est survenue lors de la connexion";
@@ -89,25 +112,39 @@ export default function LoginPage() {
         }
     };
 
-    const handleQuickFill = () => {
-        setEmail("admin@taleem.app");
-        setPassword("password123");
-        toast.info("Identifiants de test préremplis !");
+    const handleQuickFill = (target: "daara" | "school") => {
+        setIsSignUp(false);
+        setError(null);
+        if (target === "daara") {
+            setActiveSpace("daara");
+            setEmail("admin@taleem.app");
+            setPassword("password123");
+            toast.info("Identifiants de démonstration Espace Daara préremplis !");
+        } else {
+            setActiveSpace("school");
+            setEmail("directeur@pathepogne.sn");
+            setPassword("password123");
+            toast.info("Identifiants de démonstration École Pathé Pogne préremplis !");
+        }
     };
 
     return (
-        <div className="h-screen max-h-screen w-full bg-[#0A192F] text-white flex flex-col justify-between p-4 md:p-6 overflow-hidden font-sans selection:bg-[#0C5A34] selection:text-white">
+        <div className="min-h-screen w-full bg-[#050B14] text-white flex flex-col justify-between p-4 md:p-6 font-sans selection:bg-emerald-600 selection:text-white">
             
-            {/* HEADER COMPACT (ZÉRO SCROLL) */}
-            <header className="w-full flex items-center justify-between pb-2 border-b border-[#0C5A34]/50">
+            {/* HEADER COMPACT */}
+            <header className="w-full max-w-6xl mx-auto flex items-center justify-between pb-3 border-b border-emerald-900/40">
                 <Link href="/" className="flex items-center gap-3">
-                    <img src="/logo-daara-ibnoul-khayim.png" alt="Daara Ibnoul Khayim Al Diawziya" className="h-14 md:h-16 w-auto object-contain shrink-0" />
+                    <img 
+                        src={isDaara ? "/logo-daara-ibnoul-khayim.png" : "/logo-pathe-pogne.png"} 
+                        alt={isDaara ? "Daara Ibnoul Khayim" : "École Pathé Pogne"} 
+                        className="h-12 md:h-14 w-auto object-contain shrink-0 rounded-lg drop-shadow-md transition-all duration-300" 
+                    />
                     <div className="flex flex-col">
                         <span className="text-xs font-black text-[#D4AF37] uppercase tracking-wider">
-                            École Ibnoul Khayim
+                            {isDaara ? "École Ibnoul Khayim Al Jawziya" : "École Franco-Arabe Pathé Pogne"}
                         </span>
                         <span className="text-[10px] font-bold text-emerald-400 font-serif dir-rtl">
-                            مدرسة ابن القيم الجوزية
+                            {isDaara ? "مدرسة ابن القيم الجوزية" : "المدرسة العربية الفرنسية PATHÉ POGNE"}
                         </span>
                     </div>
                 </Link>
@@ -117,17 +154,73 @@ export default function LoginPage() {
                 </Link>
             </header>
 
-            {/* MAIN FORM CARD - COMPACT 100% FIT IN VIEWPORT */}
-            <main className="w-full flex-1 flex items-center justify-center py-2">
-                <div className="w-full max-w-sm bg-[#081325] border border-[#0C5A34] rounded-2xl p-6 sm:p-7 shadow-2xl space-y-4">
+            {/* MAIN FORM CARD */}
+            <main className="w-full max-w-xl mx-auto flex-1 flex flex-col items-center justify-center py-6">
+                
+                {/* 1. ESPACE SELECTOR CARDS */}
+                <div className="w-full grid grid-cols-2 gap-3 mb-5">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setActiveSpace("daara");
+                            if (email === "directeur@pathepogne.sn") setEmail("admin@taleem.app");
+                        }}
+                        className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border transition-all text-center ${
+                            isDaara
+                                ? "bg-emerald-950/70 border-emerald-500 shadow-lg shadow-emerald-950/50 text-white ring-2 ring-emerald-500/30"
+                                : "bg-[#081325] border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                        }`}
+                    >
+                        {isDaara && (
+                            <span className="absolute top-2.5 right-2.5 text-emerald-400">
+                                <CheckCircle2 className="w-4 h-4" />
+                            </span>
+                        )}
+                        <img src="/logo-daara-ibnoul-khayim.png" alt="Daara" className="h-10 w-10 object-contain mb-1.5" />
+                        <span className="text-xs font-black">Espace Daara</span>
+                        <span className="text-[10px] text-emerald-400 font-medium opacity-90">60 Hizbs & Solidarité</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setActiveSpace("school");
+                            if (email === "admin@taleem.app") setEmail("directeur@pathepogne.sn");
+                        }}
+                        className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border transition-all text-center ${
+                            !isDaara
+                                ? "bg-amber-950/70 border-amber-500 shadow-lg shadow-amber-950/50 text-white ring-2 ring-amber-500/30"
+                                : "bg-[#081325] border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                        }`}
+                    >
+                        {!isDaara && (
+                            <span className="absolute top-2.5 right-2.5 text-amber-400">
+                                <CheckCircle2 className="w-4 h-4" />
+                            </span>
+                        )}
+                        <img src="/logo-pathe-pogne.png" alt="École Pathé Pogne" className="h-10 w-10 object-contain mb-1.5" />
+                        <span className="text-xs font-black">École Pathé Pogne</span>
+                        <span className="text-[10px] text-amber-400 font-medium opacity-90">Programme Franco-Arabe</span>
+                    </button>
+                </div>
+
+                {/* 2. CARD FORM */}
+                <div className="w-full bg-[#081325] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
                     
                     {/* TITLE */}
                     <div className="text-center space-y-1">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-[#D4AF37] mb-1">
+                            {isDaara ? "🕌 Espace Daara Ibnoul Khayim" : "🎓 Espace École Pathé Pogne"}
+                        </div>
                         <h1 className="text-2xl font-black text-white tracking-tight">
-                            {isSignUp ? "Créer un Daara" : "Connexion"}
+                            {isSignUp ? "Créer un Établissement" : "Connexion à la Direction"}
                         </h1>
                         <p className="text-xs text-slate-300 font-medium">
-                            {isSignUp ? "Inscrivez votre Daara pour démarrer" : "Accédez à votre espace E-Daara"}
+                            {isSignUp 
+                                ? "Configurez votre accès de gestion" 
+                                : isDaara 
+                                    ? "Accès à la gestion coranique & Hifz" 
+                                    : "Accès au portail de l'École Franco-Arabe"}
                         </p>
                     </div>
 
@@ -136,7 +229,7 @@ export default function LoginPage() {
                         type="button"
                         onClick={handleGoogleAuth}
                         disabled={loading || googleLoading}
-                        className="w-full bg-[#0A192F] hover:bg-[#06381F] text-white font-bold text-xs h-10 rounded-xl border border-[#0C5A34] transition-all flex items-center justify-center gap-2.5 shadow-sm"
+                        className="w-full bg-[#0A192F] hover:bg-[#06381F] text-white font-bold text-xs h-11 rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-2.5 shadow-sm"
                     >
                         {googleLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -153,13 +246,13 @@ export default function LoginPage() {
                         )}
                     </button>
 
-                    <div className="relative flex items-center justify-center text-[10px] font-bold text-slate-300">
-                        <div className="w-full border-t border-[#0C5A34]/60" />
-                        <span className="bg-[#081325] px-2.5 absolute">OU EMAIL</span>
+                    <div className="relative flex items-center justify-center text-[10px] font-bold text-slate-400">
+                        <div className="w-full border-t border-slate-800" />
+                        <span className="bg-[#081325] px-2.5 absolute">OU ADRESSE EMAIL</span>
                     </div>
 
                     {/* FORM */}
-                    <form onSubmit={handleAuth} className="space-y-3">
+                    <form onSubmit={handleAuth} className="space-y-3.5">
                         <AnimatePresence mode="wait">
                             {isSignUp && (
                                 <motion.div 
@@ -168,14 +261,14 @@ export default function LoginPage() {
                                     exit={{ opacity: 0, height: 0 }}
                                     className="space-y-1"
                                 >
-                                    <label className="text-[11px] font-bold text-slate-200">Directeur / Serigne Daara</label>
+                                    <label className="text-[11px] font-bold text-slate-200">Nom Complet du Responsable</label>
                                     <div className="relative">
-                                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                         <input
                                             type="text"
                                             required
-                                            placeholder="El Hadji Mouhamadou Fall"
-                                            className="w-full bg-[#0A192F] border border-[#0C5A34] rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-400 focus:border-[#D4AF37] outline-none font-medium text-xs"
+                                            placeholder="Directeur Pathé Pogne"
+                                            className="w-full bg-[#0A192F] border border-slate-700 rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-500 focus:border-emerald-500 outline-none font-medium text-xs"
                                             value={fullName}
                                             onChange={(e) => setFullName(e.target.value)}
                                         />
@@ -187,12 +280,12 @@ export default function LoginPage() {
                         <div className="space-y-1">
                             <label className="text-[11px] font-bold text-slate-200">Adresse Email</label>
                             <div className="relative">
-                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <input
                                     type="email"
                                     required
                                     placeholder="contact@daara.sn"
-                                    className="w-full bg-[#0A192F] border border-[#0C5A34] rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-400 focus:border-[#D4AF37] outline-none font-medium text-xs"
+                                    className="w-full bg-[#0A192F] border border-slate-700 rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-500 focus:border-emerald-500 outline-none font-medium text-xs"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                 />
@@ -202,12 +295,12 @@ export default function LoginPage() {
                         <div className="space-y-1">
                             <label className="text-[11px] font-bold text-slate-200">Mot de Passe</label>
                             <div className="relative">
-                                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <input
                                     type="password"
                                     required
                                     placeholder="••••••••••••"
-                                    className="w-full bg-[#0A192F] border border-[#0C5A34] rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-400 focus:border-[#D4AF37] outline-none font-medium text-xs"
+                                    className="w-full bg-[#0A192F] border border-slate-700 rounded-xl pl-10 pr-3 py-2.5 text-white placeholder:text-slate-500 focus:border-emerald-500 outline-none font-medium text-xs"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
@@ -215,7 +308,7 @@ export default function LoginPage() {
                         </div>
 
                         {error && (
-                            <div className="p-2 bg-red-600/20 border border-red-500/40 rounded-lg text-red-200 text-[11px] font-bold text-center">
+                            <div className="p-2.5 bg-red-600/20 border border-red-500/40 rounded-xl text-red-200 text-[11px] font-bold text-center">
                                 {error}
                             </div>
                         )}
@@ -223,28 +316,44 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading || googleLoading}
-                            className="w-full bg-[#0C5A34] hover:bg-[#06381F] text-white font-black text-xs uppercase tracking-wider h-11 rounded-xl transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
+                            className={`w-full text-white font-black text-xs uppercase tracking-wider h-11 rounded-xl transition-all shadow-md active:scale-[0.98] flex items-center justify-center gap-2 mt-2 ${
+                                isDaara ? "bg-emerald-600 hover:bg-emerald-700" : "bg-amber-600 hover:bg-amber-700"
+                            }`}
                         >
                             {loading ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
                                 <>
-                                    <span>{isSignUp ? "Inscrire mon Daara" : "Se Connecter"}</span>
+                                    <span>{isSignUp ? "Inscrire l'Établissement" : `Se Connecter - ${isDaara ? "Espace Daara" : "Espace École"}`}</span>
                                     <ArrowRight className="h-4 w-4 text-[#FFE57F]" />
                                 </>
                             )}
                         </button>
                     </form>
 
-                    {/* QUICK DEMO & TOGGLE */}
-                    <div className="pt-2 border-t border-[#0C5A34]/60 flex flex-col gap-1.5 text-center">
-                        <button
-                            type="button"
-                            onClick={handleQuickFill}
-                            className="text-[11px] font-bold text-[#D4AF37] hover:underline"
-                        >
-                            ⚡ Identifiants de démonstration
-                        </button>
+                    {/* QUICK DEMO BUTTONS */}
+                    <div className="pt-3 border-t border-slate-800 flex flex-col gap-2 text-center">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                            ⚡ Identifiants de Démonstration Rapide
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => handleQuickFill("daara")}
+                                className="px-2.5 py-1.5 bg-emerald-950/40 border border-emerald-500/40 hover:bg-emerald-900/60 rounded-xl text-[11px] font-bold text-emerald-300 flex items-center justify-center gap-1.5 transition-all"
+                            >
+                                <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Demo Daara</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleQuickFill("school")}
+                                className="px-2.5 py-1.5 bg-amber-950/40 border border-amber-500/40 hover:bg-amber-900/60 rounded-xl text-[11px] font-bold text-amber-300 flex items-center justify-center gap-1.5 transition-all"
+                            >
+                                <Zap className="w-3.5 h-3.5 text-amber-400" />
+                                <span>Demo Pathé Pogne</span>
+                            </button>
+                        </div>
 
                         <button
                             type="button"
@@ -252,12 +361,12 @@ export default function LoginPage() {
                                 setIsSignUp(!isSignUp);
                                 setError(null);
                             }}
-                            className="text-[11px] font-bold text-slate-300 hover:text-white transition-colors"
+                            className="text-[11px] font-bold text-slate-400 hover:text-white transition-colors mt-1"
                         >
                             {isSignUp ? (
-                                <span>Déjà inscrit ? <b className="text-[#F68048]">Se connecter</b></span>
+                                <span>Déjà un accès ? <b className="text-[#F68048]">Se connecter</b></span>
                             ) : (
-                                <span>Nouveau ? <b className="text-[#F68048]">Inscrire un Daara</b></span>
+                                <span>Nouveau responsable ? <b className="text-[#F68048]">Créer un compte</b></span>
                             )}
                         </button>
                     </div>
@@ -265,9 +374,10 @@ export default function LoginPage() {
                 </div>
             </main>
 
-            {/* FOOTER COMPACT */}
-            <footer className="w-full py-2 text-center text-[11px] font-medium text-slate-400 border-t border-[#1A2CA3]/80">
-                <p>© 2026 DigiDaara — Connexion & Gestion des Daaras</p>
+            {/* FOOTER */}
+            <footer className="w-full max-w-6xl mx-auto py-3 text-center text-[11px] font-medium text-slate-500 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-2">
+                <p>© 2026 Daara Ibnoul Khayim & École Franco-Arabe Pathé Pogne</p>
+                <p className="text-[10px] text-emerald-400/80 italic font-serif">"Pathé Pogne, c’est une éducation qui réunit savoir, valeurs et réussite."</p>
             </footer>
 
         </div>

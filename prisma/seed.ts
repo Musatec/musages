@@ -49,7 +49,7 @@ async function main() {
 
   // 3. Créer un deuxième compte de test
   const demoEmail2 = "daara@tahfiz.sn";
-  let user2 = await prisma.user.findUnique({ where: { email: demoEmail2 } });
+  const user2 = await prisma.user.findUnique({ where: { email: demoEmail2 } });
   if (!user2) {
     await prisma.user.create({
       data: {

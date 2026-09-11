@@ -19,7 +19,8 @@ export interface FinancialReport {
 export async function getFinancialReport(): Promise<FinancialReport> {
     try {
         const session = await auth();
-        if (!session?.user?.daaraId) {
+        const daaraId = session?.user?.daaraId || session?.user?.id;
+        if (!daaraId) {
             return {
                 summary: { totalRevenue: 0, grossProfit: 0, totalExpenses: 0, netProfit: 0, inventoryValue: 0 },
                 chartData: [],
@@ -27,8 +28,6 @@ export async function getFinancialReport(): Promise<FinancialReport> {
                 error: "Non autorisé"
             };
         }
-
-        const daaraId = session.user.daaraId;
 
         // Calcul des revenus (Transactions INCOME & Dons)
         const incomeAggr = await prisma.transaction.aggregate({

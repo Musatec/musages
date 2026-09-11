@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { 
   Wallet, 
   ArrowUpRight, 
@@ -10,248 +9,285 @@ import {
   Trash2, 
   TrendingUp,
   TrendingDown,
-  Activity
+  Activity,
+  Sparkles,
+  ShoppingBag,
+  HeartPulse,
+  Lightbulb,
+  Utensils
 } from "lucide-react";
 import { addExpense, deleteTransaction } from "@/lib/actions/expenses";
 import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface ExpensesClientProps {
   transactions: any[];
 }
 
 export function ExpensesClient({ transactions: initialTransactions }: ExpensesClientProps) {
+  const [transactions, setTransactions] = useState<any[]>(initialTransactions);
   const [showAddModal, setShowAddModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     amount: "",
-    category: "FOURNITURES",
+    category: "RAVITAILLEMENT_NOURRITURE",
     description: ""
   });
 
-  const totalIncome = initialTransactions
+  const totalIncome = transactions
     .filter(t => t.type === 'INCOME')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
 
-  const totalExpense = initialTransactions
+  const totalExpense = transactions
     .filter(t => t.type === 'EXPENSE')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + (t.amount || 0), 0);
 
   const balance = totalIncome - totalExpense;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    toast.loading("Enregistrement...");
+    if (!formData.amount || !formData.description) return;
 
+    setIsSubmitting(true);
     const res = await addExpense({
       ...formData,
       amount: Number(formData.amount)
     });
-    toast.dismiss();
+    setIsSubmitting(false);
 
     if (res.error) {
       toast.error(res.error);
     } else {
-      toast.success("Dépense enregistrée !");
+      toast.success("Dépense enregistrée avec succès ! 🎉");
       setShowAddModal(false);
-      setFormData({ amount: "", category: "FOURNITURES", description: "" });
-      setTimeout(() => window.location.reload(), 1000);
+      setTransactions([res.transaction, ...transactions]);
+      setFormData({ amount: "", category: "RAVITAILLEMENT_NOURRITURE", description: "" });
     }
-    setIsSubmitting(false);
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("Voulez-vous vraiment annuler cette transaction ?")) {
       const res = await deleteTransaction(id);
-      if (res.error) toast.error(res.error);
-      else {
+      if (res.error) {
+        toast.error(res.error);
+      } else {
         toast.success("Transaction annulée.");
-        setTimeout(() => window.location.reload(), 1000);
+        setTransactions(transactions.filter(t => t.id !== id));
       }
     }
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Trésorerie & Dépenses</h1>
-          <p className="text-sm text-muted-foreground">Suivi des encaissements et décaissements.</p>
+    <div className="space-y-6">
+      {/* Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 p-6 md:p-8 text-white border border-emerald-500/20 shadow-2xl">
+        <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
+          <Wallet className="w-96 h-96 text-emerald-400" />
         </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="bg-primary hover:bg-primary/90 text-black font-black uppercase text-[11px] px-6 py-3 rounded-2xl shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center gap-2 tracking-widest"
-        >
-          <Plus className="w-4 h-4" /> Nouvelle Dépense
-        </button>
+        <div className="relative z-10 max-w-3xl space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-extrabold uppercase tracking-widest">
+            <Sparkles className="w-4 h-4 text-emerald-400" /> Gestion de la Trésorerie & Caisse Daara
+          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
+            إدارة الخزينة والمصروفات التشغيليّة
+          </h1>
+          <p className="text-emerald-100/80 text-sm md:text-base leading-relaxed">
+            Suivez en temps réel les entrées (Sadaqa, scolariés, parrainages) et décaissements (nourriture des pensionnaires, salaires Oustazs, santé).
+          </p>
+        </div>
       </div>
 
+      {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Solde Net */}
-        <div className="bg-card border border-border/50 p-6 rounded-[2rem] relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-[40px] pointer-events-none group-hover:bg-blue-500/20 transition-all" />
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center text-blue-500">
-              <Wallet className="w-6 h-6" />
+        <Card className="border border-emerald-500/20 shadow-sm relative overflow-hidden">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">Solde Net Disponible</span>
+              <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center justify-center">
+                <Wallet className="w-5 h-5" />
+              </div>
             </div>
-            <h3 className="font-bold text-muted-foreground uppercase tracking-wider text-xs">Solde Net</h3>
-          </div>
-          <p className="text-3xl font-black tracking-tight">{balance.toLocaleString('fr-FR')} <span className="text-lg text-muted-foreground">FCFA</span></p>
-        </div>
+            <h3 className="text-3xl font-black text-foreground font-mono">
+              {balance.toLocaleString('fr-FR')} <span className="text-sm font-sans text-muted-foreground">FCFA</span>
+            </h3>
+          </CardContent>
+        </Card>
 
-        {/* Entrées */}
-        <div className="bg-card border border-border/50 p-6 rounded-[2rem] relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[40px] pointer-events-none group-hover:bg-emerald-500/20 transition-all" />
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500">
-              <TrendingUp className="w-6 h-6" />
+        {/* Total Entrées */}
+        <Card className="border border-emerald-500/20 shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-600">Total Entrées (Recettes)</span>
+              <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center justify-center">
+                <TrendingUp className="w-5 h-5" />
+              </div>
             </div>
-            <h3 className="font-bold text-muted-foreground uppercase tracking-wider text-xs">Total Entrées (Écolages)</h3>
-          </div>
-          <p className="text-3xl font-black tracking-tight text-emerald-500">{totalIncome.toLocaleString('fr-FR')} <span className="text-lg opacity-50">FCFA</span></p>
-        </div>
+            <h3 className="text-3xl font-black text-emerald-600 font-mono">
+              +{totalIncome.toLocaleString('fr-FR')} <span className="text-sm font-sans opacity-70">FCFA</span>
+            </h3>
+          </CardContent>
+        </Card>
 
-        {/* Sorties */}
-        <div className="bg-card border border-border/50 p-6 rounded-[2rem] relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-[40px] pointer-events-none group-hover:bg-red-500/20 transition-all" />
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center text-red-500">
-              <TrendingDown className="w-6 h-6" />
+        {/* Total Sorties */}
+        <Card className="border border-red-500/20 shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-red-600">Total Sorties (Dépenses)</span>
+              <div className="w-10 h-10 bg-red-500/10 text-red-600 rounded-xl flex items-center justify-center">
+                <TrendingDown className="w-5 h-5" />
+              </div>
             </div>
-            <h3 className="font-bold text-muted-foreground uppercase tracking-wider text-xs">Total Sorties (Dépenses)</h3>
-          </div>
-          <p className="text-3xl font-black tracking-tight text-red-500">{totalExpense.toLocaleString('fr-FR')} <span className="text-lg opacity-50">FCFA</span></p>
-        </div>
+            <h3 className="text-3xl font-black text-red-600 font-mono">
+              -{totalExpense.toLocaleString('fr-FR')} <span className="text-sm font-sans opacity-70">FCFA</span>
+            </h3>
+          </CardContent>
+        </Card>
       </div>
 
-      <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden mt-8">
-        <div className="p-4 border-b border-border/50 bg-muted/20">
-          <h2 className="font-bold text-sm flex items-center gap-2"><Activity className="w-4 h-4 text-primary" /> Journal des Transactions</h2>
+      {/* Main Actions Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/40 p-4 rounded-2xl border border-border">
+        <div>
+          <h3 className="text-base font-extrabold flex items-center gap-2">
+            <Activity className="w-5 h-5 text-emerald-600" /> Journal Général des Opérations ({transactions.length})
+          </h3>
+          <p className="text-xs text-muted-foreground">Historique chronologique des encaissements et des dépenses de la caisse.</p>
         </div>
+
+        <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+          <DialogTrigger asChild>
+            <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2 shadow-lg shadow-emerald-600/20">
+              <Plus className="w-4 h-4" /> Nouvelle Dépense
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+                <TrendingDown className="w-5 h-5 text-red-500" /> Saisie d'une Dépense Daara
+              </DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Catégorie de Dépense</label>
+                <select 
+                  value={formData.category} 
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-semibold"
+                >
+                  <option value="RAVITAILLEMENT_NOURRITURE">Ravitaillement Repas Interne (Riz, Huile, Viande)</option>
+                  <option value="SALAIRE_OUSTAZ">Traitement / Salaire Oustaz (المشايخ)</option>
+                  <option value="ELECTRICITE_EAU">Facture Électricité & Eau (Senelec / Sen'Eau)</option>
+                  <option value="SANTE_MEDICAMENTS">Santé & Médicaments Talibés</option>
+                  <option value="ENTRETIEN_NATTES">Fournitures & Nattes d'Étude (Allwas / لوح)</option>
+                  <option value="ENTRETIEN_BATIMENT">Maintenance & Réparations Bâtiment</option>
+                  <option value="DIVERS">Dépenses Diverses</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Montant (FCFA)</label>
+                <Input 
+                  type="number"
+                  placeholder="Ex: 50000"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  className="font-mono font-bold text-base"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Motif / Description</label>
+                <Input 
+                  placeholder="Ex: Achat de 2 sacs de riz 50kg pour le réfectoire des internes" 
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
+                  Annuler
+                </Button>
+                <Button type="submit" disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                  {isSubmitting ? "Enregistrement..." : "Enregistrer la Dépense"}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Transactions Table */}
+      <Card className="border border-border shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wider">
+            <thead className="bg-muted/60 text-muted-foreground text-xs uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-4 font-semibold">Date</th>
-                <th className="px-6 py-4 font-semibold">Type</th>
-                <th className="px-6 py-4 font-semibold">Description</th>
-                <th className="px-6 py-4 font-semibold">Catégorie</th>
-                <th className="px-6 py-4 font-semibold text-right">Montant</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
+                <th className="px-6 py-3.5 font-bold">Date</th>
+                <th className="px-6 py-3.5 font-bold">Type</th>
+                <th className="px-6 py-3.5 font-bold">Description</th>
+                <th className="px-6 py-3.5 font-bold">Catégorie</th>
+                <th className="px-6 py-3.5 font-bold text-right">Montant</th>
+                <th className="px-6 py-3.5 font-bold text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/50">
-              {initialTransactions.length === 0 ? (
+            <tbody className="divide-y divide-border">
+              {transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
-                    Aucune transaction pour le moment.
+                  <td colSpan={6} className="text-center py-8 text-muted-foreground">
+                    Aucune transaction enregistrée.
                   </td>
                 </tr>
               ) : (
-                initialTransactions.map((t) => (
-                  <tr key={t.id} className="hover:bg-muted/20 transition-all">
-                    <td className="px-6 py-4 font-mono text-xs text-muted-foreground">
-                      {new Date(t.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </td>
-                    <td className="px-6 py-4">
-                      {t.type === 'INCOME' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 font-bold text-[10px] uppercase tracking-wider">
-                          <ArrowUpRight className="w-3.5 h-3.5" /> Entrée
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 text-red-500 font-bold text-[10px] uppercase tracking-wider">
-                          <ArrowDownRight className="w-3.5 h-3.5" /> Sortie
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 font-medium">{t.description}</td>
-                    <td className="px-6 py-4 text-xs font-bold text-muted-foreground tracking-wider">{t.category.replace('_', ' ')}</td>
-                    <td className={`px-6 py-4 text-right font-black ${t.type === 'INCOME' ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {t.type === 'INCOME' ? '+' : '-'} {t.amount.toLocaleString('fr-FR')} FCFA
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {t.type === 'EXPENSE' && (
-                        <button 
+                transactions.map((t) => {
+                  const isIncome = t.type === 'INCOME';
+                  return (
+                    <tr key={t.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap">
+                        {format(new Date(t.createdAt), "dd/MM/yyyy HH:mm", { locale: fr })}
+                      </td>
+                      <td className="px-6 py-4">
+                        <Badge variant="outline" className={isIncome ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" : "bg-red-500/10 text-red-600 border-red-500/30"}>
+                          {isIncome ? <ArrowUpRight className="w-3.5 h-3.5 mr-1" /> : <ArrowDownRight className="w-3.5 h-3.5 mr-1" />}
+                          {isIncome ? "ENTRÉE" : "DÉPENSE"}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 font-bold text-foreground max-w-xs truncate">
+                        {t.description}
+                      </td>
+                      <td className="px-6 py-4 text-xs font-mono text-muted-foreground uppercase">
+                        {t.category}
+                      </td>
+                      <td className={`px-6 py-4 text-right font-mono font-extrabold text-base ${isIncome ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {isIncome ? '+' : '-'}{(t.amount || 0).toLocaleString('fr-FR')} FCFA
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
                           onClick={() => handleDelete(t.id)}
-                          className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                          title="Annuler la dépense"
+                          className="text-red-500 hover:bg-red-500/10"
                         >
                           <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
-      </div>
-
-      {/* Modal Nouvelle Dépense */}
-      <AnimatePresence>
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowAddModal(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-card border border-border/50 rounded-[2rem] p-6 shadow-2xl z-10"
-            >
-              <h2 className="text-xl font-black uppercase tracking-tight mb-6">Enregistrer une Dépense</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Montant (FCFA)</label>
-                  <input 
-                    required
-                    type="number"
-                    min="1"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                    className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-2xl font-black text-red-500 focus:outline-none focus:border-primary/50"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Catégorie</label>
-                  <select 
-                    value={formData.category}
-                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                    className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
-                  >
-                    <option value="FOURNITURES">Fournitures (Craie, Encre...)</option>
-                    <option value="FACTURES">Factures (Eau, Électricité, Internet)</option>
-                    <option value="LOYER">Loyer</option>
-                    <option value="ENTRETIEN">Entretien & Réparations</option>
-                    <option value="AUTRE">Autre Dépense</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Description</label>
-                  <input 
-                    required
-                    type="text"
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    placeholder="Ex: Achat de 2 boîtes de craie"
-                    className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
-                  />
-                </div>
-                <div className="pt-4 flex gap-3">
-                  <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-3 rounded-xl border border-border/50 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all">Annuler</button>
-                  <button type="submit" disabled={isSubmitting} className="flex-[2] py-3 rounded-xl bg-primary text-black text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">Valider Dépense</button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </Card>
     </div>
   );
 }

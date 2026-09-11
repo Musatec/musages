@@ -30,8 +30,9 @@ enum DaaraType {
 }
 
 enum TalibeStatus {
-  INTERNE     // Pensionnaire à temps plein dans le Daara
-  EXTERNE     // Apprenant venant pour les cours du matin/soir
+  INTERNE         // Pensionnaire à temps plein dans le Daara
+  EXTERNE         // Apprenant venant pour les cours du matin/soir
+  DEMI_PENSION    // Demi-pensionnaire avec repas du midi
 }
 
 enum HifzEvaluation {
@@ -228,6 +229,9 @@ model Talibe {
   parentName  String?      // Père / Mère / Tuteur légal
   parentPhone String?      // Numéro WhatsApp pour alertes mémorisation et santé
   parentEmail String?
+
+  isSocialCase Boolean     @default(false) // Exemption ou prise en charge Cas Social
+  socialNotes  String?     // Motif (Orphelin, Cas social, Exonération)
 
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt

@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { TuitionClient } from "@/components/modules/tuition/tuition-client";
+import { getTuitionRecords } from "@/lib/actions/tuition";
 
 export const dynamic = "force-dynamic";
 
@@ -25,16 +26,29 @@ export default async function TuitionPage({
     orderBy: { name: "asc" }
   });
 
+  // Fetch all active Talibes for tuition recording
+  const talibes = await prisma.talibe.findMany({
+    where: { daaraId, deletedAt: null },
+    include: { halqa: true },
+    orderBy: { lastName: "asc" }
+  });
+
+  // Fetch tuition transactions
+  const { transactions } = await getTuitionRecords();
+
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
 
   return (
-    <TuitionClient 
-      tuitions={[]} 
-      classes={halqas as any}
-      currentMonth={currentMonth}
-      currentYear={currentYear}
-      schoolName={session.user.name || "Daara"}
-    />
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+      <TuitionClient 
+        tuitions={transactions as any} 
+        talibeList={talibes as any}
+        classes={halqas as any}
+        currentMonth={currentMonth}
+        currentYear={currentYear}
+        schoolName={session.user.name || "Daara.net"}
+      />
+    </div>
   );
 }

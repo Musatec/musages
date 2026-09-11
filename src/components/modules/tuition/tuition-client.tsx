@@ -1,403 +1,359 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { 
   CreditCard, 
   Search, 
-  Filter, 
-  MessageSquare, 
+  Plus, 
   CheckCircle2, 
-  Clock,
-  Download,
-  Wallet,
-  Plus
+  Clock, 
+  Wallet, 
+  MessageSquare,
+  Sparkles,
+  Receipt,
+  User,
+  ArrowUpRight,
+  Check,
+  X,
+  FileSpreadsheet
 } from "lucide-react";
-import { generateMonthlyTuitions, payTuitionFee } from "@/lib/actions/tuition";
+import { payTuitionFee } from "@/lib/actions/tuition";
 import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import * as XLSX from "xlsx";
+
+interface TalibeOption {
+  id: string;
+  firstName: string;
+  lastName: string;
+  matricule: string;
+  status?: string; // INTERNE, EXTERNE, DEMI_PENSION
+  parentName?: string | null;
+  parentPhone?: string | null;
+  halqa?: { name: string } | null;
+}
 
 interface TuitionClientProps {
   tuitions: any[];
+  talibeList: TalibeOption[];
   classes: any[];
   currentMonth: number;
   currentYear: number;
   schoolName: string;
 }
 
-const MONTH_NAMES = [
-  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+const ACADEMIC_MONTHS = [
+  "Août", "Septembre", "Octobre", "Novembre", "Décembre",
+  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet"
 ];
 
 export function TuitionClient({ 
   tuitions: initialTuitions, 
+  talibeList,
   classes, 
-  currentMonth, 
-  currentYear,
   schoolName
 }: TuitionClientProps) {
-  const [tuitions, setTuitions] = useState(initialTuitions);
+  const [tuitions, setTuitions] = useState<any[]>(initialTuitions);
   const [search, setSearch] = useState("");
-  const [filterClass, setFilterClass] = useState("ALL");
-  const [filterStatus, setFilterStatus] = useState("ALL");
-  const [generating, setGenerating] = useState(false);
-  const [selectedTuition, setSelectedTuition] = useState<any | null>(null);
+  const [selectedYear, setSelectedYear] = useState("2026-2027");
+  const [selectedRegime, setSelectedRegime] = useState<"ALL" | "INTERNE" | "EXTERNE" | "DEMI_PENSION">("ALL");
 
-  // Modal payment states
-  const [amountPaid, setAmountPaid] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"CASH" | "WAVE" | "ORANGE_MONEY">("CASH");
-  const [isPaying, setIsPaying] = useState(false);
+  // Inline Quick Payment Modal state
+  const [activeCell, setActiveCell] = useState<{ talibe: TalibeOption; month: string } | null>(null);
+  const [quickAmount, setQuickAmount] = useState("40000");
+  const [paymentMethod, setPaymentMethod] = useState<"WAVE" | "ORANGE_MONEY" | "CASH" | "CHEQUE">("WAVE");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleGenerate = async () => {
-    setGenerating(true);
-    toast.loading("Génération des mensualités en cours...");
-    const res = await generateMonthlyTuitions(currentMonth, currentYear);
-    toast.dismiss();
-    
-    if (res.error) {
-      toast.error(res.error);
-    } else {
-      toast.success(`${res.count} mensualités générées avec succès !`);
-      setTimeout(() => window.location.reload(), 1500);
-    }
-    setGenerating(false);
-  };
-
-  const handlePaymentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTuition || !amountPaid) return;
-
-    setIsPaying(true);
-    toast.loading("Enregistrement du paiement...");
-    const res = await payTuitionFee({
-      tuitionId: selectedTuition.id,
-      amountPaid: Number(amountPaid),
-      paymentMethod,
-    });
-    toast.dismiss();
-
-    if (res.error) {
-      toast.error(res.error);
-    } else {
-      toast.success("Paiement enregistré !");
-      if (res.whatsappMessage) {
-        toast.info("Préparez-vous à envoyer le reçu WhatsApp");
-        setTimeout(() => {
-          window.open(`https://wa.me/${selectedTuition.student.parentPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(res.whatsappMessage)}`, '_blank');
-        }, 1000);
+  // Map payments per student & month
+  // Key format: `${talibeId}_${monthName}`
+  const paymentMap: Record<string, number> = {};
+  tuitions.forEach(t => {
+    // Description contains month name or talibe info
+    ACADEMIC_MONTHS.forEach(m => {
+      if ((t.description || "").includes(m)) {
+        // Find matching talibe
+        const matchingTalibe = talibeList.find(s => (t.description || "").includes(s.lastName) || (t.description || "").includes(s.matricule));
+        if (matchingTalibe) {
+          const key = `${matchingTalibe.id}_${m}`;
+          paymentMap[key] = (paymentMap[key] || 0) + (t.amount || 0);
+        }
       }
-      setTimeout(() => window.location.reload(), 2000);
-    }
-    setIsPaying(false);
-  };
-
-  const filteredTuitions = tuitions.filter(t => {
-    const matchSearch = t.student.firstName.toLowerCase().includes(search.toLowerCase()) || 
-                        t.student.lastName.toLowerCase().includes(search.toLowerCase()) ||
-                        t.student.matricule.toLowerCase().includes(search.toLowerCase());
-    const matchClass = filterClass === "ALL" || t.student.classId === filterClass;
-    const matchStatus = filterStatus === "ALL" || t.status === filterStatus;
-    return matchSearch && matchClass && matchStatus;
+    });
   });
 
-  const handleSendReminder = (phone: string, parentName: string, studentName: string, amount: number, month: number) => {
-    const message = encodeURIComponent(
-      `Bonjour ${parentName}, rappel courtois de l'école ${schoolName} : l'écolage de ${studentName} d'un montant de ${amount.toLocaleString('fr-FR')} FCFA pour le mois de ${MONTH_NAMES[month - 1]} est disponible. Merci !`
-    );
-    window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${message}`, '_blank');
+  const filteredTalibes = talibeList.filter(s => {
+    const fullName = `${s.firstName} ${s.lastName}`.toLowerCase();
+    const mat = (s.matricule || "").toLowerCase();
+    const query = search.toLowerCase();
+    const matchesSearch = fullName.includes(query) || mat.includes(query);
+    const matchesRegime = selectedRegime === "ALL" || s.status === selectedRegime;
+    return matchesSearch && matchesRegime;
+  });
+
+  const handleQuickPaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeCell || !quickAmount) return;
+
+    setIsSubmitting(true);
+    const res = await payTuitionFee({
+      talibeId: activeCell.talibe.id,
+      amountPaid: Number(quickAmount),
+      month: activeCell.month,
+      paymentMethod,
+    });
+    setIsSubmitting(false);
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success(`Paiement de ${Number(quickAmount).toLocaleString()} FCFA enregistré pour ${activeCell.month} ! 🎉`);
+      setTuitions([res.transaction, ...tuitions]);
+      setActiveCell(null);
+
+      if (res.whatsappMessage && activeCell.talibe.parentPhone) {
+        const phone = activeCell.talibe.parentPhone.replace(/[^0-9]/g, '');
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(res.whatsappMessage)}`;
+        toast.info("Envoi du reçu WhatsApp...", {
+          action: {
+            label: "Ouvrir WhatsApp",
+            onClick: () => window.open(url, '_blank')
+          }
+        });
+      }
+    }
+  };
+
+  const handleExportExcelMatrix = () => {
+    const matrixData = filteredTalibes.map(s => {
+      const row: any = {
+        "Matricule": s.matricule,
+        "Nom & Prénom": `${s.firstName} ${s.lastName}`,
+        "Régime": s.status === 'INTERNE' ? 'Interne' : s.status === 'DEMI_PENSION' ? 'Demi-Pension' : 'Externe',
+        "Parent / Tuteur": s.parentName || 'N/A',
+        "Contact Parent": s.parentPhone || 'N/A'
+      };
+
+      ACADEMIC_MONTHS.forEach(m => {
+        const paid = paymentMap[`${s.id}_${m}`];
+        row[m] = paid ? `${paid.toLocaleString()} FCFA` : 'Non Payé';
+      });
+
+      return row;
+    });
+
+    const ws = XLSX.utils.json_to_sheet(matrixData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `Cotisations_${selectedYear}`);
+    XLSX.writeFile(wb, `matrice_cotisations_${selectedYear}.xlsx`);
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Recouvrement Écolages</h1>
-          <p className="text-sm text-muted-foreground">Gérez les paiements Wave, Orange Money et Cash.</p>
+    <div className="space-y-6">
+      {/* Header Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 p-6 md:p-8 text-white border border-emerald-500/20 shadow-2xl">
+        <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
+          <CreditCard className="w-96 h-96 text-emerald-400" />
         </div>
-        <button 
-          onClick={handleGenerate}
-          disabled={generating}
-          className="bg-emerald-500 hover:bg-emerald-600 text-black font-black uppercase text-[11px] px-6 py-3 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center gap-2 tracking-widest disabled:opacity-50"
-        >
-          {generating ? <Clock className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-          Générer Mensualités
-        </button>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input 
-            type="text" 
-            placeholder="Rechercher un élève ou matricule..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-card border border-border/50 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-primary/50 transition-all"
-          />
-        </div>
-        <div className="flex gap-4">
-          <select 
-            value={filterClass}
-            onChange={(e) => setFilterClass(e.target.value)}
-            className="bg-card border border-border/50 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
-          >
-            <option value="ALL">Toutes les classes</option>
-            {classes.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          <select 
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-card border border-border/50 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
-          >
-            <option value="ALL">Tous les statuts</option>
-            <option value="PENDING">En attente</option>
-            <option value="PARTIAL">Partiel</option>
-            <option value="PAID">Payé</option>
-          </select>
+        <div className="relative z-10 max-w-3xl space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-extrabold uppercase tracking-widest">
+            <Sparkles className="w-4 h-4 text-emerald-400" /> Tableau des 12 Mois & Recouvrement des Cotisations (Août à Juillet)
+          </div>
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
+            جدول الاشتراكات والدفعات الشهريّة (١٢ شهراً)
+          </h1>
+          <p className="text-emerald-100/80 text-sm md:text-base leading-relaxed">
+            Consultez le tableau récapitulatif des cotisations mensuelles pour tous les Talibés (Internes, Externes, Demi-pensionnaires). Cliquez sur un mois pour saisir le montant payé.
+          </p>
         </div>
       </div>
 
-      {/* Data Table / Mobile Cards */}
-      <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden">
-        {/* Vue Desktop: Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wider">
+      {/* Filter Bar & Regime Tabs */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/40 p-4 rounded-2xl border border-border">
+        <div className="flex flex-wrap items-center gap-2">
+          <button 
+            onClick={() => setSelectedRegime("ALL")}
+            className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedRegime === "ALL" ? "bg-emerald-600 text-white shadow-md" : "text-muted-foreground hover:bg-muted")}
+          >
+            Tous les Talibés
+          </button>
+          <button 
+            onClick={() => setSelectedRegime("INTERNE")}
+            className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedRegime === "INTERNE" ? "bg-amber-600 text-white shadow-md" : "text-muted-foreground hover:bg-muted")}
+          >
+            Internes (Pensionnaires)
+          </button>
+          <button 
+            onClick={() => setSelectedRegime("DEMI_PENSION")}
+            className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedRegime === "DEMI_PENSION" ? "bg-purple-600 text-white shadow-md" : "text-muted-foreground hover:bg-muted")}
+          >
+            Demi-Pensionnaires
+          </button>
+          <button 
+            onClick={() => setSelectedRegime("EXTERNE")}
+            className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedRegime === "EXTERNE" ? "bg-teal-600 text-white shadow-md" : "text-muted-foreground hover:bg-muted")}
+          >
+            Externes
+          </button>
+        </div>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <select 
+            value={selectedYear} 
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="h-10 px-3 rounded-xl border border-input bg-background text-xs font-bold text-foreground"
+          >
+            <option value="2026-2027">Année 2026 - 2027</option>
+            <option value="2025-2026">Année 2025 - 2026</option>
+          </select>
+
+          <Button onClick={handleExportExcelMatrix} variant="outline" className="text-xs font-bold gap-2">
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export Matrice Excel
+          </Button>
+        </div>
+      </div>
+
+      {/* Search Input */}
+      <div className="relative">
+        <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
+        <Input 
+          placeholder="Rechercher un Talibé par nom ou matricule..." 
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9 h-10 text-sm bg-card border-border"
+        />
+      </div>
+
+      {/* 12-Month Payment Matrix Table */}
+      <Card className="border border-border shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-muted/70 text-muted-foreground uppercase tracking-wider font-bold">
               <tr>
-                <th className="px-6 py-4 font-semibold">Élève</th>
-                <th className="px-6 py-4 font-semibold">Classe</th>
-                <th className="px-6 py-4 font-semibold">Mois</th>
-                <th className="px-6 py-4 font-semibold">Montant Dû</th>
-                <th className="px-6 py-4 font-semibold">Statut</th>
-                <th className="px-6 py-4 text-right font-semibold">Actions</th>
+                <th className="px-4 py-3 border.b sticky left-0 bg-muted z-10 min-w-[180px]">Talibé</th>
+                <th className="px-3 py-3 border-b min-w-[100px]">Régime</th>
+                {ACADEMIC_MONTHS.map(m => (
+                  <th key={m} className="px-3 py-3 border-b text-center min-w-[100px]">{m}</th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/50">
-              {filteredTuitions.length === 0 ? (
+            <tbody className="divide-y divide-border">
+              {filteredTalibes.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
-                    Aucun écolage trouvé. Générez les mensualités pour commencer.
+                  <td colSpan={14} className="text-center py-12 text-muted-foreground">
+                    Aucun Talibé trouvé.
                   </td>
                 </tr>
               ) : (
-                filteredTuitions.map((t) => (
-                  <tr key={t.id} className="hover:bg-muted/20 transition-all">
-                    <td className="px-6 py-4">
-                      <div className="font-bold">{t.student.firstName} {t.student.lastName}</div>
-                      <div className="text-[10px] text-muted-foreground font-mono">{t.student.matricule}</div>
+                filteredTalibes.map((s) => (
+                  <tr key={s.id} className="hover:bg-muted/30 transition-colors">
+                    {/* Talibé Name & Matricule */}
+                    <td className="px-4 py-3 font-bold text-foreground sticky left-0 bg-card z-10 border-r shadow-xs">
+                      <div>{s.firstName} {s.lastName}</div>
+                      <div className="font-mono text-[10px] text-emerald-600">{s.matricule}</div>
                     </td>
-                    <td className="px-6 py-4 font-medium text-muted-foreground">{t.student.class.name}</td>
-                    <td className="px-6 py-4">{MONTH_NAMES[t.month - 1]} {t.year}</td>
-                    <td className="px-6 py-4">
-                      <div className="font-black">{t.amount.toLocaleString('fr-FR')} FCFA</div>
-                      {t.amountPaid > 0 && <div className="text-[10px] text-emerald-500">Payé: {t.amountPaid.toLocaleString()} FCFA</div>}
+
+                    {/* Regime Badge */}
+                    <td className="px-3 py-3 font-medium">
+                      <Badge variant="outline" className={
+                        s.status === "INTERNE" ? "bg-amber-500/10 text-amber-600 border-amber-500/30 text-[9px]" :
+                        s.status === "DEMI_PENSION" ? "bg-purple-500/10 text-purple-600 border-purple-500/30 text-[9px]" :
+                        "bg-teal-500/10 text-teal-600 border-teal-500/30 text-[9px]"
+                      }>
+                        {s.status === "INTERNE" ? "Interne" : s.status === "DEMI_PENSION" ? "Demi-Pen." : "Externe"}
+                      </Badge>
                     </td>
-                    <td className="px-6 py-4">
-                      {t.status === "PAID" ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 font-bold text-[10px] uppercase tracking-wider">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Payé
-                        </span>
-                      ) : t.status === "PARTIAL" ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 font-bold text-[10px] uppercase tracking-wider">
-                          <Clock className="w-3.5 h-3.5" /> Partiel
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 text-red-500 font-bold text-[10px] uppercase tracking-wider">
-                          <Clock className="w-3.5 h-3.5" /> En attente
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      {t.status !== "PAID" ? (
-                        <>
-                          <button 
-                            onClick={() => setSelectedTuition(t)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-black font-bold text-[10px] uppercase tracking-widest rounded-lg transition-all"
+
+                    {/* 12 Months Payment Cells */}
+                    {ACADEMIC_MONTHS.map(m => {
+                      const amount = paymentMap[`${s.id}_${m}`];
+                      const isPaid = amount && amount > 0;
+
+                      return (
+                        <td key={m} className="px-2 py-2 text-center">
+                          <button
+                            onClick={() => {
+                              setActiveCell({ talibe: s, month: m });
+                              if (amount) setQuickAmount(amount.toString());
+                            }}
+                            className={cn(
+                              "w-full py-1.5 px-2 rounded-lg font-mono font-extrabold text-[11px] transition-all border",
+                              isPaid 
+                                ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/25" 
+                                : "bg-red-500/5 border-red-500/20 text-red-500 hover:bg-red-500/15"
+                            )}
                           >
-                            <CreditCard className="w-3.5 h-3.5" /> Encaisser
+                            {isPaid ? `${amount.toLocaleString()} F` : "Non Payé"}
                           </button>
-                          <button 
-                            onClick={() => handleSendReminder(t.student.parentPhone, t.student.parentName, t.student.firstName, t.amount, t.month)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white font-bold text-[10px] uppercase tracking-widest rounded-lg transition-all"
-                          >
-                            <MessageSquare className="w-3.5 h-3.5" /> Relancer
-                          </button>
-                        </>
-                      ) : (
-                        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted text-muted-foreground hover:bg-muted-foreground/20 font-bold text-[10px] uppercase tracking-widest rounded-lg transition-all">
-                          <Download className="w-3.5 h-3.5" /> Reçu PDF
-                        </button>
-                      )}
-                    </td>
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
+      </Card>
 
-        {/* Vue Mobile: Cartes */}
-        <div className="md:hidden flex flex-col p-4 gap-4">
-          {filteredTuitions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              Aucun écolage trouvé.
-            </div>
-          ) : (
-            filteredTuitions.map((t) => (
-              <div key={t.id} className="bg-background border border-border/50 rounded-xl p-4 flex flex-col gap-3 relative overflow-hidden">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-bold text-sm leading-tight">{t.student.firstName} {t.student.lastName}</h3>
-                    <p className="text-xs text-muted-foreground font-mono mt-0.5">{t.student.class.name} • {MONTH_NAMES[t.month - 1]} {t.year}</p>
-                  </div>
-                  <div>
-                    {t.status === "PAID" ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 font-black text-[9px] uppercase tracking-wider">
-                        Payé
-                      </span>
-                    ) : t.status === "PARTIAL" ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-500/10 text-amber-500 font-black text-[9px] uppercase tracking-wider">
-                        Partiel
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-red-500/10 text-red-500 font-black text-[9px] uppercase tracking-wider">
-                        En attente
-                      </span>
-                    )}
-                  </div>
-                </div>
+      {/* Quick Payment Modal on Cell Click */}
+      {activeCell && (
+        <Dialog open={!!activeCell} onOpenChange={() => setActiveCell(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-lg font-bold">
+                <CreditCard className="w-5 h-5 text-emerald-600" /> Saisie Cotisation — {activeCell.month}
+              </DialogTitle>
+            </DialogHeader>
 
-                <div className="flex justify-between items-center bg-muted/30 p-2.5 rounded-lg border border-border/50">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">Montant Dû</span>
-                    <span className="font-black text-sm">{t.amount.toLocaleString('fr-FR')} F</span>
-                  </div>
-                  {t.amountPaid > 0 && (
-                    <div className="flex flex-col items-end">
-                      <span className="text-[10px] text-emerald-500 uppercase font-black tracking-widest">Payé</span>
-                      <span className="font-black text-sm text-emerald-500">{t.amountPaid.toLocaleString('fr-FR')} F</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-2 mt-1">
-                  {t.status !== "PAID" ? (
-                    <>
-                      <button 
-                        onClick={() => setSelectedTuition(t)}
-                        className="flex-1 py-2 bg-primary/10 text-primary font-bold text-[10px] uppercase tracking-widest rounded-lg flex justify-center items-center gap-1.5"
-                      >
-                        <CreditCard className="w-3.5 h-3.5" /> Encaisser
-                      </button>
-                      <button 
-                        onClick={() => handleSendReminder(t.student.parentPhone, t.student.parentName, t.student.firstName, t.amount, t.month)}
-                        className="flex-1 py-2 bg-emerald-500/10 text-emerald-500 font-bold text-[10px] uppercase tracking-widest rounded-lg flex justify-center items-center gap-1.5"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" /> Relancer
-                      </button>
-                    </>
-                  ) : (
-                    <button className="flex-1 py-2 bg-muted text-muted-foreground font-bold text-[10px] uppercase tracking-widest rounded-lg flex justify-center items-center gap-1.5">
-                      <Download className="w-3.5 h-3.5" /> Reçu
-                    </button>
-                  )}
-                </div>
+            <form onSubmit={handleQuickPaymentSubmit} className="space-y-4 pt-2">
+              <div className="p-3 rounded-xl bg-muted/40 text-xs space-y-1">
+                <p className="font-bold text-foreground">{activeCell.talibe.firstName} {activeCell.talibe.lastName}</p>
+                <p className="text-muted-foreground font-mono">Matricule : {activeCell.talibe.matricule}</p>
+                {activeCell.talibe.parentName && <p className="text-muted-foreground">Tuteur : {activeCell.talibe.parentName} ({activeCell.talibe.parentPhone})</p>}
               </div>
-            ))
-          )}
-        </div>
-      </div>
 
-      {/* Payment Modal */}
-      <AnimatePresence>
-        {selectedTuition && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedTuition(null)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-card border border-border/50 rounded-[2rem] p-6 shadow-2xl z-10"
-            >
-              <h2 className="text-xl font-black uppercase tracking-tight mb-1 text-primary">Encaisser Paiement</h2>
-              <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mb-6">
-                Écolage {MONTH_NAMES[selectedTuition.month - 1]} {selectedTuition.year} - {selectedTuition.student.firstName}
-              </p>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Montant à Enregistrer (FCFA)</label>
+                <Input 
+                  type="number" 
+                  value={quickAmount}
+                  onChange={(e) => setQuickAmount(e.target.value)}
+                  className="font-mono text-lg font-bold"
+                  required
+                />
+              </div>
 
-              <form onSubmit={handlePaymentSubmit} className="space-y-5">
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Reste à payer (FCFA)</label>
-                  <div className="text-3xl font-black text-foreground">
-                    {(selectedTuition.amount - selectedTuition.amountPaid).toLocaleString('fr-FR')}
-                  </div>
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Mode de Règlement</label>
+                <select 
+                  value={paymentMethod} 
+                  onChange={(e: any) => setPaymentMethod(e.target.value)}
+                  className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-semibold"
+                >
+                  <option value="WAVE">Wave Mobile Money (💙)</option>
+                  <option value="ORANGE_MONEY">Orange Money (🧡)</option>
+                  <option value="CASH">Espèces / Cash (💵)</option>
+                  <option value="CHEQUE">Chèque / Virement (🏦)</option>
+                </select>
+              </div>
 
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Montant Encaissé (FCFA)</label>
-                  <input 
-                    type="number" 
-                    required
-                    value={amountPaid}
-                    onChange={(e) => setAmountPaid(e.target.value)}
-                    placeholder="Ex: 15000"
-                    max={selectedTuition.amount - selectedTuition.amountPaid}
-                    className="w-full bg-background border border-border/50 rounded-2xl px-4 py-3 text-lg font-bold focus:outline-none focus:border-primary/50 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Moyen de paiement</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {["CASH", "WAVE", "ORANGE_MONEY"].map(method => (
-                      <button
-                        key={method}
-                        type="button"
-                        onClick={() => setPaymentMethod(method as any)}
-                        className={cn(
-                          "px-2 py-3 rounded-xl border text-[10px] font-bold uppercase tracking-wider transition-all flex flex-col items-center gap-1",
-                          paymentMethod === method 
-                            ? "bg-primary/10 border-primary text-primary"
-                            : "bg-background border-border/50 text-muted-foreground hover:border-primary/30"
-                        )}
-                      >
-                        <Wallet className="w-4 h-4 mb-1" />
-                        {method.replace('_', ' ')}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-4 flex gap-3">
-                  <button 
-                    type="button"
-                    onClick={() => setSelectedTuition(null)}
-                    className="flex-1 py-3 rounded-xl border border-border/50 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all"
-                  >
-                    Annuler
-                  </button>
-                  <button 
-                    type="submit"
-                    disabled={isPaying || !amountPaid}
-                    className="flex-[2] py-3 rounded-xl bg-primary text-black text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {isPaying ? <Clock className="w-4 h-4 animate-spin" /> : "Valider"}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setActiveCell(null)}>
+                  Annuler
+                </Button>
+                <Button type="submit" disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                  {isSubmitting ? "Enregistrement..." : "Valider le Paiement"}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

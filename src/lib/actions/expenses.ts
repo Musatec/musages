@@ -12,7 +12,7 @@ export async function addExpense(data: {
 }) {
   try {
     const session = await auth();
-    const daaraId = session?.user?.daaraId;
+    const daaraId = session?.user?.daaraId || session?.user?.id;
     if (!daaraId) return { error: "Session non valide." };
 
     const transaction = await prisma.transaction.create({
@@ -38,7 +38,7 @@ export const createExpense = addExpense;
 export async function deleteTransaction(id: string) {
   try {
     const session = await auth();
-    const daaraId = session?.user?.daaraId;
+    const daaraId = session?.user?.daaraId || session?.user?.id;
     if (!daaraId) return { error: "Session non valide." };
 
     await prisma.transaction.delete({

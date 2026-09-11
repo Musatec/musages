@@ -99,7 +99,7 @@ export default function SupabaseProvider({
             {isLoading ? (
                 <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center space-y-4">
                     <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Initialisation TaleemApp...</p>
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Initialisation Daara.net...</p>
                 </div>
             ) : (
                 children

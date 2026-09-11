@@ -1,18 +1,26 @@
 {
-  "name": "TaleemApp — ERP Scolaire Franco-Arabe",
-  "short_name": "TaleemApp",
+  "name": "Daara Ibnoul Khayim Al Diawziya",
+  "short_name": "Daara Ibnoul Khayim",
+  "description": "Plateforme officielle de l'École Ibnoul Khayim Al Jawziya pour la Mémorisation du Saint Coran et l'Éducation Islamique.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09090b",
-  "theme_color": "#000000",
+  "theme_color": "#059669",
+  "orientation": "portrait",
+  "scope": "/",
   "categories": [
     "education",
-    "productivity",
-    "business"
+    "productivity"
   ],
   "icons": [
     {
-      "src": "/logo-taleem.png",
+      "src": "/logo-daara-ibnoul-khayim.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-daara-ibnoul-khayim.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -20,16 +28,22 @@
   ],
   "shortcuts": [
     {
-      "name": "Dashboard",
+      "name": "Tableau de Bord",
       "short_name": "Dashboard",
-      "description": "Tableau de bord TaleemApp",
+      "description": "Tableau de bord Daara",
       "url": "/dashboard"
     },
     {
-      "name": "Écolages",
-      "short_name": "Écolages",
-      "description": "Recouvrement des écolages Wave",
-      "url": "/tuition"
+      "name": "Suivi Hifz",
+      "short_name": "Hifz",
+      "description": "Suivi des 60 Hizbs",
+      "url": "/hifz"
+    },
+    {
+      "name": "Élèves",
+      "short_name": "Élèves",
+      "description": "Gestion des apprenants",
+      "url": "/students"
     }
   ]
 }

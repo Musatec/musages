@@ -8,15 +8,16 @@ import {
   Flame, 
   ChevronRight,
   ArrowRight,
-  Award,
   UserCheck,
-  TrendingUp,
-  ShieldCheck,
-  Building2
+  HeartHandshake,
+  Sparkles,
+  Clock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
 interface DaaraDashboardClientProps {
   daaraName: string;
@@ -39,242 +40,266 @@ export function DaaraDashboardClient({
   recentHifz,
   userRole,
 }: DaaraDashboardClientProps) {
+  const locale = useLocale();
+  const isAr = locale === "ar";
+  const tDash = useTranslations("Dashboard");
+  const tCommon = useTranslations("Common");
+
   return (
-    <div className="space-y-8 py-4">
-      {/* Header Banner - Color Hunt Deep Navy & Emerald */}
-      <div className="relative overflow-hidden rounded-3xl bg-[#0A192F] border border-[#0C5A34]/50 p-6 md:p-8 text-white shadow-xl">
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <p className="text-xs font-black uppercase tracking-widest text-[#D4AF37]">
-              Centre de Gestion 360° — Daara Ibnoul Khayim Al Diawziya
-            </p>
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white font-classic">
+    <div className="space-y-6 py-2">
+      {/* Bannière d'Accueil Épurée */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/20 p-6 text-white shadow-md">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5" /> {isAr ? "منصة المحضرة الرقمية" : "E-Daara — Ibnoul Khayim Al Diawziya"}
+            </div>
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white font-arabic">
               {daaraName}
             </h1>
-            <p className="text-slate-200 text-xs sm:text-sm font-normal max-w-xl">
-              Plateforme souveraine de suivi des 60 Hizbs, gestion des talibés internes, pointage des Halqas et cotisations mensuelles.
+            <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
+              {isAr 
+                ? "لوحة التحكم الشاملة: متابعة حفظ الـ 60 حزباً، إدارة الطلاب وتأكيد الحضور اليومي."
+                : "Tableau de bord de pilotage du Daara : Suivi des 60 Hizbs, gestion des apprenants et présences quotidiennes."
+              }
             </p>
           </div>
 
-          <Link href="/hifz">
-            <Button className="bg-[#0C5A34] hover:bg-[#06381F] text-white font-bold text-xs sm:text-sm gap-2 shadow-md rounded-xl px-5 py-3">
-              <BookOpen className="w-4 h-4 text-[#FFE57F]" /> Suivi 60 Hizbs <ChevronRight className="w-4 h-4" />
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3 shrink-0 flex-wrap">
+            <Link href="/hifz">
+              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-2 shadow-xs rounded-xl px-4 py-2.5">
+                <BookOpen className="w-4 h-4 text-emerald-200" /> {isAr ? "متابعة ٦٠ حزباً" : "Suivi des 60 Hizbs"}
+              </Button>
+            </Link>
+            <Link href="/attendance">
+              <Button variant="outline" className="border-slate-700 hover:bg-slate-800 text-slate-200 font-semibold text-xs gap-2 rounded-xl px-4 py-2.5">
+                <CalendarCheck className="w-4 h-4 text-emerald-400" /> {isAr ? "سجل الحضور" : "Présences"}
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* 6 Cartes KPI Principales - Gestion Totale */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* 4 Cartes KPI Essentielles — Traduction 100% */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {/* Card 1: Effectif Talibes */}
-        <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#0C5A34]/40 transition-all">
+        {/* KPI 1: Effectif Talibés */}
+        <Card className="border border-border/60 shadow-xs bg-card hover:border-emerald-500/40 transition-all">
           <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Effectif Talibés</p>
-              <h3 className="text-3xl font-extrabold text-[#0A192F] font-classic mt-1">{totalTalibes}</h3>
-              <p className="text-[11px] text-[#0C5A34] font-bold mt-0.5">{totalInternes} Pensionnaires Internes</p>
+            <div className="space-y-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {isAr ? "عدد طلاب المحضرة" : "Effectif Talibés"}
+              </p>
+              <h3 className="text-2xl font-black text-foreground">{totalTalibes}</h3>
+              <p className="text-[11px] text-emerald-500 font-semibold">
+                {totalInternes} {isAr ? "طلاب مقيمون (داخلي)" : "Pensionnaires Internes"}
+              </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#0C5A34] flex items-center justify-center font-bold">
-              <Users className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
+              <Users className="w-5 h-5" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Card 2: Recitations du Jour */}
-        <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#D4AF37]/40 transition-all">
+        {/* KPI 2: Récitations du Jour */}
+        <Card className="border border-border/60 shadow-xs bg-card hover:border-amber-500/40 transition-all">
           <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Récitations du Jour</p>
-              <h3 className="text-3xl font-extrabold text-[#B8860B] font-classic mt-1">{hifzRecordsToday}</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">Sabi & Muraja'a validés</p>
+            <div className="space-y-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {isAr ? "الأحزاب المنجزة اليوم" : "Récitations du Jour"}
+              </p>
+              <h3 className="text-2xl font-black text-amber-500">{hifzRecordsToday}</h3>
+              <p className="text-[11px] text-muted-foreground">
+                {isAr ? "عرض السبق والمراجعة" : "Sabi & Muraja'a validés"}
+              </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-[#D4AF37] flex items-center justify-center font-bold">
-              <Flame className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
+              <Flame className="w-5 h-5" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Card 3: Halqas */}
-        <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#0C5A34]/40 transition-all">
+        {/* KPI 3: Halqas d'Étude */}
+        <Card className="border border-border/60 shadow-xs bg-card hover:border-blue-500/40 transition-all">
           <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Halqas d'Étude</p>
-              <h3 className="text-3xl font-extrabold text-[#0A192F] font-classic mt-1">{totalHalqas}</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">Cercles de récitation & Oustazs</p>
+            <div className="space-y-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {isAr ? "الحلقات القرآنيّة" : "Halqas d'Étude"}
+              </p>
+              <h3 className="text-2xl font-black text-foreground">{totalHalqas}</h3>
+              <p className="text-[11px] text-muted-foreground">
+                {isAr ? "مشايخ الإقراء" : "Cercles & Maîtres Oustazs"}
+              </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#0C5A34] flex items-center justify-center font-bold">
-              <BookOpen className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
+              <UserCheck className="w-5 h-5" />
             </div>
           </CardContent>
         </Card>
 
-        {/* Card 4: Pointages WhatsApp */}
-        <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#0C5A34]/40 transition-all">
+        {/* KPI 4: Cas Sociaux & Exonérés */}
+        <Card className="border border-border/60 shadow-xs bg-card hover:border-emerald-500/40 transition-all">
           <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Pointages Halqas</p>
-              <h3 className="text-3xl font-extrabold text-[#0C5A34] font-classic mt-1">100%</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">Alertes WhatsApp actives</p>
+            <div className="space-y-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {isAr ? "الحالات الاجتماعية" : "Cas Sociaux"}
+              </p>
+              <h3 className="text-2xl font-black text-emerald-500">{totalSponsorships}</h3>
+              <p className="text-[11px] text-muted-foreground">
+                {isAr ? "معفون من الرسوم" : "Exonérés & Pris en charge"}
+              </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#0C5A34] flex items-center justify-center font-bold">
-              <CalendarCheck className="w-6 h-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Card 5: Diplômes Huffaz */}
-        <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#D4AF37]/40 transition-all">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Lauréats 60 Hizbs</p>
-              <h3 className="text-3xl font-extrabold text-[#D4AF37] font-classic mt-1">100+</h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">Huffaz certifiés au Daara</p>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-[#D4AF37] flex items-center justify-center font-bold">
-              <Award className="w-6 h-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Card 6: Cotisations Wave/OM */}
-        <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#0C5A34]/40 transition-all">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Scolarités & Reçus</p>
-              <h3 className="text-3xl font-extrabold text-[#0A192F] font-classic mt-1">Wave / OM</h3>
-              <p className="text-[11px] text-[#0C5A34] font-bold mt-0.5">Encaissements à jour</p>
-            </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#0C5A34] flex items-center justify-center font-bold">
-              <CreditCard className="w-6 h-6" />
+            <div className="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
+              <HeartHandshake className="w-5 h-5" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Cartes des 6 piliers de Gestion Totale du Daara */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-extrabold text-[#0A192F] font-classic border-b border-slate-200 pb-2">
-          Piliers de Gestion Globale du Daara
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Pilier 1: Tahfiz & 60 Hizbs */}
-          <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#0C5A34] transition-all group">
-            <CardHeader className="p-5">
-              <CardTitle className="text-base font-bold text-[#0A192F] flex items-center gap-2 font-classic">
-                <BookOpen className="w-5 h-5 text-[#0C5A34]" /> 1. Tahfiz & Allwa (لوح)
+      {/* 2 Panneaux Principaux : Activités Récentes & Accès Rapides */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Panneau Gauche : Dernières Récitations des 60 Hizbs (Live Feed) */}
+        <Card className="lg:col-span-2 border border-border/60 shadow-xs bg-card">
+          <CardHeader className="p-5 border-b flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-bold text-foreground flex items-center gap-2 font-arabic">
+                <BookOpen className="w-4 h-4 text-emerald-500" /> 
+                {isAr ? "سجل التسميع اليومي (٦٠ حزباً)" : "Récitations Récentes (60 Hizbs)"}
               </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Suivi quotidien de la mémorisation (Sabi, Sabakh, Muraja'a) sur les 60 Hizbs pour chaque talibé.
+              <CardDescription className="text-xs text-muted-foreground">
+                {isAr ? "متابعة فورية للسبق والمراجعة على اللوح الخشبي." : "Suivi en direct des récitations validées sur l'Allwa et la Muraja'a."}
               </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <Link href="/hifz">
-                <Button className="w-full bg-[#0C5A34] hover:bg-[#06381F] text-white font-bold text-xs rounded-xl shadow-xs">
-                  Grille des 60 Hizbs <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+            </div>
+            <Link href="/hifz">
+              <Button variant="ghost" size="sm" className="text-xs text-emerald-600 hover:text-emerald-700 gap-1 font-semibold">
+                {isAr ? "عرض الكل" : "Voir tout"} <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent className="p-0 divide-y">
+            {recentHifz.length === 0 ? (
+              <div className="p-6 text-center text-xs text-muted-foreground space-y-1">
+                <Clock className="w-6 h-6 mx-auto text-muted-foreground/40" />
+                <p>{isAr ? "لا توجد تسميعات مسجلة حالياً." : "Aucune récitation enregistrée récemment."}</p>
+              </div>
+            ) : (
+              recentHifz.map((record) => (
+                <div key={record.id} className="p-4 flex items-center justify-between gap-3 hover:bg-muted/40 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xs font-bold shrink-0">
+                      H{record.hizbNumber}
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-foreground">
+                        {record.talibe?.firstName} {record.talibe?.lastName}
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground">
+                        {isAr ? `الحزب ${record.hizbNumber}` : `Hizb ${record.hizbNumber}`} {record.surahName ? `• Sourate ${record.surahName}` : ""}
+                      </p>
+                    </div>
+                  </div>
 
-          {/* Pilier 2: Talibes & Pensionnaires */}
-          <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#0C5A34] transition-all group">
-            <CardHeader className="p-5">
-              <CardTitle className="text-base font-bold text-[#0A192F] flex items-center gap-2 font-classic">
-                <Users className="w-5 h-5 text-[#0C5A34]" /> 2. Registre des Talibés
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Gestion des effectifs, fiches individuelles, tuteurs WhatsApp et pensionnaires internes.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <Link href="/students">
-                <Button className="w-full bg-white hover:bg-slate-50 text-[#0A192F] font-bold text-xs border border-slate-300 rounded-xl shadow-xs">
-                  Gérer les Talibés <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-500 border-emerald-500/30 font-bold">
+                      {record.evaluation || "MUMTAZ"}
+                    </Badge>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
 
-          {/* Pilier 3: Halqas & Oustazs */}
-          <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#0C5A34] transition-all group">
-            <CardHeader className="p-5">
-              <CardTitle className="text-base font-bold text-[#0A192F] flex items-center gap-2 font-classic">
-                <UserCheck className="w-5 h-5 text-[#0C5A34]" /> 3. Halqas & Oustazs
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Répartition des cercles d'études, affectation des maîtres coraniques et plannings.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <Link href="/classes">
-                <Button className="w-full bg-white hover:bg-slate-50 text-[#0A192F] font-bold text-xs border border-slate-300 rounded-xl shadow-xs">
-                  Gérer les Halqas <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+        {/* Panneau Droit : Accès Rapides aux Modules */}
+        <Card className="border border-border/60 shadow-xs bg-card flex flex-col">
+          <CardHeader className="p-5 border-b">
+            <CardTitle className="text-base font-bold text-foreground flex items-center gap-2 font-arabic">
+              <Sparkles className="w-4 h-4 text-amber-500" /> 
+              {isAr ? "اختصارات سريعة" : "Actions & Modules Rapides"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 space-y-3 flex-1">
+            
+            <Link href="/hifz" className="block">
+              <div className="p-3.5 rounded-xl border border-border/60 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all flex items-center justify-between group">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-foreground group-hover:text-emerald-500 transition-colors">
+                      {isAr ? "جدول الـ ٦٠ حزباً" : "Grille des 60 Hizbs"}
+                    </h5>
+                    <p className="text-[10px] text-muted-foreground">
+                      {isAr ? "تسجيل السبق والمراجعة" : "Saisie du Sabi & Muraja'a"}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-emerald-500 transition-colors" />
+              </div>
+            </Link>
 
-          {/* Pilier 4: Presences WhatsApp */}
-          <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#0C5A34] transition-all group">
-            <CardHeader className="p-5">
-              <CardTitle className="text-base font-bold text-[#0A192F] flex items-center gap-2 font-classic">
-                <CalendarCheck className="w-5 h-5 text-[#0C5A34]" /> 4. Présences & Alertes
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Pointage des présences par session (Fajr, Matin, Soir) et notification des retards aux parents.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <Link href="/attendance">
-                <Button className="w-full bg-white hover:bg-slate-50 text-[#0A192F] font-bold text-xs border border-slate-300 rounded-xl shadow-xs">
-                  Pointer les Présences <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+            <Link href="/students" className="block">
+              <div className="p-3.5 rounded-xl border border-border/60 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all flex items-center justify-between group">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-foreground group-hover:text-blue-500 transition-colors">
+                      {isAr ? "سجل الطلاب" : "Registre des Talibés"}
+                    </h5>
+                    <p className="text-[10px] text-muted-foreground">
+                      {isAr ? "إدارة الطلاب والداخليين" : "Pensionnaires & Inscriptions"}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-blue-500 transition-colors" />
+              </div>
+            </Link>
 
-          {/* Pilier 5: Scolarite Wave & OM */}
-          <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#0C5A34] transition-all group">
-            <CardHeader className="p-5">
-              <CardTitle className="text-base font-bold text-[#0A192F] flex items-center gap-2 font-classic">
-                <CreditCard className="w-5 h-5 text-[#0C5A34]" /> 5. Scolarités Wave & OM
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Encaissement des mensualités par paiement mobile, reçu PDF instantané et relances.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <Link href="/tuition">
-                <Button className="w-full bg-white hover:bg-slate-50 text-[#0A192F] font-bold text-xs border border-slate-300 rounded-xl shadow-xs">
-                  Gérer les Scolarités <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+            <Link href="/attendance" className="block">
+              <div className="p-3.5 rounded-xl border border-border/60 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all flex items-center justify-between group">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
+                    <CalendarCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-foreground group-hover:text-amber-500 transition-colors">
+                      {isAr ? "تسجيل الحضور" : "Présences & WhatsApp"}
+                    </h5>
+                    <p className="text-[10px] text-muted-foreground">
+                      {isAr ? "حضور الفجر والصباح والمساء" : "Appel de Halqa Subh & Soir"}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-amber-500 transition-colors" />
+              </div>
+            </Link>
 
-          {/* Pilier 6: Diplomes & Khatm */}
-          <Card className="border border-slate-200 shadow-xs bg-white hover:border-[#D4AF37] transition-all group">
-            <CardHeader className="p-5">
-              <CardTitle className="text-base font-bold text-[#0A192F] flex items-center gap-2 font-classic">
-                <Award className="w-5 h-5 text-[#D4AF37]" /> 6. Diplômes des 60 Hizbs
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Attestations d'Excellence, cérémonies de Khatm Coran et mise à jour du Tableau d'Honneur.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-5 pt-0">
-              <Link href="/khatm">
-                <Button className="w-full bg-white hover:bg-slate-50 text-[#0A192F] font-bold text-xs border border border-slate-300 rounded-xl shadow-xs">
-                  Diplômes & Khatm <ArrowRight className="w-4 h-4 ml-1" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+            <Link href="/tuition" className="block">
+              <div className="p-3.5 rounded-xl border border-border/60 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all flex items-center justify-between group">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
+                    <CreditCard className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-foreground group-hover:text-purple-500 transition-colors">
+                      {isAr ? "سجل الاشتراكات" : "Paiements (12 Mois)"}
+                    </h5>
+                    <p className="text-[10px] text-muted-foreground">
+                      {isAr ? "إيصالات تحصيل الرسوم" : "Wave, OM & Reçus"}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-purple-500 transition-colors" />
+              </div>
+            </Link>
 
-        </div>
+          </CardContent>
+        </Card>
+
       </div>
     </div>
   );

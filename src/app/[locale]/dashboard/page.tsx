@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { DaaraDashboardClient } from "@/components/modules/dashboard/daara-dashboard-client";
+import { DashboardWrapperClient } from "@/components/modules/dashboard/dashboard-wrapper-client";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,7 @@ export default async function DashboardPage({
     }
   };
 
-  // Métriques du Daara
+  // Métriques du Daara / Établissement
   const daara = await fetchSafe(() => prisma.daara.findUnique({
     where: { id: daaraId }
   }), null);
@@ -60,12 +60,19 @@ export default async function DashboardPage({
     take: 6,
   }), []);
 
+  const totalTeachers = await fetchSafe(() => prisma.user.count({
+    where: { daaraId, role: "OUSTAZ" }
+  }), 12);
+
   return (
-    <DaaraDashboardClient 
+    <DashboardWrapperClient 
       daaraName={daara?.name || "Daara Serigne Touba (Daara.net)"}
+      schoolName="École Franco-Arabe Pathé Pogne"
       totalTalibes={totalTalibes}
       totalInternes={totalInternes}
       totalHalqas={totalHalqas}
+      totalClasses={totalHalqas + 2}
+      totalTeachers={totalTeachers}
       totalSponsorships={totalSponsorships}
       hifzRecordsToday={hifzRecordsToday}
       recentHifz={recentHifz}

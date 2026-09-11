@@ -190,7 +190,7 @@ export default async function HomePage() {
                     <div className="space-y-3">
                         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-white text-xs font-bold tracking-wide">
                             <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-                            <span>{isAr ? "منصة تَعْلِيم لإدارة المدارس الأهلية والفرنكوأعرابية" : "Système de Gestion Scolaire Franco-Arabe & Général"}</span>
+                            <span>{isAr ? "مدرسة ابن القيم الجوزية & المدرسة العربية الفرنسية PATHÉ POGNE" : "Daara Ibnoul Khayim Al Diawziya — École Franco-Arabe Pathé Pogne"}</span>
                         </div>
 
                         <div className="space-y-1">
@@ -205,10 +205,10 @@ export default async function HomePage() {
                                     </>
                                 )}
                             </h1>
-                            <p className="text-emerald-100 text-sm sm:text-base font-medium max-w-xl">
+                            <p className="text-emerald-100 text-sm sm:text-base font-medium max-w-xl italic font-serif">
                                 {isAr 
-                                    ? "مرحباً بكم في لوحة القيادة المركزية. يرجى اختيار القسم المطلوب للمتابعة وإدارة المؤسسة بكل سهولة." 
-                                    : "Bienvenue sur votre portail de pilotage central. Choisissez un module ci-dessous pour gérer votre établissement en toute sérénité."}
+                                    ? "مرحباً بكم في لوحة القيادة المركزية. « Pathé Pogne، تعليم يجمع بين المعرفة والقيم والنجاح. »" 
+                                    : "« Pathé Pogne, c’est une éducation qui réunit savoir, valeurs et réussite. »"}
                             </p>
                         </div>
                     </div>
@@ -334,9 +334,9 @@ export default async function HomePage() {
 
             {/* 3. FOOTER INFO */}
             <div className="pt-4 pb-8 text-center text-xs text-muted-foreground font-medium flex flex-col items-center gap-1.5">
-                <p>{isAr ? "نظام تَعْلِيم — المنصة المتكاملة لإدارة المدارس والكتاتيب" : "TaleemApp — Plateforme Intégrée de Gestion Scolaire Franco-Arabe"}</p>
+                <p>{isAr ? "مدرسة ابن القيم الجوزية — المنصة المتكاملة لإدارة Mémorisation Coran" : "Daara.net — Plateforme Intégrée de Gestion Coranique & Éducative"}</p>
                 <p className="text-[10px] opacity-70">
-                    {isAr ? "جميع الحقوق محفوظة © ٢٠٢٦" : "Tous droits réservés © 2026 TaleemApp"}
+                    {isAr ? "جميع الحقوق محفوظة © ٢٠٢٦" : "Tous droits réservés © 2026 Daara Ibnoul Khayim Al Diawziya"}
                 </p>
             </div>
         </div>

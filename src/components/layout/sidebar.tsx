@@ -1,130 +1,235 @@
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { 
     ChevronLeft, 
-    Crown,
-    Zap,
-    LogOut
+    LogOut,
+    User as UserIcon,
+    Menu,
+    X
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "@/i18n/routing";
+import { useLocale, useTranslations } from "next-intl";
 import { useSidebar } from "@/components/providers/sidebar-provider";
-import { NAV_SECTIONS, SUPER_ADMIN_NAV } from "@/config/nav";
+import { useSpace } from "@/components/providers/space-provider";
+import { NAV_SECTIONS, SCHOOL_NAV_SECTIONS, SUPER_ADMIN_NAV } from "@/config/nav";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { SafeImage } from "@/components/ui/safe-image";
 
 export function Sidebar() {
+    const locale = useLocale();
+    const tSidebar = useTranslations("Sidebar");
     const { data: session } = useSession();
-    const userRole = session?.user?.role || "DIRECTEUR";
+    const { activeSpace } = useSpace();
+
+    const userRole = session?.user?.role || "SERIGNE_DAARA";
+    const userName = session?.user?.name || "Responsable Établissement";
+    const userImage = session?.user?.image;
     const pathname = usePathname();
     const { collapsed, setCollapsed } = useSidebar();
-    const currentNav = userRole === "SUPER_ADMIN" ? SUPER_ADMIN_NAV : NAV_SECTIONS;
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    const isAr = locale === "ar";
+    const isSchool = activeSpace === "school";
+
+    // Sélection du menu de navigation dédié à l'espace actif (Daara vs École Franco-Arabe)
+    const currentNav = userRole === "SUPER_ADMIN" 
+      ? SUPER_ADMIN_NAV 
+      : isSchool 
+        ? SCHOOL_NAV_SECTIONS 
+        : NAV_SECTIONS;
 
     return (
-        <aside 
-            className={cn(
-                "fixed left-0 top-0 h-screen transition-all duration-300 ease-in-out hidden md:flex flex-col z-[70] border-r border-[#0C5A34]/30 bg-[#0A192F] text-white shadow-xl",
-                collapsed ? "w-20" : "w-64"
+        <>
+            {/* Bouton de déclenchement mobile flottant */}
+            <button
+                type="button"
+                onClick={() => setMobileOpen(true)}
+                className={cn(
+                    "md:hidden fixed top-3 z-40 p-2 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl text-white shadow-md active:scale-95 transition-all flex items-center gap-2",
+                    isAr ? "left-3 right-auto" : "right-3 left-auto"
+                )}
+                aria-label="Ouvrir le menu"
+            >
+                <Menu className="w-4 h-4 text-emerald-400" />
+                <span className={cn("text-xs font-semibold text-slate-200 px-0.5", isAr && "font-arabic text-xs")}>
+                  {isAr ? "القائمة" : "Menu"}
+                </span>
+            </button>
+
+            {/* Overlay Mobile */}
+            {mobileOpen && (
+                <div 
+                    className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] transition-opacity"
+                    onClick={() => setMobileOpen(false)}
+                />
             )}
-        >
-            {/* Header Sidebar - Brand Logo */}
-            <div className="p-3.5 flex items-center justify-between overflow-hidden relative z-10 border-b border-[#0C5A34]/40 bg-[#081325]">
-                <Link href={userRole === "SUPER_ADMIN" ? "/admin" : "/dashboard"} className="flex items-center gap-2.5">
-                    <img src="/logo-daara-ibnoul-khayim.png" alt="Daara Ibnoul Khayim Logo" className="h-11 w-auto object-contain shrink-0" />
-                    {!collapsed && (
-                        <div className="flex flex-col leading-tight">
-                            <span className="text-[11px] font-black text-[#D4AF37] uppercase tracking-wider truncate">
-                                Ibnoul Khayim
-                            </span>
-                            <span className="text-[9px] font-bold text-emerald-400 font-serif dir-rtl truncate">
-                                مدرسة ابن القيم
-                            </span>
-                        </div>
-                    )}
-                </Link>
 
-                <button 
-                    onClick={() => setCollapsed(!collapsed)}
-                    className="p-1.5 bg-[#0C5A34]/40 border border-[#D4AF37]/30 rounded-lg hover:bg-[#0C5A34] text-white transition-all shadow-sm active:scale-90"
-                    aria-label="Toggle Sidebar"
-                >
-                    <ChevronLeft className={cn("w-4 h-4 transition-transform duration-300 text-[#D4AF37]", collapsed ? "rotate-180" : "rotate-0")} />
-                </button>
-            </div>
-
-            {/* Navigation Section */}
-            <nav className="flex-1 px-3 space-y-6 py-5 overflow-y-auto no-scrollbar relative z-10">
-                {currentNav.map((section) => {
-                    const visibleItems = section.items.filter(item => {
-                        const hasRole = !item.roles || item.roles.includes(userRole);
-                        return hasRole;
-                    });
-
-                    if (visibleItems.length === 0) return null;
-
-                    return (
-                        <div key={section.title} className="space-y-1">
-                            {!collapsed && (
-                                <p className="px-3 text-[9px] font-extrabold uppercase tracking-widest text-[#D4AF37] mb-2.5">
-                                    {section.title}
-                                </p>
-                            )}
-                            <div className="space-y-1">
-                                {visibleItems.map((item) => {
-                                    const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
-                                    return (
-                                        <Link 
-                                            key={item.href} 
-                                            href={item.href}
-                                            className={cn(
-                                                 "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-xs relative overflow-hidden",
-                                                 isActive 
-                                                     ? "bg-[#0C5A34] text-white shadow-md shadow-[#0C5A34]/40 font-bold border border-[#D4AF37]/30" 
-                                                     : "text-slate-300 hover:text-white hover:bg-[#0C5A34]/30"
-                                             )}
-                                         >
-                                            <item.icon className={cn("w-4 h-4 shrink-0 transition-transform", isActive ? "scale-110 text-[#FFE57F]" : "text-slate-300")} />
-                                            {!collapsed && (
-                                                <span className="truncate">
-                                                    {item.label}
-                                                </span>
-                                            )}
-                                        </Link>
-                                    );
-                                })}
+            {/* Sidebar Dédiée à l'Espace Actif (Pas de mélange d'espaces) */}
+            <aside 
+                className={cn(
+                    "fixed top-0 h-screen transition-all duration-300 ease-in-out flex flex-col z-[70] bg-[#0F172A] text-slate-200 shadow-xl",
+                    isAr ? "right-0 border-l border-r-0 border-slate-800/80" : "left-0 border-r border-l-0 border-slate-800/80",
+                    isAr 
+                      ? (mobileOpen ? "translate-x-0 w-72" : "translate-x-full md:translate-x-0")
+                      : (mobileOpen ? "translate-x-0 w-72" : "-translate-x-full md:translate-x-0"),
+                    collapsed ? "md:w-20" : "md:w-64"
+                )}
+            >
+                {/* En-tête Sidebar — Logo & Nom de l'Établissement (Daara vs École Franco-Arabe Pathé Pogne) */}
+                <div className="p-3.5 flex items-center justify-between overflow-hidden relative z-10 border-b border-slate-800/70 bg-slate-950/40">
+                    <Link 
+                        href={userRole === "SUPER_ADMIN" ? "/admin" : "/dashboard"} 
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2.5"
+                    >
+                        <img 
+                            src={isSchool ? "/logo-pathe-pogne.png" : "/logo-daara-ibnoul-khayim.png"} 
+                            alt={isSchool ? "École Pathé Pogne Logo" : "Daara Ibnoul Khayim Logo"} 
+                            className="h-8 w-auto object-contain shrink-0 rounded-md" 
+                        />
+                        {(!collapsed || mobileOpen) && (
+                            <div className="flex flex-col leading-tight overflow-hidden">
+                                <span className="text-xs font-bold text-white tracking-wide truncate">
+                                    {isSchool ? "École Pathé Pogne" : "Ibnoul Khayim"}
+                                </span>
+                                <span className="text-[10px] text-emerald-400 font-medium font-arabic dir-rtl truncate">
+                                    {isSchool ? "المدرسة العربية الفرنسية" : "مدرسة ابن القيم"}
+                                </span>
                             </div>
-                        </div>
-                    );
-                })}
-            </nav>
-
-            {/* Footer Sidebar - Profil & Deconnexion */}
-            <div className="p-3 border-t border-[#0C5A34]/40 space-y-2 relative z-10">
-                <div className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-xl bg-[#081325] border border-[#0C5A34]/50 text-slate-200 text-xs font-semibold",
-                    collapsed ? "justify-center" : "justify-between"
-                )}>
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <Crown className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
-                        {!collapsed && (
-                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#D4AF37] truncate">
-                                PLAN {session?.user?.plan || "E-DAARA"}
-                            </span>
                         )}
-                    </div>
+                    </Link>
+
+                    {/* Bouton fermer Mobile */}
+                    <button 
+                        onClick={() => setMobileOpen(false)}
+                        className="md:hidden p-1 text-slate-400 hover:text-white rounded-lg"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+
+                    {/* Toggle Collapse Desktop */}
+                    <button 
+                        onClick={() => setCollapsed(!collapsed)}
+                        className="hidden md:flex p-1 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-lg transition-all"
+                        aria-label="Toggle Sidebar"
+                    >
+                        <ChevronLeft 
+                          className={cn(
+                            "w-4 h-4 transition-transform duration-300", 
+                            isAr 
+                              ? (collapsed ? "rotate-0" : "rotate-180")
+                              : (collapsed ? "rotate-180" : "rotate-0")
+                          )} 
+                        />
+                    </button>
                 </div>
 
-                <button
-                    onClick={() => signOut({ callbackUrl: "/login" })}
-                    className={cn(
-                        "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-[#0C5A34]/30 text-xs font-semibold transition-colors",
-                        collapsed ? "justify-center" : "justify-start"
-                    )}
-                >
-                    <LogOut className="w-4 h-4 text-slate-300 shrink-0" />
-                    {!collapsed && <span>Déconnexion</span>}
-                </button>
-            </div>
-        </aside>
+                {/* Profil Utilisateur & Sélecteur de Langue */}
+                {(!collapsed || mobileOpen) && (
+                    <div className="p-3 border-b border-slate-800/50 space-y-2.5 bg-slate-950/20">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-emerald-900/50 border border-emerald-500/30 flex items-center justify-center overflow-hidden shrink-0">
+                                {userImage ? (
+                                    <SafeImage src={userImage} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                    <UserIcon className="w-3.5 h-3.5 text-emerald-400" />
+                                )}
+                            </div>
+                            <div className="flex flex-col overflow-hidden">
+                                <span className="text-xs font-semibold text-white truncate">
+                                    {userName}
+                                </span>
+                                <span className="text-[9px] text-slate-400 font-medium uppercase tracking-wider truncate">
+                                    {isSchool ? "Directeur École Franco-Arabe" : userRole}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Sélecteur de Langue (Français vs Arabe) */}
+                        <div className="flex justify-center pt-0.5">
+                            <LanguageSwitcher />
+                        </div>
+                    </div>
+                )}
+
+                {/* Navigation Principale Traduite & Spécifique à l'Espace Actif */}
+                <nav className="flex-1 px-2.5 space-y-4 py-3 overflow-y-auto no-scrollbar relative z-10">
+                    {currentNav.map((section) => {
+                        const visibleItems = section.items.filter(item => {
+                            const hasRole = !item.roles || item.roles.includes(userRole);
+                            return hasRole;
+                        });
+
+                        if (visibleItems.length === 0) return null;
+
+                        const sectionTitle = isAr ? (section.titleAr || section.title) : section.title;
+
+                        return (
+                            <div key={section.title} className="space-y-0.5">
+                                {(!collapsed || mobileOpen) && (
+                                    <p className={cn(
+                                      "px-2.5 mb-1",
+                                      isAr ? "font-arabic text-emerald-400 text-[11px] font-bold" : "text-[9px] font-bold uppercase tracking-wider text-slate-400"
+                                    )}>
+                                        {sectionTitle}
+                                    </p>
+                                )}
+                                <div className="space-y-0.5">
+                                    {visibleItems.map((item) => {
+                                        const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                                        const itemLabel = isAr ? (item.labelAr || item.label) : item.label;
+
+                                        return (
+                                            <Link 
+                                                key={item.href} 
+                                                href={item.href}
+                                                onClick={() => setMobileOpen(false)}
+                                                className={cn(
+                                                    "flex items-center gap-2.5 px-2.5 py-2 rounded-xl transition-all font-medium relative overflow-hidden",
+                                                    isAr ? "text-xs" : "text-xs",
+                                                    isActive 
+                                                        ? (isSchool ? "bg-amber-600 text-white font-bold shadow-xs" : "bg-emerald-600/90 text-white font-bold shadow-xs")
+                                                        : "text-slate-300 hover:text-white hover:bg-slate-800/50"
+                                                )}
+                                            >
+                                                <item.icon className={cn("w-4 h-4 shrink-0 transition-transform", isActive ? (isSchool ? "text-amber-200" : "text-emerald-200") : "text-slate-400")} />
+                                                {(!collapsed || mobileOpen) && (
+                                                    <span className={cn("truncate", isAr && "font-arabic font-medium")}>
+                                                        {itemLabel}
+                                                    </span>
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </nav>
+
+                {/* Pied de Sidebar — Déconnexion */}
+                <div className="p-2.5 border-t border-slate-800/80 bg-slate-950/40 flex items-center justify-between">
+                    <button
+                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        className={cn(
+                            "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 text-xs font-medium transition-colors",
+                            (collapsed && !mobileOpen) ? "justify-center" : "justify-start"
+                        )}
+                        title={tSidebar("logout")}
+                    >
+                        <LogOut className="w-4 h-4 text-slate-400 hover:text-red-400 shrink-0" />
+                        {(!collapsed || mobileOpen) && (
+                          <span className={cn(isAr && "font-arabic text-xs font-medium")}>
+                            {tSidebar("logout")}
+                          </span>
+                        )}
+                    </button>
+                </div>
+            </aside>
+        </>
     );
 }

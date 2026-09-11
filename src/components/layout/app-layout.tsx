@@ -1,13 +1,18 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { MobileHeader } from "@/components/layout/mobile-header";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopLoader } from "@/components/ui/top-loader";
 import { Suspense } from "react";
+import { useLocale } from "next-intl";
+import { useSidebar } from "@/components/providers/sidebar-provider";
+import { cn } from "@/lib/utils";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const locale = useLocale();
+    const { collapsed } = useSidebar();
+    const isAr = locale === "ar";
     
     // Check if the current route is a public standalone page (landing, login, sos, directories)
     const isPublicPage = 
@@ -32,21 +37,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         );
     }
 
+    // Calcul de la marge pour la Sidebar (Marge à DROITE en Arabe RTL, Marge à GAUCHE en Français LTR)
+    const sidebarPaddingClass = isAr
+        ? (collapsed ? "md:pr-20 md:pl-0" : "md:pr-64 md:pl-0")
+        : (collapsed ? "md:pl-20 md:pr-0" : "md:pl-64 md:pr-0");
+
     return (
         <div className="flex min-h-screen relative overflow-x-hidden bg-[#FAFAF7] selection:bg-[#0C5A34] selection:text-white">
             <Suspense fallback={null}>
                 <TopLoader />
             </Suspense>
 
-            {/* Sidebar Desktop Fixe */}
+            {/* Sidebar Fixe (À Droite en Arabe, à Gauche en Français) */}
             <Sidebar />
 
-            {/* Barre de navigation mobile */}
-            <MobileHeader />
-
-            {/* Zone de contenu principal avec marge d'espacement Sidebar (md:pl-64) */}
-            <main className="flex-1 relative flex flex-col pt-16 md:pt-6 md:pl-64 w-full min-h-screen transition-all">
-                <div className="flex-1 px-4 md:px-8 pb-10 flex flex-col max-w-7xl w-full mx-auto">
+            {/* Zone de contenu principal — Ajustement dynamique du rembourrage LTR / RTL */}
+            <main className={cn(
+                "flex-1 relative flex flex-col pt-3 md:pt-6 w-full min-h-screen transition-all duration-300",
+                sidebarPaddingClass
+            )}>
+                <div className="flex-1 px-3 sm:px-6 md:px-8 pb-10 flex flex-col max-w-7xl w-full mx-auto">
                     {children}
                 </div>
             </main>

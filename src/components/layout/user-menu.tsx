@@ -98,8 +98,8 @@ export function UserMenu() {
                         <div className="p-3">
                             <div className="space-y-1">
                                 <DropdownLink href="/settings" icon={Settings} label="Mon Profil" onClick={() => setIsOpen(false)} />
-                                <DropdownLink href="/settings/stores" icon={Building2} label="Mes Boutiques" onClick={() => setIsOpen(false)} />
-                                <DropdownLink href="/settings/billing" icon={CreditCard} label="Abonnement" onClick={() => setIsOpen(false)} />
+                                <DropdownLink href="/daaras" icon={Building2} label="Mon Daara" onClick={() => setIsOpen(false)} />
+                                <DropdownLink href="/pricing" icon={CreditCard} label="Abonnement" onClick={() => setIsOpen(false)} />
                                 
                                 {isAdmin && (
                                     <>
