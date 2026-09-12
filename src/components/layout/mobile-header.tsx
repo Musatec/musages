@@ -1,55 +1,63 @@
 "use client";
 
-import { LogOut, User, Home } from "lucide-react";
+import { LogOut, User, Menu } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useSession, signOut } from "next-auth/react";
 import { SafeImage } from "@/components/ui/safe-image";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { useSpace } from "@/components/providers/space-provider";
+import { useSidebar } from "@/components/providers/sidebar-provider";
+import { useLocale } from "next-intl";
 
 export function MobileHeader() {
     const { data: session } = useSession();
     const pathname = usePathname();
-    const userRole = session?.user?.role || "DIRECTEUR";
+    const locale = useLocale();
+    const isAr = locale === "ar";
+    const { activeSpace } = useSpace();
+    const { setMobileOpen } = useSidebar();
 
-    const isVisible = pathname !== "/login" && session?.user?.id;
+    const isSchool = activeSpace === "school";
+    const isVisible = pathname !== "/login";
 
     if (!isVisible) return null;
 
     return (
-        <header className="fixed top-0 inset-x-0 h-16 bg-white/90 backdrop-blur-md border-b border-slate-200/80 z-50 flex items-center justify-between px-4 sm:px-8">
-            <Link href="/dashboard" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
-                <img src="/logo-daara-ibnoul-khayim.png" alt="Daara Ibnoul Khayim Al Diawziya" className="h-10 w-auto object-contain shrink-0" />
-            </Link>
+        <header className="md:hidden sticky top-0 inset-x-0 h-14 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 z-50 flex items-center justify-between px-3">
+            <div className="flex items-center gap-2">
+                <button
+                    type="button"
+                    onClick={() => setMobileOpen(true)}
+                    className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-white shadow-xs active:scale-95 transition-all flex items-center gap-1.5"
+                    aria-label="Ouvrir le menu"
+                >
+                    <Menu className="w-4 h-4 text-emerald-400" />
+                </button>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+                <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+                    <img 
+                        src={isSchool ? "/logo-pathe-pogne.png" : "/logo-daara-ibnoul-khayim.png"} 
+                        alt={isSchool ? "École Pathé Pogne" : "Daara Ibnoul Khayim"} 
+                        className="h-8 w-auto object-contain shrink-0 rounded-md" 
+                    />
+                    <div className="flex flex-col">
+                        <span className="text-xs font-bold text-white tracking-wide truncate max-w-[130px]">
+                            {isSchool ? "Pathé Pogne" : "Ibnoul Khayim"}
+                        </span>
+                    </div>
+                </Link>
+            </div>
+
+            <div className="flex items-center gap-2">
                 <LanguageSwitcher />
 
-                <div className="hidden sm:flex flex-col items-end">
-                    <span className="text-xs font-bold text-[#0A192F]">
-                        {session?.user?.name?.split(' ')[0] || "Directeur"}
-                    </span>
-                    <span className="text-[10px] text-[#0C5A34] font-bold uppercase tracking-wider">
-                        {userRole}
-                    </span>
-                </div>
-
-                <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shadow-xs shrink-0">
+                <div className="w-7 h-7 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0">
                     {session?.user?.image ? (
                         <SafeImage src={session.user.image} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
-                        <User className="w-4 h-4 text-[#0C5A34]" />
+                        <User className="w-3.5 h-3.5 text-emerald-400" />
                     )}
                 </div>
-
-                <div className="w-px h-5 bg-slate-200 mx-0.5 hidden sm:block" />
-
-                <button
-                    onClick={() => signOut({ callbackUrl: '/login' })}
-                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                    title="Déconnexion"
-                >
-                    <LogOut className="w-4 h-4" />
-                </button>
             </div>
         </header>
     );

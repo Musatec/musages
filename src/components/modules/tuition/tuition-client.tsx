@@ -173,29 +173,29 @@ export function TuitionClient({
       </div>
 
       {/* Filter Bar & Regime Tabs */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/40 p-4 rounded-2xl border border-border">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-muted/40 p-3 sm:p-4 rounded-2xl border border-border">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 w-full sm:w-auto">
           <button 
             onClick={() => setSelectedRegime("ALL")}
-            className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedRegime === "ALL" ? "bg-emerald-600 text-white shadow-md" : "text-muted-foreground hover:bg-muted")}
+            className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "ALL" ? "bg-emerald-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
           >
-            Tous les Talibés
+            Tous
           </button>
           <button 
             onClick={() => setSelectedRegime("INTERNE")}
-            className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedRegime === "INTERNE" ? "bg-amber-600 text-white shadow-md" : "text-muted-foreground hover:bg-muted")}
+            className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "INTERNE" ? "bg-amber-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
           >
-            Internes (Pensionnaires)
+            Internes
           </button>
           <button 
             onClick={() => setSelectedRegime("DEMI_PENSION")}
-            className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedRegime === "DEMI_PENSION" ? "bg-purple-600 text-white shadow-md" : "text-muted-foreground hover:bg-muted")}
+            className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "DEMI_PENSION" ? "bg-purple-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
           >
-            Demi-Pensionnaires
+            Demi-Pension
           </button>
           <button 
             onClick={() => setSelectedRegime("EXTERNE")}
-            className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedRegime === "EXTERNE" ? "bg-teal-600 text-white shadow-md" : "text-muted-foreground hover:bg-muted")}
+            className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "EXTERNE" ? "bg-teal-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
           >
             Externes
           </button>

@@ -199,60 +199,60 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
 
       {/* Filter Tabs & Search Bar */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/40 p-4 rounded-2xl border border-border">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-muted/40 p-3 sm:p-4 rounded-2xl border border-border">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 w-full sm:w-auto">
             <button 
               onClick={() => setSelectedTab("ALL")}
-              className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedTab === "ALL" ? "bg-emerald-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "ALL" ? "bg-emerald-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
             >
               {t("all")} ({totalStudents})
             </button>
             <button 
               onClick={() => setSelectedTab("GARCON")}
-              className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedTab === "GARCON" ? "bg-blue-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "GARCON" ? "bg-blue-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
             >
               {t("boys")} ({countBoys})
             </button>
             <button 
               onClick={() => setSelectedTab("FILLE")}
-              className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedTab === "FILLE" ? "bg-pink-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "FILLE" ? "bg-pink-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
             >
               {t("girls")} ({countGirls})
             </button>
             <button 
               onClick={() => setSelectedTab("INTERNE")}
-              className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedTab === "INTERNE" ? "bg-amber-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "INTERNE" ? "bg-amber-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
             >
               {t("interne")} ({countInternes})
             </button>
             <button 
               onClick={() => setSelectedTab("DEMI_PENSION")}
-              className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedTab === "DEMI_PENSION" ? "bg-purple-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "DEMI_PENSION" ? "bg-purple-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
             >
               {t("demi_pension")} ({countDemiPension})
             </button>
             <button 
               onClick={() => setSelectedTab("EXTERNE")}
-              className={cn("px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all", selectedTab === "EXTERNE" ? "bg-teal-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "EXTERNE" ? "bg-teal-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
             >
               {t("externe")} ({countExternes})
             </button>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             {/* Year Selector */}
             <select 
               value={selectedYear} 
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="h-10 px-3 rounded-xl border border-input bg-background text-xs font-bold text-foreground"
+              className="h-9 px-2.5 rounded-xl border border-input bg-background text-xs font-bold text-foreground shrink-0"
             >
-              <option value="2026-2027">{isAr ? "السنة ٢٠٢٦ - ٢٠٢٧" : "Année 2026 - 2027"}</option>
-              <option value="2025-2026">{isAr ? "السنة ٢٠٢٥ - ٢٠٢٦" : "Année 2025 - 2026"}</option>
-              <option value="2024-2025">{isAr ? "السنة ٢٠٢٤ - ٢٠٢٥" : "Année 2024 - 2025"}</option>
+              <option value="2026-2027">{isAr ? "٢٠٢٦ - ٢٠٢٧" : "2026 - 2027"}</option>
+              <option value="2025-2026">{isAr ? "٢٠٢٥ - ٢٠٢٦" : "2025 - 2026"}</option>
+              <option value="2024-2025">{isAr ? "٢٠٢٤ - ٢٠٢٥" : "2024 - 2025"}</option>
             </select>
 
-            <Button onClick={handleExportExcel} variant="outline" className="text-xs font-bold gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> {t("export_excel")}
+            <Button onClick={handleExportExcel} variant="outline" className="text-xs font-bold gap-1.5 h-9 px-3 shrink-0">
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> <span className="hidden sm:inline">{t("export_excel")}</span>
             </Button>
 
             <Dialog open={showAddModal} onOpenChange={setShowAddModal}>

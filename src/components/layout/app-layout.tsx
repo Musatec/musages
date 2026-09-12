@@ -8,6 +8,8 @@ import { useLocale } from "next-intl";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { cn } from "@/lib/utils";
 
+import { MobileHeader } from "@/components/layout/mobile-header";
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const locale = useLocale();
@@ -43,12 +45,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         : (collapsed ? "md:pl-20 md:pr-0" : "md:pl-64 md:pr-0");
 
     return (
-        <div className="flex min-h-screen relative overflow-x-hidden bg-[#FAFAF7] selection:bg-[#0C5A34] selection:text-white">
+        <div className="flex flex-col md:flex-row min-h-screen relative overflow-x-hidden bg-[#FAFAF7] selection:bg-[#0C5A34] selection:text-white">
             <Suspense fallback={null}>
                 <TopLoader />
             </Suspense>
 
-            {/* Sidebar Fixe (À Droite en Arabe, à Gauche en Français) */}
+            {/* En-tête mobile collant */}
+            <MobileHeader />
+
+            {/* Sidebar Fixe (À Droite en Arabe, à Gauche en Français sur Desktop) */}
             <Sidebar />
 
             {/* Zone de contenu principal — Ajustement dynamique du rembourrage LTR / RTL */}

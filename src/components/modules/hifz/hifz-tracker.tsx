@@ -281,7 +281,7 @@ export function HifzTracker({ initialTalibes }: HifzTrackerProps) {
                 </span>
               </div>
 
-              <div className="grid grid-cols-6 sm:grid-cols-10 gap-2">
+              <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5 sm:gap-2">
                 {Array.from({ length: 60 }, (_, i) => i + 1).map((hizbNum) => {
                   const isValidated = hizbNum <= selectedTalibe.hizbValidated;
                   const isCurrent = hizbNum === selectedTalibe.lastHizb;

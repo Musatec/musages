@@ -44,23 +44,7 @@ export function Sidebar() {
 
     return (
         <>
-            {/* Bouton de déclenchement mobile flottant */}
-            <button
-                type="button"
-                onClick={() => setMobileOpen(true)}
-                className={cn(
-                    "md:hidden fixed top-3 z-40 p-2 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl text-white shadow-md active:scale-95 transition-all flex items-center gap-2",
-                    isAr ? "left-3 right-auto" : "right-3 left-auto"
-                )}
-                aria-label="Ouvrir le menu"
-            >
-                <Menu className="w-4 h-4 text-emerald-400" />
-                <span className={cn("text-xs font-semibold text-slate-200 px-0.5", isAr && "font-arabic text-xs")}>
-                  {isAr ? "القائمة" : "Menu"}
-                </span>
-            </button>
-
-            {/* Overlay Mobile */}
+            {/* Overlay Mobile avec flou d'arrière-plan et fermeture au clic */}
             {mobileOpen && (
                 <div 
                     className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-xs z-[60] transition-opacity"

@@ -81,7 +81,7 @@ export function ClassesClient({ classes: initialClasses }: ClassesClientProps) {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 p-6 md:p-8 text-white border border-emerald-500/20 shadow-2xl">
         <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
