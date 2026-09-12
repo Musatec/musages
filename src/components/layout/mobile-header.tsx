@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, User, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { useSession, signOut } from "next-auth/react";
 import { SafeImage } from "@/components/ui/safe-image";
@@ -48,17 +48,6 @@ export function MobileHeader() {
 
             <div className="flex items-center gap-2 shrink-0">
                 <LanguageSwitcher />
-
-                <button
-                    onClick={() => setMobileOpen(true)}
-                    className="w-7 h-7 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0 active:scale-95 transition-all"
-                >
-                    {session?.user?.image ? (
-                        <SafeImage src={session.user.image} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                        <User className="w-3.5 h-3.5 text-emerald-400" />
-                    )}
-                </button>
             </div>
         </header>
     );
