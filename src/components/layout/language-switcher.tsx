@@ -32,22 +32,22 @@ export function LanguageSwitcher() {
     };
 
     return (
-        <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs text-xs sm:text-sm font-semibold">
+        <div className="inline-flex items-center p-0.5 sm:p-1 rounded-xl bg-slate-900 border border-slate-800 shadow-xs text-xs font-semibold">
             <button
                 type="button"
                 onClick={() => switchLocale('fr')}
                 disabled={isChanging}
                 className={cn(
-                    "px-3 sm:px-4 py-1.5 rounded-lg transition-all duration-150 font-bold flex items-center gap-1.5 cursor-pointer select-none",
+                    "px-2 sm:px-3 py-1 rounded-lg transition-all duration-150 font-bold flex items-center gap-1 cursor-pointer select-none text-[11px] sm:text-xs",
                     activeLocale === 'fr'
-                        ? "bg-[#0C5A34] text-white shadow-sm font-bold scale-[1.02]"
-                        : "text-slate-700 dark:text-slate-300 hover:text-[#0C5A34] hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
+                        ? "bg-[#0C5A34] text-white shadow-xs font-bold"
+                        : "text-slate-400 hover:text-white"
                 )}
             >
                 {isChanging && activeLocale === 'fr' && (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                    <Loader2 className="w-3 h-3 animate-spin text-white" />
                 )}
-                <span>Français</span>
+                <span>FR</span>
             </button>
 
             <button
@@ -55,17 +55,17 @@ export function LanguageSwitcher() {
                 onClick={() => switchLocale('ar')}
                 disabled={isChanging}
                 className={cn(
-                    "px-3 sm:px-4 py-1.5 rounded-lg font-arabic transition-all duration-150 font-bold flex items-center gap-1.5 cursor-pointer select-none",
+                    "px-2 sm:px-3 py-1 rounded-lg font-arabic transition-all duration-150 font-bold flex items-center gap-1 cursor-pointer select-none text-[11px] sm:text-xs",
                     activeLocale === 'ar'
-                        ? "bg-[#0C5A34] text-white shadow-sm font-bold scale-[1.02]"
-                        : "text-slate-700 dark:text-slate-300 hover:text-[#0C5A34] hover:bg-slate-200/60 dark:hover:bg-slate-700/60"
+                        ? "bg-[#0C5A34] text-white shadow-xs font-bold"
+                        : "text-slate-400 hover:text-white"
                 )}
                 dir="rtl"
             >
                 {isChanging && activeLocale === 'ar' && (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                    <Loader2 className="w-3 h-3 animate-spin text-white" />
                 )}
-                <span>العربية</span>
+                <span>عربي</span>
             </button>
         </div>
     );

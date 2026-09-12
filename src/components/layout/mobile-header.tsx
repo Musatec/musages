@@ -23,48 +23,42 @@ export function MobileHeader() {
     if (!isVisible) return null;
 
     return (
-        <header className="md:hidden sticky top-0 inset-x-0 h-14 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 z-50 flex items-center justify-between px-3">
-            <div className="flex items-center gap-2">
+        <header className="md:hidden sticky top-0 inset-x-0 h-13 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 z-50 flex items-center justify-between px-3 py-2">
+            <div className="flex items-center gap-2 min-w-0">
                 <button
                     type="button"
                     onClick={() => setMobileOpen(true)}
-                    className="p-2 bg-slate-900 border border-slate-800 rounded-xl text-white shadow-xs active:scale-95 transition-all flex items-center gap-1.5"
+                    className="p-1.5 bg-slate-900 border border-slate-800 rounded-xl text-white shadow-xs active:scale-95 transition-all flex items-center shrink-0"
                     aria-label="Ouvrir le menu"
                 >
                     <Menu className="w-4 h-4 text-emerald-400" />
                 </button>
 
-                <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+                <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-90 transition-opacity min-w-0">
                     <img 
                         src={isSchool ? "/logo-pathe-pogne.png" : "/logo-daara-ibnoul-khayim.png"} 
                         alt={isSchool ? "École Pathé Pogne" : "Daara Ibnoul Khayim"} 
-                        className="h-8 w-auto object-contain shrink-0 rounded-md" 
+                        className="h-7 w-auto object-contain shrink-0 rounded-md" 
                     />
-                    <div className="flex flex-col">
-                        <span className="text-xs font-bold text-white tracking-wide truncate max-w-[110px] sm:max-w-[140px]">
-                            {isSchool ? "Pathé Pogne" : "Ibnoul Khayim"}
-                        </span>
-                        <span className="text-[9px] text-emerald-400 font-bold font-arabic dir-rtl truncate">
-                            {isSchool ? "المدرسة الفرنسية" : "مدرسة ابن القيم"}
-                        </span>
-                    </div>
+                    <span className="text-xs font-bold text-white tracking-tight truncate max-w-[130px]">
+                        {isSchool ? "Pathé Pogne" : "Ibnoul Khayim"}
+                    </span>
                 </Link>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2">
-                <div className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-amber-300 shrink-0">
-                    {isSchool ? "🎓 École" : "🕌 Daara"}
-                </div>
-
+            <div className="flex items-center gap-2 shrink-0">
                 <LanguageSwitcher />
 
-                <div className="w-7 h-7 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0">
+                <button
+                    onClick={() => setMobileOpen(true)}
+                    className="w-7 h-7 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0 active:scale-95 transition-all"
+                >
                     {session?.user?.image ? (
                         <SafeImage src={session.user.image} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
                         <User className="w-3.5 h-3.5 text-emerald-400" />
                     )}
-                </div>
+                </button>
             </div>
         </header>
     );
