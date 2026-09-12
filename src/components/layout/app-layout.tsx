@@ -62,10 +62,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             {/* Zone de contenu principal — Ajustement dynamique du rembourrage LTR / RTL */}
             <main className={cn(
-                "flex-1 relative flex flex-col pt-3 md:pt-6 pb-20 md:pb-10 w-full min-h-screen transition-all duration-300",
+                "flex-1 relative flex flex-col pt-3 md:pt-6 pb-20 md:pb-10 w-full max-w-full min-w-0 overflow-x-hidden min-h-screen transition-all duration-300",
                 sidebarPaddingClass
             )}>
-                <div className="flex-1 px-3 sm:px-6 md:px-8 pb-10 flex flex-col max-w-7xl w-full mx-auto">
+                <div className="flex-1 px-3 sm:px-6 md:px-8 pb-10 flex flex-col max-w-7xl w-full min-w-0 mx-auto">
                     {children}
                 </div>
             </main>

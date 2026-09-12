@@ -140,7 +140,7 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
           <Users className="w-96 h-96 text-emerald-400" />
         </div>
         <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-extrabold uppercase tracking-wider">
+          <div className="inline-flex max-w-full flex-wrap items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-extrabold uppercase tracking-wider">
             <Sparkles className="w-4 h-4 text-emerald-400" /> {isAr ? "سجل الطلاب العام" : "Effectif Général & Registre des Talibés"}
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">

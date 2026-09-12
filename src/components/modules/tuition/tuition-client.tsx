@@ -160,8 +160,8 @@ export function TuitionClient({
           <CreditCard className="w-96 h-96 text-emerald-400" />
         </div>
         <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-extrabold uppercase tracking-widest">
-            <Sparkles className="w-4 h-4 text-emerald-400" /> Tableau des 12 Mois & Recouvrement des Cotisations (Août à Juillet)
+          <div className="inline-flex max-w-full flex-wrap items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-extrabold uppercase tracking-wider">
+            <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" /> Tableau des 12 Mois & Recouvrement des Cotisations (Août à Juillet)
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
             جدول الاشتراكات والدفعات الشهريّة (١٢ شهراً)
@@ -173,8 +173,8 @@ export function TuitionClient({
       </div>
 
       {/* Filter Bar & Regime Tabs */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-muted/40 p-3 sm:p-4 rounded-2xl border border-border">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-muted/40 p-3 sm:p-4 rounded-2xl border border-border max-w-full overflow-hidden">
+        <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0 w-full sm:w-auto">
           <button 
             onClick={() => setSelectedRegime("ALL")}
             className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "ALL" ? "bg-emerald-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
@@ -218,23 +218,23 @@ export function TuitionClient({
       </div>
 
       {/* Search Input */}
-      <div className="relative">
-        <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
+      <div className="relative max-w-full">
+        <Search className="w-4 h-4 absolute left-3 rtl:right-3 rtl:left-auto top-3 text-muted-foreground" />
         <Input 
           placeholder="Rechercher un Talibé par nom ou matricule..." 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="pl-9 h-10 text-sm bg-card border-border"
+          className="pl-9 rtl:pr-9 rtl:pl-3 h-10 text-sm bg-card border-border max-w-full"
         />
       </div>
 
       {/* 12-Month Payment Matrix Table */}
-      <Card className="border border-border shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+      <Card className="border border-border shadow-md overflow-hidden max-w-full">
+        <div className="overflow-x-auto max-w-full">
+          <table className="w-full text-left rtl:text-right text-xs border-collapse">
             <thead className="bg-muted/70 text-muted-foreground uppercase tracking-wider font-bold">
               <tr>
-                <th className="px-4 py-3 border.b sticky left-0 bg-muted z-10 min-w-[180px]">Talibé</th>
+                <th className="px-4 py-3 border-b sticky left-0 rtl:right-0 rtl:left-auto bg-muted z-10 min-w-[140px] sm:min-w-[180px]">Talibé</th>
                 <th className="px-3 py-3 border-b min-w-[100px]">Régime</th>
                 {ACADEMIC_MONTHS.map(m => (
                   <th key={m} className="px-3 py-3 border-b text-center min-w-[100px]">{m}</th>
@@ -252,7 +252,7 @@ export function TuitionClient({
                 filteredTalibes.map((s) => (
                   <tr key={s.id} className="hover:bg-muted/30 transition-colors">
                     {/* Talibé Name & Matricule */}
-                    <td className="px-4 py-3 font-bold text-foreground sticky left-0 bg-card z-10 border-r shadow-xs">
+                    <td className="px-4 py-3 font-bold text-foreground sticky left-0 rtl:right-0 rtl:left-auto bg-card z-10 border-r rtl:border-l rtl:border-r-0 shadow-xs">
                       <div>{s.firstName} {s.lastName}</div>
                       <div className="font-mono text-[10px] text-emerald-600">{s.matricule}</div>
                     </td>
