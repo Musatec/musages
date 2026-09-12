@@ -54,7 +54,15 @@ export async function register(data: z.infer<typeof RegisterSchema>) {
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log(`[AUTH_TIMER] Bcrypt hash: ${Date.now() - hashStart}ms`);
 
-    // Create user in database
+    // Create default Daara for new user
+    const daara = await prisma.daara.create({
+        data: {
+            name: email.includes("pathepogne") ? "École Franco-Arabe Pathé Pogne" : `Daara de ${name.split(' ')[0] || "Serigne"}`,
+            plan: "STARTER"
+        }
+    });
+
+    // Create user in database linked to Daara
     const createStart = Date.now();
     await prisma.user.create({
         data: {
@@ -63,7 +71,8 @@ export async function register(data: z.infer<typeof RegisterSchema>) {
             password: hashedPassword,
             role: "SERIGNE_DAARA",
             subscriptionStatus: "TRIALING",
-            trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            daaraId: daara.id
         },
     });
     console.log(`[AUTH_TIMER] DB create: ${Date.now() - createStart}ms`);
