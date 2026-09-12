@@ -37,7 +37,7 @@ export default async function KhatmPage({
   }));
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6 w-full max-w-full">
       <KhatmClient 
         initialRecords={records as any} 
         talibeOptions={talibeOptions}

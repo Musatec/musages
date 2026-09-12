@@ -4,7 +4,7 @@ import { getSocialCases } from "@/lib/actions/cas-sociaux";
 export default async function CasSociauxPage() {
   const data = await getSocialCases();
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6 w-full max-w-full">
       <CasSociauxClient 
         initialSocialCases={data.socialCases || []} 
         initialStats={data.stats}

@@ -40,7 +40,7 @@ export default async function TuitionPage({
   const currentYear = new Date().getFullYear();
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6 w-full max-w-full">
       <TuitionClient 
         tuitions={transactions as any} 
         talibeList={talibes as any}
