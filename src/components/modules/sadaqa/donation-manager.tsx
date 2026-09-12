@@ -103,7 +103,7 @@ export function DonationManager() {
       </div>
 
       {/* Cartes KPI */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <Card className="border-border/50 shadow-sm bg-gradient-to-br from-emerald-500/5 to-transparent">
           <CardContent className="p-6 flex items-center justify-between">
             <div>

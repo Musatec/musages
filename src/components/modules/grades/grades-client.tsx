@@ -262,17 +262,17 @@ export function GradesClient({
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Notes & Bulletins / الدرجات</h1>
           <p className="text-sm text-muted-foreground">Gestion pédagogique et relevés de notes bilingues.</p>
         </div>
-        <div className="flex bg-card p-1 rounded-2xl border border-border/50">
+        <div className="flex bg-card p-1 rounded-2xl border border-border/50 overflow-x-auto max-w-full">
           <button 
             onClick={() => setActiveTab("SAISIE")}
             className={cn(
-              "px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+              "px-4 sm:px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shrink-0",
               activeTab === "SAISIE" ? "bg-primary text-black shadow-md shadow-primary/20" : "text-muted-foreground hover:bg-muted/50"
             )}
           >
@@ -281,7 +281,7 @@ export function GradesClient({
           <button 
             onClick={() => { setActiveTab("BULLETINS"); setReportData(null); }}
             className={cn(
-              "px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+              "px-4 sm:px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shrink-0",
               activeTab === "BULLETINS" ? "bg-primary text-black shadow-md shadow-primary/20" : "text-muted-foreground hover:bg-muted/50"
             )}
           >
@@ -290,7 +290,7 @@ export function GradesClient({
           <button 
             onClick={() => { setActiveTab("RAPPORTS"); setSynthesisData(null); }}
             className={cn(
-              "px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+              "px-4 sm:px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shrink-0",
               activeTab === "RAPPORTS" ? "bg-primary text-black shadow-md shadow-primary/20" : "text-muted-foreground hover:bg-muted/50"
             )}
           >

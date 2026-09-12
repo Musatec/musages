@@ -127,8 +127,8 @@ export function KhatmClient({ initialRecords, talibeOptions, daaraInfo }: KhatmC
         </div>
       </div>
 
-      {/* Quick Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Quick Stats Grid — 2x2 sur Mobile */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Card className="bg-card border-amber-500/20 shadow-sm">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">

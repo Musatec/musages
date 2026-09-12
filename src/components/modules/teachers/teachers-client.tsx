@@ -111,7 +111,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Enseignants & Vacations / المعلمون</h1>
@@ -121,7 +121,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
           <button 
             onClick={() => setActiveTab("TEACHERS")}
             className={cn(
-              "px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+              "px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
               activeTab === "TEACHERS" ? "bg-primary text-black shadow-md shadow-primary/20" : "text-muted-foreground hover:bg-muted/50"
             )}
           >
@@ -130,7 +130,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
           <button 
             onClick={() => setActiveTab("PAYMENTS")}
             className={cn(
-              "px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2",
+              "px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2",
               activeTab === "PAYMENTS" ? "bg-primary text-black shadow-md shadow-primary/20" : "text-muted-foreground hover:bg-muted/50"
             )}
           >
@@ -155,20 +155,20 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
             <div className="flex gap-2">
               <button 
                 onClick={() => setShowPayModal(true)}
-                className="bg-card hover:bg-muted border border-border/50 text-foreground font-black uppercase text-[11px] px-6 py-3 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 tracking-widest flex-1"
+                className="bg-card hover:bg-muted border border-border/50 text-foreground font-black uppercase text-[11px] px-4 sm:px-6 py-3 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 tracking-widest flex-1"
               >
                 <Banknote className="w-4 h-4" /> Payer Salaire
               </button>
               <button 
                 onClick={() => setShowAddModal(true)}
-                className="bg-primary hover:bg-primary/90 text-black font-black uppercase text-[11px] px-6 py-3 rounded-2xl shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 tracking-widest flex-1"
+                className="bg-primary hover:bg-primary/90 text-black font-black uppercase text-[11px] px-4 sm:px-6 py-3 rounded-2xl shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 tracking-widest flex-1"
               >
                 <Plus className="w-4 h-4" /> Nouveau Prof
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredTeachers.length === 0 ? (
               <div className="col-span-full text-center py-12 text-muted-foreground border-2 border-dashed border-border/50 rounded-2xl">
                 <UsersRound className="w-12 h-12 mx-auto mb-4 opacity-20" />

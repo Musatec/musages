@@ -157,7 +157,7 @@ export function InventoryManager({ initialProducts }: { initialProducts: Product
                 }
             />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                     <EliteMetricCard 
                         label="Valeur du Stock" 
                         value={`${formatMoney(metrics.totalValue)} F`} 

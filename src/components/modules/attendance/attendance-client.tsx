@@ -94,71 +94,72 @@ export function AttendanceClient({
   });
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+  return (
+    <div className="space-y-6">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 p-6 md:p-8 text-white border border-emerald-500/20 shadow-2xl">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 p-4 sm:p-6 md:p-8 text-white border border-emerald-500/20 shadow-2xl">
         <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
           <CalendarCheck className="w-96 h-96 text-emerald-400" />
         </div>
         <div className="relative z-10 max-w-3xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-extrabold uppercase tracking-widest">
-            <Sparkles className="w-4 h-4 text-emerald-400" /> Gestion des Présences & Alertes Parents WhatsApp
+            <Sparkles className="w-4 h-4 text-emerald-400" /> Présences & WhatsApp Parents
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
             تسجيل حضور وغياب الطلاب بالحلقات
           </h1>
-          <p className="text-emerald-100/80 text-sm md:text-base leading-relaxed">
+          <p className="text-emerald-100/80 text-xs sm:text-sm md:text-base leading-relaxed">
             Effectuez l'appel des séances de Halqa (Subh/Fajr, Matin, Après-midi, Isha) et prévenez instantanément les parents en cas d'absence.
           </p>
         </div>
       </div>
 
       {/* Main Tabs */}
-      <div className="flex items-center justify-between gap-4 bg-muted/40 p-2 rounded-2xl border border-border">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-muted/40 p-2 sm:p-3 rounded-2xl border border-border">
         <div className="flex gap-2">
           <button 
             onClick={() => setActiveTab("APPEL")}
             className={cn(
-              "px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2",
+              "px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0",
               activeTab === "APPEL" ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20" : "text-muted-foreground hover:bg-muted"
             )}
           >
-            <UserCheck className="w-4 h-4" /> Faire l'Appel de la Séance
+            <UserCheck className="w-4 h-4" /> Appel Séance
           </button>
           <button 
             onClick={() => setActiveTab("HISTORIQUE")}
             className={cn(
-              "px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2",
+              "px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0",
               activeTab === "HISTORIQUE" ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20" : "text-muted-foreground hover:bg-muted"
             )}
           >
-            <AlertTriangle className="w-4 h-4" /> Suivi & Incidents (30J)
+            <AlertTriangle className="w-4 h-4" /> Incidents (30J)
           </button>
         </div>
 
-        {/* Sessions Filter */}
-        <div className="hidden sm:flex items-center gap-1.5 bg-background p-1 rounded-xl border border-border">
+        {/* Sessions Filter — Scrollable sur Mobile */}
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar bg-background p-1 rounded-xl border border-border w-full sm:w-auto">
           <button 
             onClick={() => setSelectedSession("HALQA_FAJR")} 
-            className={cn("px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase", selectedSession === "HALQA_FAJR" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
+            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_FAJR" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
           >
             Subh / Fajr
           </button>
           <button 
             onClick={() => setSelectedSession("HALQA_MORNING")} 
-            className={cn("px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase", selectedSession === "HALQA_MORNING" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
+            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_MORNING" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
           >
             Matin
           </button>
           <button 
             onClick={() => setSelectedSession("HALQA_AFTERNOON")} 
-            className={cn("px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase", selectedSession === "HALQA_AFTERNOON" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
+            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_AFTERNOON" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
           >
             Après-midi
           </button>
           <button 
             onClick={() => setSelectedSession("HALQA_EVENING")} 
-            className={cn("px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase", selectedSession === "HALQA_EVENING" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
+            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_EVENING" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
           >
             Nuit / Isha
           </button>

@@ -41,13 +41,13 @@ export function SettingsClient({ school }: SettingsClientProps) {
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
-      <div className="mb-8">
+    <div className="space-y-6">
+      <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Paramètres de l'Établissement</h1>
         <p className="text-sm text-muted-foreground">Ces informations apparaîtront sur les bulletins et reçus.</p>
       </div>
 
-      <div className="bg-card border border-border/50 p-6 md:p-8 rounded-[2rem] shadow-sm">
+      <div className="bg-card border border-border/50 p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-[2rem] shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Nom de l'école / Établissement</label>
