@@ -70,7 +70,7 @@ export default function InvoicesPage() {
                     }
                 />
                 {/* --- METRICS GRID (Elite SaaS) --- */}
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <EliteMetricCard 
                         label="Dettes Totales" 
                         value={`${formatMoney(data?.metrics?.totalOutstanding || 0)} F`} 
