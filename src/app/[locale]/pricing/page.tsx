@@ -60,7 +60,7 @@ export default function PricingPage() {
                     </div>
 
                     {/* GROWTH - Popular */}
-                    <div className="bg-[#0A0A0B] border-2 border-primary rounded-[2.5rem] p-8 flex flex-col justify-between transition-all duration-500 scale-105 shadow-[0_0_80px_rgba(249,115,22,0.1)] relative overflow-hidden">
+                    <div className="bg-[#0A0A0B] border-2 border-primary rounded-[2.5rem] p-8 flex flex-col justify-between transition-all duration-500 scale-100 md:scale-105 shadow-[0_0_80px_rgba(249,115,22,0.1)] relative overflow-hidden">
                         <div className="absolute top-0 right-0 bg-primary text-black px-6 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-bl-2xl italic">
                             Le plus populaire
                         </div>
