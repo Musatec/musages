@@ -228,8 +228,8 @@ export function TuitionClient({
         />
       </div>
 
-      {/* 12-Month Payment Matrix Table */}
-      <Card className="border border-border shadow-md overflow-hidden max-w-full">
+      {/* 12-Month Payment Matrix Table (DESKTOP) */}
+      <Card className="hidden md:block border border-border shadow-md overflow-hidden max-w-full">
         <div className="overflow-x-auto max-w-full">
           <table className="w-full text-left rtl:text-right text-xs border-collapse">
             <thead className="bg-muted/70 text-muted-foreground uppercase tracking-wider font-bold">
@@ -299,6 +299,73 @@ export function TuitionClient({
           </table>
         </div>
       </Card>
+
+      {/* 12-Month Payment Mobile Cards (MOBILE) */}
+      <div className="md:hidden flex flex-col gap-4">
+        {filteredTalibes.length === 0 ? (
+          <Card className="p-8 text-center text-muted-foreground text-xs">
+            Aucun Talibé trouvé.
+          </Card>
+        ) : (
+          filteredTalibes.map((s) => {
+            const paidMonthsCount = ACADEMIC_MONTHS.filter(m => paymentMap[`${s.id}_${m}`] > 0).length;
+
+            return (
+              <Card key={s.id} className="p-4 border border-border shadow-sm space-y-3 bg-card">
+                {/* Header Info */}
+                <div className="flex items-start justify-between gap-2 border-b border-border/50 pb-2.5">
+                  <div>
+                    <h3 className="font-extrabold text-sm text-foreground">{s.firstName} {s.lastName}</h3>
+                    <p className="font-mono text-[11px] text-emerald-600 font-bold">{s.matricule}</p>
+                  </div>
+                  <div className="text-right flex flex-col items-end gap-1">
+                    <Badge variant="outline" className={
+                      s.status === "INTERNE" ? "bg-amber-500/10 text-amber-600 border-amber-500/30 text-[9px]" :
+                      s.status === "DEMI_PENSION" ? "bg-purple-500/10 text-purple-600 border-purple-500/30 text-[9px]" :
+                      "bg-teal-500/10 text-teal-600 border-teal-500/30 text-[9px]"
+                    }>
+                      {s.status === "INTERNE" ? "Interne" : s.status === "DEMI_PENSION" ? "Demi-Pen." : "Externe"}
+                    </Badge>
+                    <span className="text-[10px] font-black text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      {paidMonthsCount}/12 Mois
+                    </span>
+                  </div>
+                </div>
+
+                {/* 12 Months Grid */}
+                <div className="grid grid-cols-3 gap-2 pt-1">
+                  {ACADEMIC_MONTHS.map(m => {
+                    const amount = paymentMap[`${s.id}_${m}`];
+                    const isPaid = amount && amount > 0;
+                    const shortName = m.substring(0, 4);
+
+                    return (
+                      <button
+                        key={m}
+                        onClick={() => {
+                          setActiveCell({ talibe: s, month: m });
+                          if (amount) setQuickAmount(amount.toString());
+                        }}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all active:scale-95",
+                          isPaid 
+                            ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400" 
+                            : "bg-muted/40 border-border text-muted-foreground hover:bg-muted"
+                        )}
+                      >
+                        <span className="text-[9px] font-black uppercase tracking-wider opacity-75">{shortName}</span>
+                        <span className={cn("text-[11px] font-mono font-extrabold mt-0.5", isPaid ? "text-emerald-600 dark:text-emerald-400" : "text-red-500/80")}>
+                          {isPaid ? `${amount >= 1000 ? Math.round(amount/1000) + 'k' : amount}` : "—"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Card>
+            );
+          })
+        )}
+      </div>
 
       {/* Quick Payment Modal on Cell Click */}
       {activeCell && (
