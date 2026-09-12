@@ -53,10 +53,10 @@ export default function InvoicesPage() {
     }, [fetchData]);
 
     return (
-        <div className="min-h-screen bg-[#F8F9FA] dark:bg-[#050505] text-[#1A1A1A] dark:text-foreground p-4 md:p-10 pb-32 font-sans selection:bg-primary/20">
+        <div className="space-y-6 pb-20">
             {loading && <TopLoader />}
 
-            <div className="max-w-[1500px] mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="max-w-[1500px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 
                 <ElitePageHeader 
                     title="Facturation & Trésorerie."
@@ -69,8 +69,8 @@ export default function InvoicesPage() {
                         </button>
                     }
                 />
-                {/* --- METRICS GRID (Elite SaaS) --- */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* --- METRICS GRID (Elite SaaS) --- */}
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">-4">
                     <EliteMetricCard 
                         label="Dettes Totales" 
                         value={`${formatMoney(data?.metrics?.totalOutstanding || 0)} F`} 

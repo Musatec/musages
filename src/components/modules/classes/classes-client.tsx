@@ -195,7 +195,7 @@ export function ClassesClient({ classes: initialClasses }: ClassesClientProps) {
                   size="icon" 
                   variant="ghost" 
                   onClick={() => handleDeleteHalqa(h.id, h.name)}
-                  className="text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="text-red-500 hover:bg-red-500/10 md:opacity-0 md:group-hover:opacity-100 opacity-100 transition-opacity"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>

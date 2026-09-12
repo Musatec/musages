@@ -179,7 +179,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
                 <div key={t.id} className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group relative">
                   <button 
                     onClick={() => handleDeleteTeacher(t.id, t.lastName)}
-                    className="absolute top-4 right-4 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                    className="absolute top-4 right-4 text-muted-foreground hover:text-red-500 md:opacity-0 md:group-hover:opacity-100 opacity-100 transition-all"
                     title="Supprimer"
                   >
                     <Trash2 className="w-4 h-4" />
