@@ -9,6 +9,7 @@ import { useSidebar } from "@/components/providers/sidebar-provider";
 import { cn } from "@/lib/utils";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
+import { MobileNav } from "@/components/layout/mobile-nav";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -56,9 +57,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {/* Sidebar Fixe (À Droite en Arabe, à Gauche en Français sur Desktop) */}
             <Sidebar />
 
+            {/* Barre de navigation mobile inférieure */}
+            <MobileNav />
+
             {/* Zone de contenu principal — Ajustement dynamique du rembourrage LTR / RTL */}
             <main className={cn(
-                "flex-1 relative flex flex-col pt-3 md:pt-6 w-full min-h-screen transition-all duration-300",
+                "flex-1 relative flex flex-col pt-3 md:pt-6 pb-20 md:pb-10 w-full min-h-screen transition-all duration-300",
                 sidebarPaddingClass
             )}>
                 <div className="flex-1 px-3 sm:px-6 md:px-8 pb-10 flex flex-col max-w-7xl w-full mx-auto">

@@ -29,8 +29,7 @@ export function Sidebar() {
     const userName = session?.user?.name || "Responsable Établissement";
     const userImage = session?.user?.image;
     const pathname = usePathname();
-    const { collapsed, setCollapsed } = useSidebar();
-    const [mobileOpen, setMobileOpen] = useState(false);
+    const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
 
     const isAr = locale === "ar";
     const isSchool = activeSpace === "school";
