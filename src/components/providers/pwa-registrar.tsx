@@ -8,9 +8,9 @@ export function PwaRegistrar() {
             typeof window !== "undefined" &&
             process.env.NODE_ENV === "production" &&
             "serviceWorker" in navigator &&
-            window.serivceWorkerReady === undefined
+            window.serviceWorkerReady === undefined
         ) {
-            window.serivceWorkerReady = true;
+            window.serviceWorkerReady = true;
             navigator.serviceWorker
                 .register("/sw.js")
                 .then((registration) => {
@@ -27,6 +27,6 @@ export function PwaRegistrar() {
 
 declare global {
     interface Window {
-        serivceWorkerReady?: boolean;
+        serviceWorkerReady?: boolean;
     }
 }
