@@ -158,27 +158,27 @@ export default function LoginPage() {
             <main className="w-full max-w-xl mx-auto flex-1 flex flex-col items-center justify-center py-6">
                 
                 {/* 1. ESPACE SELECTOR CARDS */}
-                <div className="w-full grid grid-cols-2 gap-3 mb-5">
+                <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-3 mb-4 sm:mb-5">
                     <button
                         type="button"
                         onClick={() => {
                             setActiveSpace("daara");
                             if (email === "directeur@pathepogne.sn") setEmail("admin@taleem.app");
                         }}
-                        className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border transition-all text-center ${
+                        className={`relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border transition-all text-center ${
                             isDaara
                                 ? "bg-emerald-950/70 border-emerald-500 shadow-lg shadow-emerald-950/50 text-white ring-2 ring-emerald-500/30"
                                 : "bg-[#081325] border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
                         }`}
                     >
                         {isDaara && (
-                            <span className="absolute top-2.5 right-2.5 text-emerald-400">
-                                <CheckCircle2 className="w-4 h-4" />
+                            <span className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 text-emerald-400">
+                                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </span>
                         )}
-                        <img src="/logo-daara-ibnoul-khayim.png" alt="Daara" className="h-10 w-10 object-contain mb-1.5" />
-                        <span className="text-xs font-black">Espace Daara</span>
-                        <span className="text-[10px] text-emerald-400 font-medium opacity-90">60 Hizbs & Solidarité</span>
+                        <img src="/logo-daara-ibnoul-khayim.png" alt="Daara" className="h-8 w-8 sm:h-10 sm:w-10 object-contain mb-1" />
+                        <span className="text-[11px] sm:text-xs font-black">Espace Daara</span>
+                        <span className="text-[9px] sm:text-[10px] text-emerald-400 font-medium opacity-90 leading-tight">60 Hizbs & Solidarité</span>
                     </button>
 
                     <button
@@ -187,20 +187,20 @@ export default function LoginPage() {
                             setActiveSpace("school");
                             if (email === "admin@taleem.app") setEmail("directeur@pathepogne.sn");
                         }}
-                        className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border transition-all text-center ${
+                        className={`relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl border transition-all text-center ${
                             !isDaara
                                 ? "bg-amber-950/70 border-amber-500 shadow-lg shadow-amber-950/50 text-white ring-2 ring-amber-500/30"
                                 : "bg-[#081325] border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
                         }`}
                     >
                         {!isDaara && (
-                            <span className="absolute top-2.5 right-2.5 text-amber-400">
-                                <CheckCircle2 className="w-4 h-4" />
+                            <span className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 text-amber-400">
+                                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </span>
                         )}
-                        <img src="/logo-pathe-pogne.png" alt="École Pathé Pogne" className="h-10 w-10 object-contain mb-1.5" />
-                        <span className="text-xs font-black">École Pathé Pogne</span>
-                        <span className="text-[10px] text-amber-400 font-medium opacity-90">Programme Franco-Arabe</span>
+                        <img src="/logo-pathe-pogne.png" alt="École Pathé Pogne" className="h-8 w-8 sm:h-10 sm:w-10 object-contain mb-1" />
+                        <span className="text-[11px] sm:text-xs font-black">École Pathé Pogne</span>
+                        <span className="text-[9px] sm:text-[10px] text-amber-400 font-medium opacity-90 leading-tight">Franco-Arabe</span>
                     </button>
                 </div>
 

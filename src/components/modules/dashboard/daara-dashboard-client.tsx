@@ -48,13 +48,13 @@ export function DaaraDashboardClient({
   return (
     <div className="space-y-6 py-2">
       {/* Bannière d'Accueil Épurée */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/20 p-6 text-white shadow-md">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 border border-emerald-500/20 p-4 sm:p-6 text-white shadow-md">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" /> {isAr ? "منصة المحضرة الرقمية" : "E-Daara — Ibnoul Khayim Al Diawziya"}
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white font-arabic">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white font-arabic">
               {daaraName}
             </h1>
             <p className="text-slate-300 text-xs md:text-sm leading-relaxed">
@@ -65,23 +65,23 @@ export function DaaraDashboardClient({
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <Link href="/hifz">
-              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-2 shadow-xs rounded-xl px-4 py-2.5">
-                <BookOpen className="w-4 h-4 text-emerald-200" /> {isAr ? "متابعة ٦٠ حزباً" : "Suivi des 60 Hizbs"}
+              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-xs rounded-xl px-3.5 py-2">
+                <BookOpen className="w-3.5 h-3.5 text-emerald-200" /> {isAr ? "متابعة ٦٠ حزباً" : "Suivi 60 Hizbs"}
               </Button>
             </Link>
             <Link href="/attendance">
-              <Button variant="outline" className="border-slate-700 hover:bg-slate-800 text-slate-200 font-semibold text-xs gap-2 rounded-xl px-4 py-2.5">
-                <CalendarCheck className="w-4 h-4 text-emerald-400" /> {isAr ? "سجل الحضور" : "Présences"}
+              <Button variant="outline" className="border-slate-700 hover:bg-slate-800 text-slate-200 font-semibold text-xs gap-1.5 rounded-xl px-3.5 py-2">
+                <CalendarCheck className="w-3.5 h-3.5 text-emerald-400" /> {isAr ? "سجل الحضور" : "Présences"}
               </Button>
             </Link>
           </div>
         </div>
       </div>
 
-      {/* 4 Cartes KPI Essentielles — Traduction 100% */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 4 Cartes KPI Essentielles — 2x2 sur Mobile */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         
         {/* KPI 1: Effectif Talibés */}
         <Card className="border border-border/60 shadow-xs bg-card hover:border-emerald-500/40 transition-all">

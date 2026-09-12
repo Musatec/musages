@@ -104,7 +104,7 @@ export function ExpensesClient({ transactions: initialTransactions }: ExpensesCl
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {/* Solde Net */}
         <Card className="border border-emerald-500/20 shadow-sm relative overflow-hidden">
           <CardContent className="p-6">

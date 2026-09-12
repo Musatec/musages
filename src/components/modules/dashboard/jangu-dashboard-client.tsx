@@ -63,9 +63,9 @@ export function JanguDashboardClient({
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="space-y-6">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/90 via-primary to-emerald-700 p-6 md:p-10 text-white shadow-2xl">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/90 via-primary to-emerald-700 p-4 sm:p-6 md:p-8 text-white shadow-2xl">
         <div className="absolute right-0 top-0 opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
           <GraduationCap className="w-96 h-96" />
         </div>
@@ -74,33 +74,33 @@ export function JanguDashboardClient({
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold uppercase tracking-wider">
             <span>Jangu ERP — Sénégal</span>
           </div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight">{schoolName}</h1>
-          <p className="text-white/80 text-sm md:text-base max-w-xl">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight">{schoolName}</h1>
+          <p className="text-white/80 text-xs sm:text-sm md:text-base max-w-xl">
             Tableau de bord de suivi des écolages, des présences et des performances académiques pour le mois de <span className="font-bold underline">{MONTH_NAMES[currentMonth - 1]} {currentYear}</span>.
           </p>
 
-          <div className="pt-4 flex flex-wrap items-center gap-3">
+          <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-2.5">
             <button
               onClick={handleGenerateMonthlyTuitions}
               disabled={generating}
-              className="px-5 py-2.5 bg-white text-primary font-bold text-xs md:text-sm rounded-xl shadow-lg hover:bg-white/90 transition-all flex items-center gap-2"
+              className="px-4 py-2 bg-white text-primary font-bold text-xs sm:text-sm rounded-xl shadow-lg hover:bg-white/90 transition-all flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
-              {generating ? "Génération en cours..." : `Générer Écolages (${MONTH_NAMES[currentMonth - 1]})`}
+              {generating ? "Génération..." : `Générer Écolages (${MONTH_NAMES[currentMonth - 1]})`}
             </button>
             <Link
               href="/tuition"
-              className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs md:text-sm rounded-xl transition-all flex items-center gap-2"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs sm:text-sm rounded-xl transition-all flex items-center gap-1.5"
             >
               <CreditCard className="w-4 h-4" />
-              Recouvrement Écolages
+              Recouvrement
             </Link>
           </div>
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      {/* KPI Cards Grid — 2x2 sur Mobile */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {/* Élèves */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="p-6 rounded-2xl bg-card border border-border/50 shadow-sm relative overflow-hidden">
           <div className="flex items-center justify-between">

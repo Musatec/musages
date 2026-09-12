@@ -41,14 +41,21 @@ export function MobileHeader() {
                         className="h-8 w-auto object-contain shrink-0 rounded-md" 
                     />
                     <div className="flex flex-col">
-                        <span className="text-xs font-bold text-white tracking-wide truncate max-w-[130px]">
+                        <span className="text-xs font-bold text-white tracking-wide truncate max-w-[110px] sm:max-w-[140px]">
                             {isSchool ? "Pathé Pogne" : "Ibnoul Khayim"}
+                        </span>
+                        <span className="text-[9px] text-emerald-400 font-bold font-arabic dir-rtl truncate">
+                            {isSchool ? "المدرسة الفرنسية" : "مدرسة ابن القيم"}
                         </span>
                     </div>
                 </Link>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-amber-300 shrink-0">
+                    {isSchool ? "🎓 École" : "🕌 Daara"}
+                </div>
+
                 <LanguageSwitcher />
 
                 <div className="w-7 h-7 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0">
