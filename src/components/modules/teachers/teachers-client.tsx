@@ -16,12 +16,34 @@ import { addTeacher, deleteTeacher, payTeacher } from "@/lib/actions/teachers";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+import { useSpace } from "@/components/providers/space-provider";
+
+const MOCK_SCHOOL_TEACHERS = [
+  { id: "sch_t1", firstName: "Mamadou", lastName: "Diallo", mainSubject: "Langue Française & Dictée", contractType: "FIXE", hourlyRate: 150000, phone: "+221 77 123 45 67", email: "m.diallo@pathepogne.sn" },
+  { id: "sch_t2", firstName: "Oustaz Ibrahim", lastName: "Sarr", mainSubject: "Langue Arabe & Éducation Religieuse", contractType: "FIXE", hourlyRate: 160000, phone: "+221 77 234 56 78", email: "i.sarr@pathepogne.sn" },
+  { id: "sch_t3", firstName: "Fatou", lastName: "Sow", mainSubject: "Calcul & Mathématiques", contractType: "VACATAIRE", hourlyRate: 3500, phone: "+221 77 345 67 89", email: "f.sow@pathepogne.sn" },
+  { id: "sch_t4", firstName: "Aïssatou", lastName: "Diop", mainSubject: "Histoire, Géographie & Éveil", contractType: "VACATAIRE", hourlyRate: 3000, phone: "+221 77 456 78 90", email: "a.diop@pathepogne.sn" },
+  { id: "sch_t5", firstName: "Cheikh", lastName: "Tidiane Ndiaye", mainSubject: "Sciences & Grammaire", contractType: "FIXE", hourlyRate: 140000, phone: "+221 77 567 89 01", email: "c.ndiaye@pathepogne.sn" },
+];
+
+const MOCK_SCHOOL_PAYMENTS = [
+  { id: "sch_p1", createdAt: new Date().toISOString(), description: "Salaire Enseignant Français - Mr. Mamadou Diallo", amount: 150000 },
+  { id: "sch_p2", createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), description: "Vacations Calculs - Mme Fatou Sow", amount: 45000 },
+  { id: "sch_p3", createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), description: "Salaire Professeur Arabe - Oustaz Ibrahim Sarr", amount: 160000 },
+];
+
 interface TeachersClientProps {
   teachers: any[];
   recentPayments: any[];
 }
 
 export function TeachersClient({ teachers: initialTeachers, recentPayments: initialPayments }: TeachersClientProps) {
+  const { activeSpace } = useSpace();
+  const isSchool = activeSpace === "school";
+
+  const teachersList = isSchool ? MOCK_SCHOOL_TEACHERS : initialTeachers;
+  const paymentsList = isSchool ? MOCK_SCHOOL_PAYMENTS : initialPayments;
+
   const [activeTab, setActiveTab] = useState<"TEACHERS" | "PAYMENTS">("TEACHERS");
   const [search, setSearch] = useState("");
   
@@ -43,7 +65,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
   const [payForm, setPayForm] = useState({ teacherId: "", amount: "", description: "Salaire du mois" });
   const [isSubmittingPay, setIsSubmittingPay] = useState(false);
 
-  const filteredTeachers = initialTeachers.filter(t => 
+  const filteredTeachers = teachersList.filter(t => 
     t.firstName.toLowerCase().includes(search.toLowerCase()) || 
     t.lastName.toLowerCase().includes(search.toLowerCase()) ||
     (t.mainSubject || "").toLowerCase().includes(search.toLowerCase())
@@ -114,15 +136,21 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">Enseignants & Vacations / المعلمون</h1>
-          <p className="text-sm text-muted-foreground">Gestion du corps professoral et de la paie.</p>
+          <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">
+            {isSchool ? "Corps Enseignant Bilingue • École Pathé Pogne" : "Enseignants & Oustazs / المشايخ"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {isSchool ? "Gestion des professeurs (Français & Arabe), vacataires et émoluments." : "Gestion du corps professoral et de la paie du Daara."}
+          </p>
         </div>
         <div className="flex bg-card p-1 rounded-2xl border border-border/50">
           <button 
             onClick={() => setActiveTab("TEACHERS")}
             className={cn(
               "px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
-              activeTab === "TEACHERS" ? "bg-primary text-black shadow-md shadow-primary/20" : "text-muted-foreground hover:bg-muted/50"
+              activeTab === "TEACHERS" 
+                ? (isSchool ? "bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-extrabold shadow-md" : "bg-primary text-black shadow-md shadow-primary/20") 
+                : "text-muted-foreground hover:bg-muted/50"
             )}
           >
             Enseignants
@@ -131,7 +159,9 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
             onClick={() => setActiveTab("PAYMENTS")}
             className={cn(
               "px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2",
-              activeTab === "PAYMENTS" ? "bg-primary text-black shadow-md shadow-primary/20" : "text-muted-foreground hover:bg-muted/50"
+              activeTab === "PAYMENTS" 
+                ? (isSchool ? "bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-extrabold shadow-md" : "bg-primary text-black shadow-md shadow-primary/20") 
+                : "text-muted-foreground hover:bg-muted/50"
             )}
           >
             <Banknote className="w-4 h-4" /> Historique Paie
@@ -168,7 +198,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredTeachers.length === 0 ? (
               <div className="col-span-full text-center py-12 text-muted-foreground border-2 border-dashed border-border/50 rounded-2xl">
                 <UsersRound className="w-12 h-12 mx-auto mb-4 opacity-20" />
@@ -185,7 +215,10 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xl uppercase shrink-0">
+                    <div className={cn(
+                      "w-14 h-14 rounded-full flex items-center justify-center font-black text-xl uppercase shrink-0 border shadow-inner",
+                      isSchool ? "bg-amber-100 dark:bg-amber-950/50 text-amber-950 dark:text-amber-300 border-amber-300 dark:border-amber-700" : "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700"
+                    )}>
                       {t.firstName[0]}{t.lastName[0]}
                     </div>
                     <div>
@@ -196,18 +229,18 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
                   
                   <div className="space-y-3 border-t border-border/50 pt-4 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center gap-2"><BookOpen className="w-4 h-4" /> Matière(s)</span>
+                      <span className="text-muted-foreground flex items-center gap-2"><BookOpen className="w-4 h-4 text-amber-400" /> {isSchool ? "Discipline / Matière" : "Matière(s)"}</span>
                       <span className="font-bold">{t.mainSubject || "-"}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center gap-2"><Briefcase className="w-4 h-4" /> Contrat</span>
+                      <span className="text-muted-foreground flex items-center gap-2"><Briefcase className="w-4 h-4 text-amber-400" /> Contrat</span>
                       <span className={cn("font-black text-[10px] uppercase tracking-wider px-2 py-1 rounded-md", t.contractType === "FIXE" ? "bg-blue-500/10 text-blue-500" : "bg-amber-500/10 text-amber-500")}>
                         {t.contractType}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center gap-2"><CreditCard className="w-4 h-4" /> Taux / Salaire</span>
-                      <span className="font-bold text-emerald-500">{t.hourlyRate.toLocaleString('fr-FR')} FCFA{t.contractType === 'VACATAIRE' ? '/h' : '/mois'}</span>
+                      <span className="text-muted-foreground flex items-center gap-2"><CreditCard className="w-4 h-4 text-amber-400" /> Taux / Salaire</span>
+                      <span className={cn("font-extrabold", isSchool ? "text-amber-700 dark:text-amber-300" : "text-emerald-700 dark:text-emerald-400")}>{t.hourlyRate.toLocaleString('fr-FR')} FCFA{t.contractType === 'VACATAIRE' ? '/h' : '/mois'}</span>
                     </div>
                   </div>
                 </div>
@@ -219,12 +252,12 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
 
       {activeTab === "PAYMENTS" && (
         <div className="space-y-6">
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-border/50 bg-muted/20 flex justify-between items-center">
-              <h2 className="font-bold text-sm">Historique des Paiements de Salaires</h2>
+          <div className={cn("border rounded-2xl shadow-sm overflow-hidden", isSchool ? "border-amber-500/30 bg-card" : "border-emerald-500/20 bg-card")}>
+            <div className={cn("p-4 border-b flex justify-between items-center", isSchool ? "border-amber-500/30 bg-amber-950/20" : "border-emerald-500/20 bg-emerald-950/20")}>
+              <h2 className="font-bold text-sm">{isSchool ? "Historique des Salaires de l'École Pathé Pogne" : "Historique des Paiements de Salaires"}</h2>
               <button 
                 onClick={() => setShowPayModal(true)}
-                className="text-xs font-bold text-primary hover:underline"
+                className={cn("text-xs font-bold hover:underline", isSchool ? "text-amber-400" : "text-primary")}
               >
                 + Nouveau Paiement
               </button>
@@ -240,14 +273,14 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
-                  {initialPayments.length === 0 ? (
+                  {paymentsList.length === 0 ? (
                     <tr>
                       <td colSpan={3} className="px-6 py-8 text-center text-muted-foreground">
                         Aucun paiement enregistré.
                       </td>
                     </tr>
                   ) : (
-                    initialPayments.map((p) => (
+                    paymentsList.map((p) => (
                       <tr key={p.id} className="hover:bg-muted/20 transition-all">
                         <td className="px-6 py-4 font-mono text-xs">
                           {new Date(p.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -265,12 +298,12 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
 
             {/* Vue Mobile: Cartes */}
             <div className="md:hidden flex flex-col p-4 gap-3">
-              {initialPayments.length === 0 ? (
+              {paymentsList.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-sm">
                   Aucun paiement enregistré.
                 </div>
               ) : (
-                initialPayments.map((p) => (
+                paymentsList.map((p) => (
                   <div key={p.id} className="bg-background border border-border/50 rounded-xl p-4 flex flex-col gap-2">
                     <div className="flex justify-between items-start">
                       <span className="font-medium text-sm leading-tight">{p.description}</span>

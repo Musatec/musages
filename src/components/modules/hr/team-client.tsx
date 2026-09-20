@@ -169,8 +169,8 @@ export function TeamClient({ employees: initialEmployees, plan, maxAllowed }: Te
                     </div>
                 </div>
                 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-separate border-spacing-0">
+                <div className="overflow-x-auto touch-pan-x">
+                    <table className="w-full min-w-[750px] text-left border-separate border-spacing-0">
                         <thead>
                             <tr className="bg-muted/10 text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 border-b border-border">
                                 <th className="px-8 py-5 border-b border-border/50">Talent / Identité</th>

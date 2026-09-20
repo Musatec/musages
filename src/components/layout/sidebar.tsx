@@ -23,7 +23,7 @@ export function Sidebar() {
     const locale = useLocale();
     const tSidebar = useTranslations("Sidebar");
     const { data: session } = useSession();
-    const { activeSpace } = useSpace();
+    const { activeSpace, setActiveSpace } = useSpace();
 
     const userRole = session?.user?.role || "SERIGNE_DAARA";
     const userName = session?.user?.name || "Responsable Établissement";
@@ -51,36 +51,35 @@ export function Sidebar() {
                 />
             )}
 
-            {/* Sidebar Dédiée à l'Espace Actif (Pas de mélange d'espaces) */}
+            {/* Sidebar Dédiée à l'Espace Actif - Positionnée à DROITE (RTL Daara) */}
             <aside 
+                dir="rtl"
                 className={cn(
-                    "fixed top-0 h-screen transition-all duration-300 ease-in-out flex flex-col z-[70] bg-[#0F172A] text-slate-200 shadow-xl",
-                    isAr ? "right-0 border-l border-r-0 border-slate-800/80" : "left-0 border-r border-l-0 border-slate-800/80",
-                    isAr 
-                      ? (mobileOpen ? "translate-x-0 w-72" : "translate-x-full md:translate-x-0")
-                      : (mobileOpen ? "translate-x-0 w-72" : "-translate-x-full md:translate-x-0"),
+                    "fixed top-0 h-screen transition-all duration-300 ease-in-out flex flex-col z-[70] bg-gradient-to-b from-[#091020] via-[#0F172A] to-[#0A0F1D] text-slate-100 shadow-2xl right-0 border-l border-emerald-500/20 font-arabic text-right select-none",
+                    mobileOpen ? "translate-x-0 w-72" : "translate-x-full md:translate-x-0",
                     collapsed ? "md:w-20" : "md:w-64"
                 )}
             >
-                {/* En-tête Sidebar — Logo & Nom de l'Établissement (Daara vs École Franco-Arabe Pathé Pogne) */}
-                <div className="p-3.5 flex items-center justify-between overflow-hidden relative z-10 border-b border-slate-800/70 bg-slate-950/40">
+                {/* En-tête Sidebar — Logo & Nom de l'Établissement */}
+                <div dir="rtl" className="p-3.5 flex items-center justify-between overflow-hidden relative z-10 border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md text-right">
                     <Link 
+                        dir="rtl"
                         href={userRole === "SUPER_ADMIN" ? "/admin" : "/dashboard"} 
                         onClick={() => setMobileOpen(false)}
-                        className="flex items-center gap-2.5"
+                        className="flex items-center gap-3 text-right"
                     >
                         <img 
                             src={isSchool ? "/logo-pathe-pogne.png" : "/logo-daara-ibnoul-khayim.png"} 
                             alt={isSchool ? "École Pathé Pogne Logo" : "Daara Ibnoul Khayim Logo"} 
-                            className="h-8 w-auto object-contain shrink-0 rounded-md" 
+                            className="h-9 w-auto object-contain shrink-0 rounded-lg shadow-sm border border-emerald-500/30" 
                         />
                         {(!collapsed || mobileOpen) && (
-                            <div className="flex flex-col leading-tight overflow-hidden">
-                                <span className="text-xs font-bold text-white tracking-wide truncate">
-                                    {isSchool ? "École Pathé Pogne" : "Ibnoul Khayim"}
+                            <div dir="rtl" className="flex flex-col leading-tight overflow-hidden text-right font-arabic">
+                                <span className="text-sm font-black text-emerald-300 tracking-wide truncate drop-shadow-sm text-right">
+                                    {isSchool ? "المدرسة العربية الفرنسية" : "مدرسة ابن القيم الجوزية"}
                                 </span>
-                                <span className="text-[10px] text-emerald-400 font-medium font-arabic dir-rtl truncate">
-                                    {isSchool ? "المدرسة العربية الفرنسية" : "مدرسة ابن القيم"}
+                                <span className="text-[11px] text-slate-300 font-sans font-medium truncate text-right">
+                                    {isSchool ? "École Pathé Pogne" : "Daara Ibnoul Khayim"}
                                 </span>
                             </div>
                         )}
@@ -89,7 +88,7 @@ export function Sidebar() {
                     {/* Bouton fermer Mobile */}
                     <button 
                         onClick={() => setMobileOpen(false)}
-                        className="md:hidden p-1 text-slate-400 hover:text-white rounded-lg"
+                        className="md:hidden p-1.5 text-slate-300 hover:text-white rounded-lg bg-slate-800/50"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -97,50 +96,43 @@ export function Sidebar() {
                     {/* Toggle Collapse Desktop */}
                     <button 
                         onClick={() => setCollapsed(!collapsed)}
-                        className="hidden md:flex p-1 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-lg transition-all"
+                        className="hidden md:flex p-1.5 text-slate-300 hover:text-white hover:bg-slate-800/80 rounded-lg transition-all border border-slate-700/50"
                         aria-label="Toggle Sidebar"
                     >
                         <ChevronLeft 
                           className={cn(
-                            "w-4 h-4 transition-transform duration-300", 
-                            isAr 
-                              ? (collapsed ? "rotate-0" : "rotate-180")
-                              : (collapsed ? "rotate-180" : "rotate-0")
+                            "w-4 h-4 transition-transform duration-300 text-emerald-400", 
+                            collapsed ? "rotate-0" : "rotate-180"
                           )} 
                         />
                     </button>
                 </div>
 
-                {/* Profil Utilisateur & Sélecteur de Langue */}
+                {/* Profil Utilisateur */}
                 {(!collapsed || mobileOpen) && (
-                    <div className="p-3 border-b border-slate-800/50 space-y-2.5 bg-slate-950/20">
-                        <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-emerald-900/50 border border-emerald-500/30 flex items-center justify-center overflow-hidden shrink-0">
+                    <div dir="rtl" className="p-3 border-b border-slate-800/60 space-y-2 bg-slate-950/40 text-right">
+                        <div dir="rtl" className="flex items-center gap-3 text-right">
+                            <div className="w-8 h-8 rounded-full bg-emerald-950 border-2 border-emerald-400/50 flex items-center justify-center overflow-hidden shrink-0 shadow-md">
                                 {userImage ? (
                                     <SafeImage src={userImage} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
-                                    <UserIcon className="w-3.5 h-3.5 text-emerald-400" />
+                                    <UserIcon className="w-4 h-4 text-emerald-300" />
                                 )}
                             </div>
-                            <div className="flex flex-col overflow-hidden">
-                                <span className="text-xs font-semibold text-white truncate">
+                            <div dir="rtl" className="flex flex-col overflow-hidden text-right font-arabic">
+                                <span className="text-xs font-black text-white truncate drop-shadow-xs text-right">
                                     {userName}
                                 </span>
-                                <span className="text-[9px] text-slate-400 font-medium uppercase tracking-wider truncate">
+                                <span className="text-[10px] text-amber-300 font-sans font-medium uppercase tracking-wider truncate text-right">
                                     {isSchool ? "Directeur École Franco-Arabe" : userRole}
                                 </span>
                             </div>
                         </div>
-
-                        {/* Sélecteur de Langue (Français vs Arabe) */}
-                        <div className="flex justify-center pt-0.5">
-                            <LanguageSwitcher />
-                        </div>
                     </div>
                 )}
 
-                {/* Navigation Principale Traduite & Spécifique à l'Espace Actif */}
-                <nav className="flex-1 px-2.5 space-y-4 py-3 overflow-y-auto no-scrollbar relative z-10">
+                {/* Navigation Principale — Titres Principaux en Arabe (Droites vers Gauche RTL) */}
+                <nav dir="rtl" className="flex-1 px-2.5 space-y-4 py-4 overflow-y-auto no-scrollbar relative z-10 text-right">
                     {currentNav.map((section) => {
                         const visibleItems = section.items.filter(item => {
                             const hasRole = !item.roles || item.roles.includes(userRole);
@@ -149,41 +141,63 @@ export function Sidebar() {
 
                         if (visibleItems.length === 0) return null;
 
-                        const sectionTitle = isAr ? (section.titleAr || section.title) : section.title;
+                        const arabicTitle = section.titleAr || section.title;
+                        const frenchTitle = section.title;
 
                         return (
-                            <div key={section.title} className="space-y-0.5">
+                            <div key={section.title} dir="rtl" className="space-y-1.5 text-right">
                                 {(!collapsed || mobileOpen) && (
-                                    <p className={cn(
-                                      "px-2.5 mb-1",
-                                      isAr ? "font-arabic text-emerald-400 text-[11px] font-bold" : "text-[9px] font-bold uppercase tracking-wider text-slate-400"
-                                    )}>
-                                        {sectionTitle}
-                                    </p>
+                                    <div dir="rtl" className="px-3 py-1 mb-1 text-right bg-emerald-950/40 border-r-4 border-emerald-400 rounded-l-md">
+                                        <p className="font-arabic text-emerald-300 text-xs font-black leading-tight tracking-wide drop-shadow-xs text-right">
+                                            {arabicTitle}
+                                        </p>
+                                        <p className="text-[10px] text-emerald-200/80 font-sans font-medium tracking-wider uppercase text-right">
+                                            {frenchTitle}
+                                        </p>
+                                    </div>
                                 )}
-                                <div className="space-y-0.5">
+                                <div dir="rtl" className="space-y-1 text-right">
                                     {visibleItems.map((item) => {
                                         const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
-                                        const itemLabel = isAr ? (item.labelAr || item.label) : item.label;
+                                        const mainArabicLabel = item.labelAr || item.label;
+                                        const subFrenchLabel = item.label;
 
                                         return (
                                             <Link 
+                                                dir="rtl"
                                                 key={item.href} 
                                                 href={item.href}
                                                 onClick={() => setMobileOpen(false)}
                                                 className={cn(
-                                                    "flex items-center gap-2.5 px-2.5 py-2 rounded-xl transition-all font-medium relative overflow-hidden",
-                                                    isAr ? "text-xs" : "text-xs",
+                                                    "flex items-center gap-3 px-3.5 py-2 rounded-xl transition-all relative overflow-hidden text-right cursor-pointer w-full",
                                                     isActive 
-                                                        ? (isSchool ? "bg-amber-600 text-white font-bold shadow-xs" : "bg-emerald-600/90 text-white font-bold shadow-xs")
-                                                        : "text-slate-300 hover:text-white hover:bg-slate-800/50"
+                                                        ? (isSchool 
+                                                            ? "bg-gradient-to-l from-amber-600 to-amber-700 text-white shadow-md border-r-4 border-amber-300 font-black" 
+                                                            : "bg-gradient-to-l from-emerald-600 to-emerald-800 text-white shadow-md shadow-emerald-950/80 border-r-4 border-emerald-300 font-black")
+                                                        : "text-slate-200 hover:text-white hover:bg-slate-800/70 border-r-2 border-transparent hover:border-emerald-500/40"
                                                 )}
                                             >
-                                                <item.icon className={cn("w-4 h-4 shrink-0 transition-transform", isActive ? (isSchool ? "text-amber-200" : "text-emerald-200") : "text-slate-400")} />
+                                                {/* Icône sur le bord droit en RTL */}
+                                                <item.icon className={cn(
+                                                    "w-4 h-4 shrink-0 transition-all", 
+                                                    isActive ? "text-amber-300 scale-110" : "text-emerald-400"
+                                                )} />
+
                                                 {(!collapsed || mobileOpen) && (
-                                                    <span className={cn("truncate", isAr && "font-arabic font-medium")}>
-                                                        {itemLabel}
-                                                    </span>
+                                                    <div dir="rtl" className="flex flex-col leading-tight truncate text-right font-arabic flex-1">
+                                                        <span className={cn(
+                                                            "text-xs sm:text-sm font-black truncate tracking-wide text-right",
+                                                            isActive ? "text-white" : "text-slate-100"
+                                                        )}>
+                                                            {mainArabicLabel}
+                                                        </span>
+                                                        <span className={cn(
+                                                            "text-[11px] font-sans font-medium truncate text-right tracking-normal mt-0.5",
+                                                            isActive ? "text-emerald-100 font-semibold" : "text-slate-300"
+                                                        )}>
+                                                            {subFrenchLabel}
+                                                        </span>
+                                                    </div>
                                                 )}
                                             </Link>
                                         );
@@ -195,20 +209,22 @@ export function Sidebar() {
                 </nav>
 
                 {/* Pied de Sidebar — Déconnexion */}
-                <div className="p-2.5 border-t border-slate-800/80 bg-slate-950/40 flex items-center justify-between">
+                <div dir="rtl" className="p-2.5 border-t border-slate-800/80 bg-slate-950/60 flex items-center justify-between text-right">
                     <button
+                        dir="rtl"
                         onClick={() => signOut({ callbackUrl: "/login" })}
                         className={cn(
-                            "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 text-xs font-medium transition-colors",
+                            "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:text-red-400 hover:bg-red-500/15 text-xs font-bold transition-all text-right border border-transparent hover:border-red-500/30",
                             (collapsed && !mobileOpen) ? "justify-center" : "justify-start"
                         )}
-                        title={tSidebar("logout")}
+                        title="تسجيل الخروج / Déconnexion"
                     >
-                        <LogOut className="w-4 h-4 text-slate-400 hover:text-red-400 shrink-0" />
+                        <LogOut className="w-4 h-4 text-rose-400 shrink-0" />
                         {(!collapsed || mobileOpen) && (
-                          <span className={cn(isAr && "font-arabic text-xs font-medium")}>
-                            {tSidebar("logout")}
-                          </span>
+                          <div dir="rtl" className="flex flex-col text-right font-arabic leading-tight flex-1">
+                            <span className="text-xs font-black text-rose-200 hover:text-red-300 text-right">تسجيل الخروج</span>
+                            <span className="text-[10px] text-rose-300 font-sans font-medium text-right">Déconnexion</span>
+                          </div>
                         )}
                     </button>
                 </div>

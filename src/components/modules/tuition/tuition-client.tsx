@@ -27,6 +27,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { cn } from "@/lib/utils";
 import * as XLSX from "xlsx";
 
+import { useSpace } from "@/components/providers/space-provider";
+
 interface TalibeOption {
   id: string;
   firstName: string;
@@ -37,6 +39,16 @@ interface TalibeOption {
   parentPhone?: string | null;
   halqa?: { name: string } | null;
 }
+
+const MOCK_SCHOOL_STUDENTS: TalibeOption[] = [
+  { id: "sch-1", firstName: "Alioune", lastName: "Badara", matricule: "EP-2026-001", status: "INTERNE", parentName: "Mamadou Badara", parentPhone: "+221 77 123 45 67", halqa: { name: "Classe CI" } },
+  { id: "sch-2", firstName: "Fatoumata", lastName: "Sarr", matricule: "EP-2026-002", status: "EXTERNE", parentName: "Oumar Sarr", parentPhone: "+221 78 234 56 78", halqa: { name: "Classe CI" } },
+  { id: "sch-3", firstName: "Moussa", lastName: "Kante", matricule: "EP-2026-003", status: "INTERNE", parentName: "Cheikh Kante", parentPhone: "+221 70 345 67 89", halqa: { name: "Classe CP" } },
+  { id: "sch-4", firstName: "Aïssatou", lastName: "Fall", matricule: "EP-2026-004", status: "EXTERNE", parentName: "Ibrahima Fall", parentPhone: "+221 77 456 78 90", halqa: { name: "Classe CE1" } },
+  { id: "sch-5", firstName: "Cheikh Tidiane", lastName: "Sy", matricule: "EP-2026-005", status: "INTERNE", parentName: "Serigne Sy", parentPhone: "+221 76 567 89 01", halqa: { name: "Classe CE2" } },
+  { id: "sch-6", firstName: "Mariama", lastName: "Bâ", matricule: "EP-2026-006", status: "INTERNE", parentName: "Alassane Bâ", parentPhone: "+221 77 678 90 12", halqa: { name: "Classe CM1" } },
+  { id: "sch-7", firstName: "Ousmane", lastName: "Kane", matricule: "EP-2026-007", status: "INTERNE", parentName: "Saliou Kane", parentPhone: "+221 77 012 34 56", halqa: { name: "Classe CM2" } },
+];
 
 interface TuitionClientProps {
   tuitions: any[];
@@ -54,10 +66,15 @@ const ACADEMIC_MONTHS = [
 
 export function TuitionClient({ 
   tuitions: initialTuitions, 
-  talibeList,
+  talibeList: initialTalibeList,
   classes, 
-  schoolName
+  schoolName: rawSchoolName
 }: TuitionClientProps) {
+  const { activeSpace } = useSpace();
+  const isSchool = activeSpace === "school";
+  const schoolName = isSchool ? "École Franco-Arabe Pathé Pogne" : rawSchoolName;
+  const activeTalibes = (isSchool || !initialTalibeList || initialTalibeList.length === 0) ? MOCK_SCHOOL_STUDENTS : initialTalibeList;
+
   const [tuitions, setTuitions] = useState<any[]>(initialTuitions);
   const [search, setSearch] = useState("");
   const [selectedYear, setSelectedYear] = useState("2026-2027");
@@ -77,7 +94,7 @@ export function TuitionClient({
     ACADEMIC_MONTHS.forEach(m => {
       if ((t.description || "").includes(m)) {
         // Find matching talibe
-        const matchingTalibe = talibeList.find(s => (t.description || "").includes(s.lastName) || (t.description || "").includes(s.matricule));
+        const matchingTalibe = activeTalibes.find(s => (t.description || "").includes(s.lastName) || (t.description || "").includes(s.matricule));
         if (matchingTalibe) {
           const key = `${matchingTalibe.id}_${m}`;
           paymentMap[key] = (paymentMap[key] || 0) + (t.amount || 0);
@@ -86,7 +103,7 @@ export function TuitionClient({
     });
   });
 
-  const filteredTalibes = talibeList.filter(s => {
+  const filteredTalibes = activeTalibes.filter(s => {
     const fullName = `${s.firstName} ${s.lastName}`.toLowerCase();
     const mat = (s.matricule || "").toLowerCase();
     const query = search.toLowerCase();
@@ -155,19 +172,30 @@ export function TuitionClient({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 p-6 md:p-8 text-white border border-emerald-500/20 shadow-2xl">
+      <div className={cn(
+        "relative overflow-hidden rounded-3xl p-6 md:p-8 text-white border shadow-2xl transition-colors",
+        isSchool
+          ? "bg-gradient-to-r from-amber-950 via-amber-900 to-yellow-950 border-amber-500/30"
+          : "bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 border-emerald-500/20"
+      )}>
         <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
-          <CreditCard className="w-96 h-96 text-emerald-400" />
+          <CreditCard className={cn("w-96 h-96", isSchool ? "text-amber-400" : "text-emerald-400")} />
         </div>
         <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex max-w-full flex-wrap items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-extrabold uppercase tracking-wider">
-            <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" /> Tableau des 12 Mois & Recouvrement des Cotisations (Août à Juillet)
+          <div className={cn(
+            "inline-flex max-w-full flex-wrap items-center gap-2 px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider border",
+            isSchool ? "bg-amber-500/20 border-amber-500/40 text-amber-300" : "bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
+          )}>
+            <Sparkles className={cn("w-4 h-4 shrink-0", isSchool ? "text-amber-300" : "text-emerald-400")} /> 
+            {isSchool ? "Tableau des 12 Mois & Recouvrement des Écolages (Août à Juillet)" : "Tableau des 12 Mois & Recouvrement des Cotisations (Août à Juillet)"}
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
-            جدول الاشتراكات والدفعات الشهريّة (١٢ شهراً)
+            {isSchool ? "جدول تحصيل المصاريف والرسوم الدراسية (١٢ شهراً)" : "جدول الاشتراكات والدفعات الشهريّة (١٢ شهراً)"}
           </h1>
-          <p className="text-emerald-100/80 text-sm md:text-base leading-relaxed">
-            Consultez le tableau récapitulatif des cotisations mensuelles pour tous les Talibés (Internes, Externes, Demi-pensionnaires). Cliquez sur un mois pour saisir le montant payé.
+          <p className="text-amber-100/80 text-sm md:text-base leading-relaxed">
+            {isSchool
+              ? "Consultez le tableau récapitulatif des écolages mensuels pour tous les élèves de l'École Pathé Pogne (CI à CM2). Cliquez sur un mois pour enregistrer les règlements."
+              : "Consultez le tableau récapitulatif des cotisations mensuelles pour tous les Talibés (Internes, Externes, Demi-pensionnaires). Cliquez sur un mois pour saisir le montant payé."}
           </p>
         </div>
       </div>
@@ -177,7 +205,10 @@ export function TuitionClient({
         <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0 w-full sm:w-auto">
           <button 
             onClick={() => setSelectedRegime("ALL")}
-            className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "ALL" ? "bg-emerald-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+            className={cn(
+              "px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", 
+              selectedRegime === "ALL" ? (isSchool ? "bg-amber-600 text-white shadow-xs" : "bg-emerald-600 text-white shadow-xs") : "text-muted-foreground hover:bg-muted"
+            )}
           >
             Tous
           </button>
@@ -212,7 +243,7 @@ export function TuitionClient({
           </select>
 
           <Button onClick={handleExportExcelMatrix} variant="outline" className="text-xs font-bold gap-2">
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Export Matrice Excel
+            <FileSpreadsheet className={cn("w-4 h-4", isSchool ? "text-amber-600" : "text-emerald-600")} /> Export Matrice Excel
           </Button>
         </div>
       </div>
@@ -221,7 +252,7 @@ export function TuitionClient({
       <div className="relative max-w-full">
         <Search className="w-4 h-4 absolute left-3 rtl:right-3 rtl:left-auto top-3 text-muted-foreground" />
         <Input 
-          placeholder="Rechercher un Talibé par nom ou matricule..." 
+          placeholder={isSchool ? "Rechercher un élève par nom ou matricule..." : "Rechercher un Talibé par nom ou matricule..."} 
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9 rtl:pr-9 rtl:pl-3 h-10 text-sm bg-card border-border max-w-full"
@@ -230,11 +261,13 @@ export function TuitionClient({
 
       {/* 12-Month Payment Matrix Table (DESKTOP) */}
       <Card className="hidden md:block border border-border shadow-md overflow-hidden max-w-full">
-        <div className="overflow-x-auto max-w-full">
-          <table className="w-full text-left rtl:text-right text-xs border-collapse">
+        <div className="overflow-x-auto touch-pan-x max-w-full">
+          <table className="w-full min-w-[1300px] text-left rtl:text-right text-xs border-collapse">
             <thead className="bg-muted/70 text-muted-foreground uppercase tracking-wider font-bold">
               <tr>
-                <th className="px-4 py-3 border-b sticky left-0 rtl:right-0 rtl:left-auto bg-muted z-10 min-w-[140px] sm:min-w-[180px]">Talibé</th>
+                <th className="px-4 py-3 border-b sticky left-0 rtl:right-0 rtl:left-auto bg-muted z-10 min-w-[140px] sm:min-w-[180px]">
+                  {isSchool ? "Élève" : "Talibé"}
+                </th>
                 <th className="px-3 py-3 border-b min-w-[100px]">Régime</th>
                 {ACADEMIC_MONTHS.map(m => (
                   <th key={m} className="px-3 py-3 border-b text-center min-w-[100px]">{m}</th>
@@ -245,7 +278,7 @@ export function TuitionClient({
               {filteredTalibes.length === 0 ? (
                 <tr>
                   <td colSpan={14} className="text-center py-12 text-muted-foreground">
-                    Aucun Talibé trouvé.
+                    {isSchool ? "Aucun élève trouvé." : "Aucun Talibé trouvé."}
                   </td>
                 </tr>
               ) : (
@@ -283,8 +316,8 @@ export function TuitionClient({
                             className={cn(
                               "w-full py-1.5 px-2 rounded-lg font-mono font-extrabold text-[11px] transition-all border",
                               isPaid 
-                                ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/25" 
-                                : "bg-red-500/5 border-red-500/20 text-red-500 hover:bg-red-500/15"
+                                ? "bg-emerald-600 text-white border-emerald-700 shadow-xs font-black hover:bg-emerald-700" 
+                                : "bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-100"
                             )}
                           >
                             {isPaid ? `${amount.toLocaleString()} F` : "Non Payé"}
@@ -349,12 +382,12 @@ export function TuitionClient({
                         className={cn(
                           "flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all active:scale-95",
                           isPaid 
-                            ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-400" 
-                            : "bg-muted/40 border-border text-muted-foreground hover:bg-muted"
+                            ? "bg-emerald-600 border-emerald-700 text-white font-black" 
+                            : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-200"
                         )}
                       >
-                        <span className="text-[9px] font-black uppercase tracking-wider opacity-75">{shortName}</span>
-                        <span className={cn("text-[11px] font-mono font-extrabold mt-0.5", isPaid ? "text-emerald-600 dark:text-emerald-400" : "text-red-500/80")}>
+                        <span className="text-[9px] font-black uppercase tracking-wider opacity-90">{shortName}</span>
+                        <span className={cn("text-[11px] font-mono font-extrabold mt-0.5", isPaid ? "text-white" : "text-slate-400")}>
                           {isPaid ? `${amount >= 1000 ? Math.round(amount/1000) + 'k' : amount}` : "—"}
                         </span>
                       </button>

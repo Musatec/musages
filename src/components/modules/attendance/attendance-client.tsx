@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   CalendarCheck, 
   Search, 
@@ -21,6 +21,42 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useSpace } from "@/components/providers/space-provider";
+
+const MOCK_SCHOOL_CLASSES = [
+  {
+    id: "cls-ci",
+    name: "Classe CI (Cours Initiatique)",
+    talibes: [
+      { id: "sch-1", firstName: "Alioune", lastName: "Badara", matricule: "EP-2026-001", status: "INTERNE", parentName: "Mamadou Badara", parentPhone: "+221 77 123 45 67" },
+      { id: "sch-2", firstName: "Fatoumata", lastName: "Sarr", matricule: "EP-2026-002", status: "EXTERNE", parentName: "Oumar Sarr", parentPhone: "+221 78 234 56 78" },
+      { id: "sch-3", firstName: "Moussa", lastName: "Kante", matricule: "EP-2026-003", status: "INTERNE", parentName: "Cheikh Kante", parentPhone: "+221 70 345 67 89" },
+    ]
+  },
+  {
+    id: "cls-cp",
+    name: "Classe CP (Cours Préparatoire)",
+    talibes: [
+      { id: "sch-5", firstName: "Aïssatou", lastName: "Fall", matricule: "EP-2026-005", status: "EXTERNE", parentName: "Ibrahima Fall", parentPhone: "+221 77 456 78 90" },
+      { id: "sch-6", firstName: "Cheikh Tidiane", lastName: "Sy", matricule: "EP-2026-006", status: "INTERNE", parentName: "Serigne Sy", parentPhone: "+221 76 567 89 01" }
+    ]
+  },
+  {
+    id: "cls-ce1",
+    name: "Classe CE1 (Cours Élémentaire 1)",
+    talibes: [
+      { id: "sch-8", firstName: "Mariama", lastName: "Bâ", matricule: "EP-2026-008", status: "INTERNE", parentName: "Alassane Bâ", parentPhone: "+221 77 678 90 12" },
+      { id: "sch-9", firstName: "Ibrahima", lastName: "Sow", matricule: "EP-2026-009", status: "EXTERNE", parentName: "Amadou Sow", parentPhone: "+221 78 789 01 23" }
+    ]
+  },
+  {
+    id: "cls-cm2",
+    name: "Classe CM2 (Cours Moyen 2)",
+    talibes: [
+      { id: "sch-15", firstName: "Ousmane", lastName: "Kane", matricule: "EP-2026-015", status: "INTERNE", parentName: "Saliou Kane", parentPhone: "+221 77 012 34 56" }
+    ]
+  }
+];
 
 interface AttendanceClientProps {
   classes: any[];
@@ -30,21 +66,33 @@ interface AttendanceClientProps {
 }
 
 export function AttendanceClient({ 
-  classes, 
+  classes: initialClasses, 
   todaysAttendances: initialAttendances, 
   recentIssues,
-  schoolName
+  schoolName: rawSchoolName
 }: AttendanceClientProps) {
+  const { activeSpace } = useSpace();
+  const isSchool = activeSpace === "school";
+  const schoolName = isSchool ? "École Franco-Arabe Pathé Pogne" : rawSchoolName;
+
+  const activeClasses = (isSchool || !initialClasses || initialClasses.length === 0) ? MOCK_SCHOOL_CLASSES : initialClasses;
+
   const [attendances, setAttendances] = useState<any[]>(initialAttendances);
   const [activeTab, setActiveTab] = useState<"APPEL" | "HISTORIQUE">("APPEL");
   const [selectedSession, setSelectedSession] = useState<string>("HALQA_MORNING");
   
   // Appel state
-  const [selectedClassId, setSelectedClassId] = useState(classes[0]?.id || "");
+  const [selectedClassId, setSelectedClassId] = useState(activeClasses[0]?.id || "");
   const [search, setSearch] = useState("");
   const [isSaving, setIsSaving] = useState<string | null>(null);
 
-  const selectedClass = classes.find(c => c.id === selectedClassId);
+  useEffect(() => {
+    if (activeClasses.length > 0 && !activeClasses.some(c => c.id === selectedClassId)) {
+      setSelectedClassId(activeClasses[0].id);
+    }
+  }, [isSchool, activeClasses]);
+
+  const selectedClass = activeClasses.find(c => c.id === selectedClassId) || activeClasses[0];
 
   const getTalibeStatus = (talibeId: string) => {
     const record = attendances.find(a => (a.talibeId === talibeId || a.studentId === talibeId));
@@ -78,7 +126,7 @@ export function AttendanceClient({
   const handleSendWhatsAppAlert = async (attendanceId: string, phone: string, parentName: string, studentName: string, status: string) => {
     const statusText = status === "ABSENT" ? "est absent(e)" : "est en retard";
     const message = encodeURIComponent(
-      `Assalamu alaykum ${parentName || "Parent"}, le Daara ${schoolName} vous informe que votre enfant ${studentName} ${statusText} à la séance de Halqa aujourd'hui. Merci de nous contacter. Baraka Allahou Feekum.`
+      `Assalamu alaykum ${parentName || "Parent"}, ${schoolName} vous informe que votre enfant ${studentName} ${statusText} à la séance d'aujourd'hui. Merci de nous contacter. Baraka Allahou Feekum.`
     );
     
     window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${message}`, '_blank');
@@ -96,19 +144,29 @@ export function AttendanceClient({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 p-4 sm:p-6 md:p-8 text-white border border-emerald-500/20 shadow-2xl">
+      <div className={cn(
+        "relative overflow-hidden rounded-3xl p-4 sm:p-6 md:p-8 text-white border shadow-2xl transition-colors",
+        isSchool 
+          ? "bg-gradient-to-r from-amber-950 via-amber-900 to-yellow-950 border-amber-500/30" 
+          : "bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 border-emerald-500/20"
+      )}>
         <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
-          <CalendarCheck className="w-96 h-96 text-emerald-400" />
+          <CalendarCheck className={cn("w-96 h-96", isSchool ? "text-amber-400" : "text-emerald-400")} />
         </div>
         <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-extrabold uppercase tracking-widest">
-            <Sparkles className="w-4 h-4 text-emerald-400" /> Présences & WhatsApp Parents
+          <div className={cn(
+            "inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest border",
+            isSchool ? "bg-amber-500/20 border-amber-500/40 text-amber-300" : "bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
+          )}>
+            <Sparkles className={cn("w-4 h-4", isSchool ? "text-amber-300" : "text-emerald-400")} /> Présences & WhatsApp Parents
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
-            تسجيل حضور وغياب الطلاب بالحلقات
+            {isSchool ? "سجل الحضور والغياب • المدرسة الإبتدائية" : "تسجيل حضور وغياب الطلاب بالحلقات"}
           </h1>
-          <p className="text-emerald-100/80 text-xs sm:text-sm md:text-base leading-relaxed">
-            Effectuez l'appel des séances de Halqa (Subh/Fajr, Matin, Après-midi, Isha) et prévenez instantanément les parents en cas d'absence.
+          <p className="text-amber-100/80 text-xs sm:text-sm md:text-base leading-relaxed">
+            {isSchool 
+              ? "Effectuez l'appel des séances de classe (Matin, Après-midi) et prévenez instantanément les parents en cas d'absence." 
+              : "Effectuez l'appel des séances de Halqa (Subh/Fajr, Matin, Après-midi, Isha) et prévenez instantanément les parents en cas d'absence."}
           </p>
         </div>
       </div>
@@ -120,7 +178,9 @@ export function AttendanceClient({
             onClick={() => setActiveTab("APPEL")}
             className={cn(
               "px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0",
-              activeTab === "APPEL" ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20" : "text-muted-foreground hover:bg-muted"
+              activeTab === "APPEL" 
+                ? (isSchool ? "bg-amber-600 text-white shadow-md shadow-amber-600/20" : "bg-emerald-600 text-white shadow-md shadow-emerald-600/20") 
+                : "text-muted-foreground hover:bg-muted"
             )}
           >
             <UserCheck className="w-4 h-4" /> Appel Séance
@@ -129,56 +189,64 @@ export function AttendanceClient({
             onClick={() => setActiveTab("HISTORIQUE")}
             className={cn(
               "px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0",
-              activeTab === "HISTORIQUE" ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20" : "text-muted-foreground hover:bg-muted"
+              activeTab === "HISTORIQUE" 
+                ? (isSchool ? "bg-amber-600 text-white shadow-md shadow-amber-600/20" : "bg-emerald-600 text-white shadow-md shadow-emerald-600/20") 
+                : "text-muted-foreground hover:bg-muted"
             )}
           >
             <AlertTriangle className="w-4 h-4" /> Incidents (30J)
           </button>
         </div>
 
-        {/* Sessions Filter — Scrollable sur Mobile */}
+        {/* Sessions Filter */}
         <div className="flex items-center gap-1 overflow-x-auto no-scrollbar bg-background p-1 rounded-xl border border-border w-full sm:w-auto">
-          <button 
-            onClick={() => setSelectedSession("HALQA_FAJR")} 
-            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_FAJR" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
-          >
-            Subh / Fajr
-          </button>
+          {!isSchool && (
+            <button 
+              onClick={() => setSelectedSession("HALQA_FAJR")} 
+              className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_FAJR" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
+            >
+              Subh / Fajr
+            </button>
+          )}
           <button 
             onClick={() => setSelectedSession("HALQA_MORNING")} 
-            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_MORNING" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
+            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_MORNING" ? (isSchool ? "bg-amber-500/20 text-amber-600" : "bg-emerald-500/20 text-emerald-600") : "text-muted-foreground")}
           >
             Matin
           </button>
           <button 
             onClick={() => setSelectedSession("HALQA_AFTERNOON")} 
-            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_AFTERNOON" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
+            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_AFTERNOON" ? (isSchool ? "bg-amber-500/20 text-amber-600" : "bg-emerald-500/20 text-emerald-600") : "text-muted-foreground")}
           >
             Après-midi
           </button>
-          <button 
-            onClick={() => setSelectedSession("HALQA_EVENING")} 
-            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_EVENING" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
-          >
-            Nuit / Isha
-          </button>
+          {!isSchool && (
+            <button 
+              onClick={() => setSelectedSession("HALQA_EVENING")} 
+              className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_EVENING" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
+            >
+              Nuit / Isha
+            </button>
+          )}
         </div>
       </div>
 
       {activeTab === "APPEL" && (
         <div className="space-y-6">
-          {/* Halqa Selection & Search Bar */}
+          {/* Class Selection & Search Bar */}
           <div className="flex flex-col md:flex-row gap-4 bg-card border border-border p-4 rounded-2xl shadow-sm">
             <div className="flex-1">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Sélectionner la Halqa</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">
+                {isSchool ? "Sélectionner la Classe" : "Sélectionner la Halqa"}
+              </label>
               <select 
                 value={selectedClassId}
                 onChange={(e) => setSelectedClassId(e.target.value)}
                 className="w-full bg-background border border-input rounded-xl px-4 py-2.5 text-sm font-bold text-foreground"
               >
-                <option value="">-- Choisir une Halqa --</option>
-                {classes.map(c => (
-                  <option key={c.id} value={c.id}>{c.name} ({c.talibes?.length || c.students?.length || 0} Talibés)</option>
+                <option value="">{isSchool ? "-- Choisir une Classe --" : "-- Choisir une Halqa --"}</option>
+                {activeClasses.map(c => (
+                  <option key={c.id} value={c.id}>{c.name} ({c.talibes?.length || c.students?.length || 0} {isSchool ? "Élèves" : "Talibés"})</option>
                 ))}
               </select>
             </div>
@@ -189,10 +257,13 @@ export function AttendanceClient({
                 <input 
                   type="text"
                   disabled={!selectedClassId}
-                  placeholder="Rechercher un Talibé..." 
+                  placeholder={isSchool ? "Rechercher un Élève..." : "Rechercher un Talibé..."} 
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-background border border-input rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50"
+                  className={cn(
+                    "w-full bg-background border border-input rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 disabled:opacity-50",
+                    isSchool ? "focus:ring-amber-500" : "focus:ring-emerald-500"
+                  )}
                 />
               </div>
             </div>
@@ -201,11 +272,11 @@ export function AttendanceClient({
           {/* Student Table */}
           {selectedClassId ? (
             <Card className="border border-border shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
+              <div className="overflow-x-auto touch-pan-x">
+                <table className="w-full min-w-[650px] text-left text-sm">
                   <thead className="bg-muted/60 text-muted-foreground text-xs uppercase tracking-wider">
                     <tr>
-                      <th className="px-6 py-3.5 font-bold">Talibé</th>
+                      <th className="px-6 py-3.5 font-bold">{isSchool ? "Élève" : "Talibé"}</th>
                       <th className="px-6 py-3.5 font-bold">Matricule</th>
                       <th className="px-6 py-3.5 font-bold">Régime</th>
                       <th className="px-6 py-3.5 font-bold text-center">Appel de la Séance</th>

@@ -38,7 +38,8 @@ export const NAV_SECTIONS: NavSection[] = [
         items: [
             { label: "Tableau de Bord", labelAr: "لوحة التحكم", icon: LayoutDashboard, href: "/dashboard" },
             { label: "Effectif du Daara", labelAr: "سجل الطلاب", icon: Users, href: "/students" },
-            { label: "Halqas & Maîtres (Oustaz)", labelAr: "الحلقات والمشايخ", icon: UserCheck, href: "/classes" },
+            { label: "Halqas Coraniques", labelAr: "الحلقات القرآنيّة", icon: BookOpen, href: "/classes" },
+            { label: "Oustazs", labelAr: "المشايخ", icon: UserCheck, href: "/oustazs" },
             { label: "Présences & Halqas", labelAr: "الحضور والتأخير", icon: CalendarCheck, href: "/attendance" },
         ]
     },

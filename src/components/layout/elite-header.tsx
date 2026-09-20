@@ -16,33 +16,33 @@ export function EliteHeader() {
     const isDaara = activeSpace === "daara";
 
     return (
-        <header className="sticky top-0 z-40 w-full bg-black/90 backdrop-blur-md border-b border-white/10 px-3 md:px-8 py-2 md:py-3 transition-all duration-300">
-            <div className="flex items-center justify-between gap-2 md:gap-8 h-full max-w-[1600px] mx-auto">
+        <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-4 md:px-8 py-3 transition-all duration-300">
+            <div className="flex items-center justify-between gap-4 h-full max-w-[1600px] mx-auto">
                 
-                <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                <div className="flex items-center gap-4 shrink-0">
                     {/* --- DYNAMIC BRANDING LOGO & TITLE --- */}
                     <div className="flex items-center gap-3 shrink-0">
-                        <div className="h-10 md:h-12 flex items-center overflow-hidden">
+                        <div className="h-10 md:h-11 flex items-center overflow-hidden">
                             <img 
                                 src={isDaara ? "/logo-daara-ibnoul-khayim.png" : "/logo-pathe-pogne.png"} 
                                 alt={isDaara ? "Daara Ibnoul Khayim Al Diawziya" : "École Franco-Arabe Pathé Pogne"} 
-                                className="h-10 md:h-12 w-auto object-contain rounded-lg drop-shadow-md transition-all duration-300" 
+                                className="h-9 md:h-10 w-auto object-contain rounded-lg transition-all duration-300" 
                             />
                         </div>
-                        <div className="hidden lg:flex flex-col border-l border-white/20 pl-3">
-                            <span className="text-xs font-black uppercase tracking-tight text-[#D4AF37] leading-tight">
+                        <div className="hidden lg:flex flex-col border-l border-slate-200 dark:border-slate-800 pl-3">
+                            <span className="text-xs font-black uppercase tracking-tight text-emerald-700 dark:text-emerald-400 leading-tight">
                                 {isDaara ? "École Ibnoul Khayim Al Jawziya" : "École Franco-Arabe Pathé Pogne"}
                             </span>
-                            <span className="text-[9px] font-bold text-emerald-400 font-serif dir-rtl leading-tight">
+                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 font-arabic dir-rtl leading-tight">
                                 {isDaara ? "مدرسة ابن القيم الجوزية" : "المدرسة العربية الفرنسية PATHÉ POGNE"}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                {/* --- READ-ONLY SPACE BADGE (SELECTION FAITE A LA CONNEXION) --- */}
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-bold shrink-0">
-                    <span className={isDaara ? "text-emerald-400" : "text-amber-400"}>
+                {/* --- READ-ONLY SPACE BADGE --- */}
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold shrink-0">
+                    <span className={isDaara ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"}>
                         {isDaara ? "🕌 Espace Daara Ibnoul Khayim" : "🎓 Espace École Pathé Pogne"}
                     </span>
                 </div>
@@ -53,13 +53,13 @@ export function EliteHeader() {
                 </div>
 
                 {/* --- PROFILE & MENU --- */}
-                <div className="flex items-center gap-1.5 md:gap-4 shrink-0">
+                <div className="flex items-center gap-2 md:gap-4 shrink-0">
                     <UserMenu />
 
                     {/* --- MOBILE MENU TRIGGER --- */}
                     <button 
                         onClick={() => setMobileOpen(true)}
-                        className="md:hidden p-2.5 rounded-xl bg-white/5 border border-white/10 text-muted-foreground hover:text-emerald-400 transition-all active:scale-95 shrink-0 ml-1"
+                        className="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-all active:scale-95 shrink-0"
                     >
                         <Menu className="w-5 h-5" />
                     </button>

@@ -26,8 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         pathname === "/en" || 
         pathname.includes("/login") || 
         pathname.includes("/sos-disparus") || 
-        pathname.includes("/daaras") || 
-        pathname.includes("/oustazs");
+        pathname.includes("/daaras");
 
     if (isPublicPage) {
         return (
@@ -40,10 +39,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         );
     }
 
-    // Calcul de la marge pour la Sidebar (Marge à DROITE en Arabe RTL, Marge à GAUCHE en Français LTR)
-    const sidebarPaddingClass = isAr
-        ? (collapsed ? "md:pr-20 md:pl-0" : "md:pr-64 md:pl-0")
-        : (collapsed ? "md:pl-20 md:pr-0" : "md:pl-64 md:pr-0");
+    // Marge fixe à DROITE pour la Sidebar positionnée à droite (RTL Daara)
+    const sidebarPaddingClass = collapsed ? "md:pr-20 md:pl-0" : "md:pr-64 md:pl-0";
 
     return (
         <div className="flex flex-col md:flex-row min-h-screen relative overflow-x-hidden bg-[#FAFAF7] selection:bg-[#0C5A34] selection:text-white">
@@ -62,7 +59,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             {/* Zone de contenu principal — Ajustement dynamique du rembourrage LTR / RTL */}
             <main className={cn(
-                "flex-1 relative flex flex-col pt-3 md:pt-6 pb-20 md:pb-10 w-full max-w-full min-w-0 overflow-x-hidden min-h-screen transition-all duration-300",
+                "flex-1 relative flex flex-col pt-16 md:pt-6 pb-24 md:pb-10 w-full max-w-full min-w-0 overflow-x-hidden min-h-screen transition-all duration-300",
                 sidebarPaddingClass
             )}>
                 <div className="flex-1 px-3 sm:px-6 md:px-8 pb-10 flex flex-col max-w-7xl w-full min-w-0 mx-auto">

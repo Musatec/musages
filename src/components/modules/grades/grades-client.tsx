@@ -62,7 +62,8 @@ const ReportCard = ({ data, schoolName, reportClass }: { data: any, schoolName: 
       </div>
 
       {/* Grades Table */}
-      <table className="w-full text-left border-collapse border border-black mb-4 text-[11px]">
+      <div className="w-full overflow-x-auto touch-pan-x">
+        <table className="w-full min-w-[500px] text-left border-collapse border border-black mb-4 text-[11px]">
         <thead>
           <tr className="bg-gray-100">
             <th className="border border-black p-1.5 font-bold">Domaine/Matière composée</th>
@@ -98,6 +99,7 @@ const ReportCard = ({ data, schoolName, reportClass }: { data: any, schoolName: 
           ))}
         </tbody>
       </table>
+      </div>
 
       {/* Footer Stats */}
       <div className="grid grid-cols-3 gap-2 border border-black p-2 mb-6 font-bold text-[11px]">
@@ -125,12 +127,18 @@ const ReportCard = ({ data, schoolName, reportClass }: { data: any, schoolName: 
   );
 };
 
+import { useSpace } from "@/components/providers/space-provider";
+
 export function GradesClient({ 
   classes, 
   subjects, 
   recentGrades: initialRecentGrades,
-  schoolName
+  schoolName: rawSchoolName
 }: GradesClientProps) {
+  const { activeSpace } = useSpace();
+  const isSchool = activeSpace === "school";
+  const schoolName = isSchool ? "École Franco-Arabe Pathé Pogne" : rawSchoolName;
+
   const [activeTab, setActiveTab] = useState<"SAISIE" | "BULLETINS" | "RAPPORTS">("SAISIE");
   const [recentGrades, setRecentGrades] = useState(initialRecentGrades);
   
@@ -313,8 +321,8 @@ export function GradesClient({
 
           <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden">
             {/* Vue Desktop: Table */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <div className="hidden md:block overflow-x-auto touch-pan-x">
+              <table className="w-full min-w-[600px] text-left text-sm">
                 <thead className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wider">
                   <tr>
                     <th className="px-6 py-4 font-semibold">Élève</th>
@@ -600,7 +608,8 @@ export function GradesClient({
                         </p>
                       </div>
 
-                      <table className="w-full text-center border-collapse border border-black mb-8 text-sm">
+                      <div className="w-full overflow-x-auto touch-pan-x">
+                        <table className="w-full min-w-[650px] text-center border-collapse border border-black mb-8 text-sm">
                         <thead>
                           <tr className="bg-gray-100">
                             <th className="border border-black p-2 font-bold w-12">N°</th>
@@ -635,6 +644,7 @@ export function GradesClient({
                           ))}
                         </tbody>
                       </table>
+                      </div>
                     </>
                   ) : (
                     <>
@@ -645,7 +655,8 @@ export function GradesClient({
                       </div>
 
                       <h2 className="text-lg font-black uppercase mb-4 flex items-center gap-2">A. Synthèse des résultats</h2>
-                      <table className="w-full text-center border-collapse border border-black mb-8 text-sm">
+                      <div className="w-full overflow-x-auto touch-pan-x">
+                        <table className="w-full min-w-[600px] text-center border-collapse border border-black mb-8 text-sm">
                         <thead>
                           <tr className="bg-gray-100">
                             <th className="border border-black p-2 font-bold" rowSpan={2}>Sexe</th>
@@ -672,9 +683,11 @@ export function GradesClient({
                           ))}
                         </tbody>
                       </table>
+                      </div>
 
                       <h2 className="text-lg font-black uppercase mb-4 flex items-center gap-2 mt-12">B. Taux de réussite des élèves par discipline</h2>
-                      <table className="w-full text-center border-collapse border border-black text-xs">
+                      <div className="w-full overflow-x-auto touch-pan-x">
+                        <table className="w-full min-w-[600px] text-center border-collapse border border-black text-xs">
                         <thead>
                           <tr className="bg-gray-100">
                             <th className="border border-black p-2 font-bold" rowSpan={2}>DISCIPLINES</th>
@@ -707,6 +720,7 @@ export function GradesClient({
                           ))}
                         </tbody>
                       </table>
+                      </div>
                     </>
                   )}
                 </motion.div>

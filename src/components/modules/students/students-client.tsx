@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Users, 
   Search, 
@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useSpace } from "@/components/providers/space-provider";
 import { useLocale, useTranslations } from "next-intl";
 
 interface StudentsClientProps {
@@ -25,13 +26,29 @@ interface StudentsClientProps {
   students: any[];
 }
 
+const MOCK_SCHOOL_STUDENTS = [
+  { id: "sch_s1", matricule: "EPP-2026-0001", firstName: "Mouhamed", lastName: "Faye", gender: "M", status: "EXTERNE", class: { name: "Classe CM2 Bilingue" }, parentName: "Moussa Faye", parentPhone: "+221 77 111 22 33" },
+  { id: "sch_s2", matricule: "EPP-2026-0002", firstName: "Awa", lastName: "Diouf", gender: "F", status: "DEMI_PENSION", class: { name: "Classe CM1" }, parentName: "Ousmane Diouf", parentPhone: "+221 77 222 33 44" },
+  { id: "sch_s3", matricule: "EPP-2026-0003", firstName: "Ibrahima", lastName: "Ba", gender: "M", status: "EXTERNE", class: { name: "Classe CE2" }, parentName: "Amadou Ba", parentPhone: "+221 77 333 44 55" },
+  { id: "sch_s4", matricule: "EPP-2026-0004", firstName: "Mariama", lastName: "Kante", gender: "F", status: "EXTERNE", class: { name: "Classe CE1" }, parentName: "Saliou Kante", parentPhone: "+221 77 444 55 66" },
+  { id: "sch_s5", matricule: "EPP-2026-0005", firstName: "Babacar", lastName: "Seck", gender: "M", status: "DEMI_PENSION", class: { name: "Classe CP" }, parentName: "Modou Seck", parentPhone: "+221 77 555 66 77" },
+  { id: "sch_s6", matricule: "EPP-2026-0006", firstName: "Khadija", lastName: "Cissé", gender: "F", status: "EXTERNE", class: { name: "Classe CI (Initiation)" }, parentName: "Abdoulaye Cissé", parentPhone: "+221 77 666 77 88" },
+];
+
 export function StudentsClient({ classes, students: initialStudents }: StudentsClientProps) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const t = useTranslations("Talibes");
   const tCommon = useTranslations("Common");
+  const { activeSpace } = useSpace();
+  const isSchool = activeSpace === "school";
 
-  const [students, setStudents] = useState<any[]>(initialStudents);
+  const [students, setStudents] = useState<any[]>(isSchool ? MOCK_SCHOOL_STUDENTS : initialStudents);
+
+  useEffect(() => {
+    setStudents(isSchool ? MOCK_SCHOOL_STUDENTS : initialStudents);
+  }, [isSchool, initialStudents]);
+
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("");
   const [selectedYear, setSelectedYear] = useState("2026-2027");
@@ -46,7 +63,7 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
     lastName: "",
     gender: "M",
     classId: "",
-    status: "INTERNE",
+    status: "EXTERNE",
     healthNotes: "",
     parentName: "",
     parentPhone: "",
@@ -91,13 +108,13 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, `Effectif_${selectedYear}`);
-    XLSX.writeFile(wb, `effectif_daara_${selectedYear}.xlsx`);
+    XLSX.writeFile(wb, `effectif_${isSchool ? 'ecole_pathe_pogne' : 'daara'}_${selectedYear}.xlsx`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.firstName || !formData.lastName) {
-      toast.error(isAr ? "الاسم الأول واسم العائلة مطلوبان." : "Le prénom et le nom du Talibé sont obligatoires.");
+      toast.error(isAr ? "الاسم الأول واسم العائلة مطلوبان." : "Le prénom et le nom de l'élève sont obligatoires.");
       return;
     }
 
@@ -112,7 +129,7 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
     if (res.error) {
       toast.error(res.error);
     } else {
-      toast.success(isAr ? "تم تسجيل الطالب بنجاح! 🎉" : "Talibé inscrit avec succès au Daara ! 🎉");
+      toast.success(isAr ? "تم تسجيل الطالب بنجاح! 🎉" : (isSchool ? "Élève inscrit avec succès à l'École Pathé Pogne ! 🎉" : "Talibé inscrit avec succès au Daara ! 🎉"));
       setShowAddModal(false);
       const newStudent = (res as any).talibe || (res as any).student;
       if (newStudent) {
@@ -123,7 +140,7 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
         lastName: "",
         gender: "M",
         classId: "",
-        status: "INTERNE",
+        status: isSchool ? "EXTERNE" : "INTERNE",
         healthNotes: "",
         parentName: "",
         parentPhone: "",
@@ -134,20 +151,35 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
 
   return (
     <div className="space-y-6">
-      {/* Header Banner - Contrast Fix (text-white) */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 p-6 md:p-8 text-white border border-emerald-500/20 shadow-xl">
+      {/* Header Banner */}
+      <div className={cn(
+        "relative overflow-hidden rounded-3xl p-6 md:p-8 text-white shadow-xl border",
+        isSchool 
+          ? "bg-gradient-to-r from-amber-950 via-amber-900 to-yellow-900 border-amber-500/30" 
+          : "bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 border-emerald-500/20"
+      )}>
         <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
-          <Users className="w-96 h-96 text-emerald-400" />
+          <Users className={cn("w-96 h-96", isSchool ? "text-amber-400" : "text-emerald-400")} />
         </div>
         <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex max-w-full flex-wrap items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-extrabold uppercase tracking-wider">
-            <Sparkles className="w-4 h-4 text-emerald-400" /> {isAr ? "سجل الطلاب العام" : "Effectif Général & Registre des Talibés"}
+          <div className={cn(
+            "inline-flex max-w-full flex-wrap items-center gap-2 px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider border",
+            isSchool 
+              ? "bg-amber-500/20 border-amber-500/30 text-amber-200" 
+              : "bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
+          )}>
+            <Sparkles className={cn("w-4 h-4", isSchool ? "text-amber-400" : "text-emerald-400")} /> 
+            {isSchool 
+              ? (isAr ? "سجل التلاميذ • مدرسة باثي بوني" : "Effectif Général • École Pathé Pogne (CI - CM2)")
+              : (isAr ? "سجل الطلاب العام" : "Effectif Général & Registre des Talibés")}
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
-            {t("title")}
+            {isSchool ? (isAr ? "سجل التلاميذ والإمكانيات" : "Effectif Général des Élèves") : t("title")}
           </h1>
-          <p className="text-emerald-100/90 text-sm md:text-base leading-relaxed">
-            {t("subtitle")}
+          <p className={cn("text-sm md:text-base leading-relaxed", isSchool ? "text-amber-100/90" : "text-emerald-100/90")}>
+            {isSchool 
+              ? "Registre général des élèves de l'École Franco-Arabe Pathé Pogne, gestion des classes et suivi des informations de contact des parents."
+              : t("subtitle")}
           </p>
         </div>
       </div>
@@ -377,33 +409,52 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
         </div>
       </div>
 
-      {/* Talibes Table */}
-      <Card className="border border-border shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-muted/60 text-muted-foreground text-xs uppercase tracking-wider">
+      {/* Talibes / Eleves Table with Space-Specific Design */}
+      <Card className={cn(
+        "border shadow-sm overflow-hidden transition-colors duration-300",
+        isSchool ? "border-amber-500/30 bg-card" : "border-emerald-500/20 bg-card"
+      )}>
+        <div className="overflow-x-auto touch-pan-x">
+          <table className="w-full min-w-[700px] text-left text-sm">
+            <thead className={cn(
+              "text-xs uppercase tracking-wider font-extrabold border-b",
+              isSchool 
+                ? "bg-amber-100 dark:bg-amber-950/60 text-amber-950 dark:text-amber-200 border-amber-300 dark:border-amber-800 border-t-4 border-t-amber-600" 
+                : "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-950 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800 border-t-4 border-t-emerald-600"
+            )}>
               <tr>
-                <th className="px-6 py-3.5 font-bold">{t("matricule")}</th>
-                <th className="px-6 py-3.5 font-bold">{t("fullname")}</th>
+                <th className="px-6 py-3.5 font-bold">{isSchool ? "Matricule Écolier" : t("matricule")}</th>
+                <th className="px-6 py-3.5 font-bold">{isSchool ? "Nom & Prénom Élève" : t("fullname")}</th>
                 <th className="px-6 py-3.5 font-bold">{t("gender")}</th>
-                <th className="px-6 py-3.5 font-bold">{t("regime")}</th>
-                <th className="px-6 py-3.5 font-bold">{t("halqa")}</th>
-                <th className="px-6 py-3.5 font-bold">{t("parent_contact")}</th>
+                <th className="px-6 py-3.5 font-bold">{isSchool ? "Régime d'Écolage" : t("regime")}</th>
+                <th className="px-6 py-3.5 font-bold">{isSchool ? "Classe Bilingue (CI-CM2)" : t("halqa")}</th>
+                <th className="px-6 py-3.5 font-bold">{isSchool ? "Parent & Contact WhatsApp" : t("parent_contact")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/60">
               {filteredStudents.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-12 text-muted-foreground">
                     <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p className="text-sm font-bold">{isAr ? "لا يوجد طالب يطابق معايير البحث." : "Aucun Talibé ne correspond aux critères sélectionnés."}</p>
+                    <p className="text-sm font-bold">
+                      {isSchool 
+                        ? (isAr ? "لا يوجد تلميذ يطابق معايير البحث." : "Aucun élève ne correspond aux critères sélectionnés.")
+                        : (isAr ? "لا يوجد طالب يطابق معايير البحث." : "Aucun Talibé ne correspond aux critères sélectionnés.")}
+                    </p>
                   </td>
                 </tr>
               ) : (
                 filteredStudents.map((s) => (
-                  <tr key={s.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4 font-mono text-xs font-bold text-emerald-600">
-                      {s.matricule}
+                  <tr key={s.id} className={cn("transition-colors", isSchool ? "hover:bg-amber-500/5" : "hover:bg-emerald-500/5")}>
+                    <td className="px-6 py-4">
+                      <span className={cn(
+                        "px-2.5 py-1 rounded-md font-mono text-xs font-bold border",
+                        isSchool 
+                          ? "bg-amber-100 dark:bg-amber-950/50 text-amber-950 dark:text-amber-200 border-amber-300 dark:border-amber-700" 
+                          : "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700"
+                      )}>
+                        {s.matricule || `EPP-2026-${String(s.id).slice(-4)}`}
+                      </span>
                     </td>
                     <td className="px-6 py-4 font-bold text-foreground">
                       {s.firstName} {s.lastName}
@@ -421,16 +472,24 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
                         s.status === "DEMI_PENSION" ? "bg-purple-500/10 text-purple-600 border-purple-500/30 font-bold" :
                         "bg-teal-500/10 text-teal-600 border-teal-500/30 font-bold"
                       }>
-                        {s.status === "INTERNE" ? t("interne") : s.status === "DEMI_PENSION" ? t("demi_pension") : t("externe")}
+                        {s.status === "INTERNE" ? (isSchool ? "Pensionnaire" : t("interne")) : s.status === "DEMI_PENSION" ? t("demi_pension") : t("externe")}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-xs font-bold text-muted-foreground">
-                      {s.halqa?.name || s.class?.name || (isAr ? "الحلقة العامة" : "Halqa Général")}
+                      <span className={cn(
+                        "px-2 py-0.5 rounded-md text-[11px] font-bold border",
+                        isSchool ? "bg-amber-950/30 text-amber-300 border-amber-500/20" : "bg-emerald-950/30 text-emerald-300 border-emerald-500/20"
+                      )}>
+                        {s.class?.name || s.halqa?.name || (isSchool ? "Classe Primaire" : "Halqa Général")}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-xs">
                       <p className="font-bold text-foreground">{s.parentName || "Non renseigné"}</p>
                       {s.parentPhone && (
-                        <span className="font-mono text-emerald-600 flex items-center gap-1 mt-0.5 font-semibold">
+                        <span className={cn(
+                          "font-mono flex items-center gap-1 mt-0.5 font-semibold",
+                          isSchool ? "text-amber-500" : "text-emerald-600"
+                        )}>
                           <Phone className="w-3 h-3" /> {s.parentPhone}
                         </span>
                       )}

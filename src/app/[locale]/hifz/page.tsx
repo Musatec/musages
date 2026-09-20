@@ -19,7 +19,30 @@ export default async function HifzPage({
 
   const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
 
-  // Fetch all Talibes with their latest HifzProgress records
+  // Fetch Daara info
+  const daara = await prisma.daara.findUnique({
+    where: { id: daaraId }
+  });
+
+  // Fetch all Halqas with their Talibes
+  const halqas = await prisma.halqa.findMany({
+    where: { daaraId },
+    orderBy: { name: "asc" },
+    include: {
+      talibes: {
+        where: { deletedAt: null },
+        include: {
+          hifzRecords: {
+            orderBy: { date: "desc" },
+            take: 1
+          }
+        },
+        orderBy: [{ lastName: "asc" }, { firstName: "asc" }]
+      }
+    }
+  });
+
+  // Fetch all Talibes
   const talibes = await prisma.talibe.findMany({
     where: { daaraId, deletedAt: null },
     include: {
@@ -29,7 +52,7 @@ export default async function HifzPage({
         take: 1
       }
     },
-    orderBy: { lastName: "asc" }
+    orderBy: [{ lastName: "asc" }, { firstName: "asc" }]
   });
 
   const formattedTalibes: TalibeHifzItem[] = talibes.map((t) => {
@@ -40,7 +63,10 @@ export default async function HifzPage({
 
     return {
       id: t.id,
+      halqaId: t.halqaId || undefined,
       matricule: t.matricule,
+      firstName: t.firstName,
+      lastName: t.lastName,
       name: `${t.firstName} ${t.lastName}`,
       halqa: t.halqa?.name || "Halqa Générale",
       hizbValidated,
@@ -53,7 +79,11 @@ export default async function HifzPage({
 
   return (
     <div className="space-y-6 w-full max-w-full">
-      <HifzTracker initialTalibes={formattedTalibes} />
+      <HifzTracker 
+        daaraName={daara?.name || "مدرسة ابن القيم الجوزية لتحفيظ القرآن الكريم والدراسات الإسلامية"}
+        halqas={halqas as any}
+        initialTalibes={formattedTalibes} 
+      />
     </div>
   );
 }

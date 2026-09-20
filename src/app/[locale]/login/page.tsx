@@ -9,12 +9,10 @@ import {
   Mail, 
   ArrowRight, 
   User,
-  CheckCircle2,
-  Zap,
   Eye,
   EyeOff,
-  Sparkles,
-  ShieldCheck
+  BookOpen,
+  GraduationCap
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -87,7 +85,6 @@ export default function LoginPage() {
                 redirect: false,
             });
 
-            // Auto-création si utilisateur démo non présent dans la BD
             if (loginRes?.error) {
                 if (targetEmail === "admin@taleem.app" || targetEmail === "directeur@pathepogne.sn") {
                     await register({
@@ -119,150 +116,88 @@ export default function LoginPage() {
         }
     };
 
-    const handleQuickDemoLogin = async (target: "daara" | "school") => {
-        setIsSignUp(false);
-        setError(null);
-        
-        let demoEmail = "admin@taleem.app";
-        let demoPassword = "password123";
-
-        if (target === "daara") {
-            setActiveSpace("daara");
-            setEmail(demoEmail);
-            setPassword(demoPassword);
-            toast.info("Connexion automatique Espace Daara en cours...");
-        } else {
-            setActiveSpace("school");
-            demoEmail = "directeur@pathepogne.sn";
-            setEmail(demoEmail);
-            setPassword(demoPassword);
-            toast.info("Connexion automatique École Pathé Pogne en cours...");
-        }
-
-        await handleAuth(undefined, demoEmail, demoPassword);
-    };
-
     return (
-        <div className={`min-h-screen w-full text-white flex flex-col justify-between p-4 sm:p-6 md:p-8 font-sans selection:bg-emerald-500 selection:text-black relative overflow-hidden transition-colors duration-700 ${
-            isDaara ? "bg-[#030A14]" : "bg-[#0A0703]"
-        }`}>
+        <div className="w-full min-h-screen md:h-screen md:overflow-hidden bg-slate-950 text-slate-100 flex flex-col md:flex-row selection:bg-emerald-500 selection:text-black">
             
-            {/* AMBIENT GLOW EFFECTS */}
-            <div className={`absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[140px] pointer-events-none transition-all duration-700 ${
-                isDaara ? "bg-emerald-600/20" : "bg-amber-600/20"
-            }`} />
-            <div className={`absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[140px] pointer-events-none transition-all duration-700 ${
-                isDaara ? "bg-teal-500/15" : "bg-yellow-600/15"
-            }`} />
+            {/* LEFT PANEL: FORM & AUTH (Desktop 5 cols / 6 cols) */}
+            <div className={`w-full md:w-1/2 lg:w-5/12 flex flex-col justify-between p-6 sm:p-8 lg:p-10 relative z-10 transition-colors duration-700 overflow-y-auto ${
+                isDaara ? "bg-[#040d09]" : "bg-[#0c0904]"
+            }`}>
+                
+                {/* Header Link */}
+                <div className="flex items-center justify-between pb-4">
+                    <Link href="/" className="flex items-center gap-2.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-full">
+                        <span>←</span>
+                        <span>Retour à l'Accueil</span>
+                    </Link>
 
-            {/* HEADER COMPACT & ELEGANT */}
-            <header className="relative z-10 w-full max-w-5xl mx-auto flex items-center justify-between pb-4 border-b border-white/10">
-                <Link href="/" className="flex items-center gap-3 group">
-                    <div className="relative">
+                    {/* Mobile Logo Only */}
+                    <div className="md:hidden flex items-center gap-2">
                         <img 
                             src={isDaara ? "/logo-daara-ibnoul-khayim.png" : "/logo-pathe-pogne.png"} 
-                            alt={isDaara ? "Daara Ibnoul Khayim" : "École Pathé Pogne"} 
-                            className="h-11 sm:h-13 w-auto object-contain shrink-0 rounded-xl drop-shadow-xl transition-all duration-300 group-hover:scale-105" 
+                            alt="Logo" 
+                            className="h-7 w-auto object-contain" 
                         />
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-xs sm:text-sm font-black text-[#D4AF37] uppercase tracking-wider">
-                            {isDaara ? "École Ibnoul Khayim Al Jawziya" : "École Franco-Arabe Pathé Pogne"}
-                        </span>
-                        <span className="text-[10px] font-bold text-emerald-400 font-serif dir-rtl opacity-90">
-                            {isDaara ? "مدرسة ابن القيم الجوزية" : "المدرسة العربية الفرنسية PATHÉ POGNE"}
+                        <span className="text-xs font-bold text-amber-300">
+                            {isDaara ? "Daara Ibnoul Khayim" : "Pathé Pogne"}
                         </span>
                     </div>
-                </Link>
-
-                <Link href="/" className="text-xs font-bold text-slate-300 hover:text-white transition-colors bg-white/5 border border-white/10 px-4 py-2 rounded-full hover:bg-white/10 flex items-center gap-1.5 shadow-sm">
-                    ← <span className="hidden sm:inline">Retour à</span> l'Accueil
-                </Link>
-            </header>
-
-            {/* MAIN FORM CARD */}
-            <main className="relative z-10 w-full max-w-md sm:max-w-lg mx-auto flex-1 flex flex-col items-center justify-center py-6 sm:py-10">
-                
-                {/* 1. ESPACE SELECTOR TABS */}
-                <div className="w-full grid grid-cols-2 gap-3 mb-6 p-1.5 bg-slate-950/70 border border-white/10 rounded-2xl backdrop-blur-xl shadow-xl">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setActiveSpace("daara");
-                            if (email === "directeur@pathepogne.sn") setEmail("admin@taleem.app");
-                        }}
-                        className={`relative flex items-center justify-center gap-2.5 p-3 rounded-xl border transition-all duration-300 text-center ${
-                            isDaara
-                                ? "bg-gradient-to-r from-emerald-950 to-teal-900 border-emerald-500/80 shadow-lg shadow-emerald-950/80 text-white font-extrabold"
-                                : "border-transparent text-slate-400 hover:text-white hover:bg-white/5 font-medium"
-                        }`}
-                    >
-                        <img src="/logo-daara-ibnoul-khayim.png" alt="Daara" className="h-6 w-6 object-contain shrink-0" />
-                        <div className="flex flex-col text-left">
-                            <span className="text-xs font-black leading-tight">Espace Daara</span>
-                            <span className="text-[9px] text-emerald-300 font-medium opacity-90">60 Hizbs</span>
-                        </div>
-                        {isDaara && (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400 ml-auto shrink-0" />
-                        )}
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setActiveSpace("school");
-                            if (email === "admin@taleem.app") setEmail("directeur@pathepogne.sn");
-                        }}
-                        className={`relative flex items-center justify-center gap-2.5 p-3 rounded-xl border transition-all duration-300 text-center ${
-                            !isDaara
-                                ? "bg-gradient-to-r from-amber-950 to-yellow-900 border-amber-500/80 shadow-lg shadow-amber-950/80 text-white font-extrabold"
-                                : "border-transparent text-slate-400 hover:text-white hover:bg-white/5 font-medium"
-                        }`}
-                    >
-                        <img src="/logo-pathe-pogne.png" alt="École Pathé Pogne" className="h-6 w-6 object-contain shrink-0" />
-                        <div className="flex flex-col text-left">
-                            <span className="text-xs font-black leading-tight">École Pathé Pogne</span>
-                            <span className="text-[9px] text-amber-300 font-medium opacity-90">Franco-Arabe</span>
-                        </div>
-                        {!isDaara && (
-                            <CheckCircle2 className="w-4 h-4 text-amber-400 ml-auto shrink-0" />
-                        )}
-                    </button>
                 </div>
 
-                {/* 2. MAIN CARD FORM */}
-                <div className={`w-full bg-slate-900/85 border rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-2xl space-y-6 transition-all duration-500 ${
-                    isDaara ? "border-emerald-500/30 shadow-emerald-950/50" : "border-amber-500/30 shadow-amber-950/50"
-                }`}>
+                {/* Form Container */}
+                <div className="my-auto py-4 space-y-5 max-w-sm w-full mx-auto">
                     
-                    {/* CARD TITLE & SPACE BADGE */}
-                    <div className="text-center space-y-2">
-                        <div className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                            isDaara 
-                                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300" 
-                                : "bg-amber-500/10 border-amber-500/30 text-amber-300"
-                        }`}>
-                            <Sparkles className="w-3.5 h-3.5" />
-                            {isDaara ? "🕌 Espace Daara Ibnoul Khayim" : "🎓 Espace École Franco-Arabe Pathé Pogne"}
-                        </div>
-                        <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                            {isSignUp ? "Créer un Établissement" : "Portail de Connexion"}
+                    {/* Space Switcher Segmented Control */}
+                    <div className="p-1.5 bg-slate-950 border border-white/10 rounded-2xl grid grid-cols-2 gap-2 shadow-inner">
+                        <button
+                            type="button"
+                            onClick={() => setActiveSpace("daara")}
+                            className={`flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-xl transition-all duration-300 ${
+                                isDaara
+                                    ? "bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 border border-emerald-500/60 text-white shadow-md shadow-emerald-950/60"
+                                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                            }`}
+                        >
+                            <BookOpen className="w-4 h-4 text-emerald-400 shrink-0" />
+                            <div className="flex flex-col text-left">
+                                <span className="text-xs sm:text-sm font-bold leading-tight">Espace Daara</span>
+                                <span className="text-[11px] font-medium text-emerald-300/90 leading-none">Gestion Coranique</span>
+                            </div>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setActiveSpace("school")}
+                            className={`flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-xl transition-all duration-300 ${
+                                !isDaara
+                                    ? "bg-gradient-to-r from-amber-950 via-yellow-950 to-amber-900 border border-amber-500/60 text-white shadow-md shadow-amber-950/60"
+                                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                            }`}
+                        >
+                            <GraduationCap className="w-4 h-4 text-amber-400 shrink-0" />
+                            <div className="flex flex-col text-left">
+                                <span className="text-xs sm:text-sm font-bold leading-tight">Pathé Pogne</span>
+                                <span className="text-[11px] font-medium text-amber-300/90 leading-none">Franco-Arabe</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* Title */}
+                    <div className="space-y-1">
+                        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                            {isSignUp ? "Créer un Établissement" : "Connexion au Portail"}
                         </h1>
-                        <p className="text-xs text-slate-300 font-medium max-w-sm mx-auto">
-                            {isSignUp 
-                                ? "Configurez votre accès de direction et gérez votre établissement" 
-                                : isDaara 
-                                    ? "Accès sécurisé à la gestion coranique & Hifz 60 Hizbs" 
-                                    : "Accès au portail de direction de l'École Franco-Arabe"}
+                        <p className="text-xs sm:text-sm text-slate-300 font-medium">
+                            {isDaara ? "Accès sécurisé à la gestion coranique & Hifz 60 Hizbs" : "Accès au portail de direction de l'École Franco-Arabe"}
                         </p>
                     </div>
 
-                    {/* GOOGLE SIGN IN */}
+                    {/* Google OAuth Button */}
                     <button
                         type="button"
                         onClick={handleGoogleAuth}
                         disabled={loading || googleLoading}
-                        className="w-full bg-slate-800/80 hover:bg-slate-800 text-white font-bold text-xs h-12 rounded-2xl border border-slate-700/80 transition-all flex items-center justify-center gap-3 shadow-md hover:border-slate-500 active:scale-[0.98]"
+                        className="w-full bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-semibold text-xs sm:text-sm h-11 rounded-xl border border-slate-800 transition-all flex items-center justify-center gap-3 shadow-sm active:scale-[0.99]"
                     >
                         {googleLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin text-emerald-400" />
@@ -279,29 +214,30 @@ export default function LoginPage() {
                         )}
                     </button>
 
-                    <div className="relative flex items-center justify-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    {/* Divider */}
+                    <div className="relative flex items-center justify-center text-[10px] font-bold text-slate-500 uppercase tracking-widest my-1">
                         <div className="w-full border-t border-slate-800" />
-                        <span className="bg-slate-900 px-3 absolute text-slate-400">OU PAR EMAIL</span>
+                        <span className="bg-[#040d09] px-3 absolute text-slate-500">OU PAR EMAIL</span>
                     </div>
 
-                    {/* CREDENTIALS FORM */}
-                    <form onSubmit={handleAuth} className="space-y-4">
+                    {/* Credentials Form */}
+                    <form onSubmit={handleAuth} className="space-y-3.5">
                         <AnimatePresence mode="wait">
                             {isSignUp && (
                                 <motion.div 
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: "auto" }}
                                     exit={{ opacity: 0, height: 0 }}
-                                    className="space-y-1.5"
+                                    className="space-y-1"
                                 >
-                                    <label className="text-xs font-bold text-slate-200">Nom Complet du Responsable</label>
+                                    <label className="text-xs font-semibold text-slate-300">Nom Complet du Responsable</label>
                                     <div className="relative">
                                         <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                         <input
                                             type="text"
                                             required
-                                            placeholder="Ex: Directeur Pathé Pogne"
-                                            className="w-full bg-slate-950/80 border border-slate-700/80 rounded-2xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none font-medium text-xs transition-all"
+                                            placeholder="Ex: Responsable Établissement"
+                                            className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none font-medium text-xs sm:text-sm transition-all"
                                             value={fullName}
                                             onChange={(e) => setFullName(e.target.value)}
                                         />
@@ -310,32 +246,30 @@ export default function LoginPage() {
                             )}
                         </AnimatePresence>
 
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-slate-200">Adresse Email Professionnelle</label>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-slate-300">Adresse Email Professionnelle</label>
                             <div className="relative">
                                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <input
                                     type="email"
                                     required
-                                    placeholder={isDaara ? "admin@taleem.app" : "directeur@pathepogne.sn"}
-                                    className="w-full bg-slate-950/80 border border-slate-700/80 rounded-2xl pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none font-medium text-xs transition-all"
+                                    placeholder="votre@email.com"
+                                    className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none font-medium text-xs sm:text-sm transition-all"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                            <div className="flex items-center justify-between">
-                                <label className="text-xs font-bold text-slate-200">Mot de Passe</label>
-                            </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-slate-300">Mot de Passe</label>
                             <div className="relative">
                                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     required
                                     placeholder="••••••••••••"
-                                    className="w-full bg-slate-950/80 border border-slate-700/80 rounded-2xl pl-10 pr-10 py-3 text-white placeholder:text-slate-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none font-medium text-xs transition-all"
+                                    className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-10 py-2.5 text-white placeholder:text-slate-600 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none font-medium text-xs sm:text-sm transition-all"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
@@ -353,7 +287,7 @@ export default function LoginPage() {
                             <motion.div 
                                 initial={{ opacity: 0, y: -5 }} 
                                 animate={{ opacity: 1, y: 0 }}
-                                className="p-3 bg-red-500/15 border border-red-500/30 rounded-2xl text-red-300 text-xs font-bold text-center"
+                                className="p-2.5 bg-red-500/15 border border-red-500/30 rounded-xl text-red-300 text-xs font-semibold text-center"
                             >
                                 {error}
                             </motion.div>
@@ -362,14 +296,14 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading || googleLoading}
-                            className={`w-full text-black font-black text-xs uppercase tracking-widest h-12 rounded-2xl transition-all shadow-xl active:scale-[0.98] flex items-center justify-center gap-2 mt-2 ${
+                            className={`w-full text-slate-950 font-extrabold text-xs uppercase tracking-wider h-11 rounded-xl transition-all shadow-lg active:scale-[0.99] flex items-center justify-center gap-2 mt-2 ${
                                 isDaara 
-                                    ? "bg-emerald-400 hover:bg-emerald-300 shadow-emerald-500/20" 
-                                    : "bg-amber-400 hover:bg-amber-300 shadow-amber-500/20"
+                                    ? "bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-400 hover:from-emerald-300 hover:to-teal-300 shadow-emerald-950/50" 
+                                    : "bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 hover:from-amber-300 hover:to-yellow-300 shadow-amber-950/50"
                             }`}
                         >
                             {loading ? (
-                                <Loader2 className="h-4 w-4 animate-spin text-black" />
+                                <Loader2 className="h-4 w-4 animate-spin text-slate-950" />
                             ) : (
                                 <>
                                     <span>{isSignUp ? "Inscrire l'Établissement" : `Se Connecter au Portail`}</span>
@@ -379,65 +313,105 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    {/* INSTANT ONE-CLICK DEMO LOGIN */}
-                    <div className="pt-4 border-t border-slate-800 space-y-3">
-                        <div className="flex items-center justify-center gap-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-widest text-center">
-                            <Zap className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                            <span>Accès Démo Instantané (1-Clic)</span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2.5">
-                            <button
-                                type="button"
-                                onClick={() => handleQuickDemoLogin("daara")}
-                                disabled={loading}
-                                className="p-3 bg-emerald-950/40 border border-emerald-500/40 hover:bg-emerald-900/60 rounded-2xl text-xs font-bold text-emerald-300 flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-sm"
-                            >
-                                <span className="flex items-center gap-1 font-black uppercase text-[10px] text-emerald-400">
-                                    <ShieldCheck className="w-3.5 h-3.5" /> Démo Daara
-                                </span>
-                                <span className="text-[9px] text-emerald-200/70 font-mono">admin@taleem.app</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => handleQuickDemoLogin("school")}
-                                disabled={loading}
-                                className="p-3 bg-amber-950/40 border border-amber-500/40 hover:bg-amber-900/60 rounded-2xl text-xs font-bold text-amber-300 flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-sm"
-                            >
-                                <span className="flex items-center gap-1 font-black uppercase text-[10px] text-amber-400">
-                                    <ShieldCheck className="w-3.5 h-3.5" /> Démo Pathé Pogne
-                                </span>
-                                <span className="text-[9px] text-amber-200/70 font-mono">directeur@pathepogne.sn</span>
-                            </button>
-                        </div>
-
-                        <div className="text-center pt-1">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsSignUp(!isSignUp);
-                                    setError(null);
-                                }}
-                                className="text-xs font-bold text-slate-400 hover:text-white transition-colors"
-                            >
-                                {isSignUp ? (
-                                    <span>Déjà un accès ? <b className="text-emerald-400 underline">Se connecter</b></span>
-                                ) : (
-                                    <span>Nouveau responsable ? <b className="text-amber-400 underline">Créer un compte</b></span>
-                                )}
-                            </button>
-                        </div>
+                    {/* Toggle Signup / Signin */}
+                    <div className="pt-3 border-t border-slate-800 text-center">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsSignUp(!isSignUp);
+                                setError(null);
+                            }}
+                            className="text-xs font-medium text-slate-400 hover:text-white transition-colors"
+                        >
+                            {isSignUp ? (
+                                <span>Déjà un accès ? <b className="text-emerald-400 font-bold underline">Se connecter</b></span>
+                            ) : (
+                                <span>Nouveau responsable ? <b className="text-amber-400 font-bold underline">Créer un compte</b></span>
+                            )}
+                        </button>
                     </div>
 
                 </div>
-            </main>
 
-            {/* FOOTER */}
-            <footer className="relative z-10 w-full max-w-5xl mx-auto py-3 text-center text-xs font-medium text-slate-500 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2">
-                <p>© 2026 Daara Ibnoul Khayim & École Franco-Arabe Pathé Pogne</p>
-                <p className="text-[11px] text-emerald-400/90 italic font-serif">"Pathé Pogne, c’est une éducation qui réunit savoir, valeurs et réussite."</p>
-            </footer>
+                {/* Footer */}
+                <footer className="pt-4 text-center text-[11px] text-slate-500 font-medium">
+                    <p>© 2026 Daara Ibnoul Khayim & École Pathé Pogne</p>
+                </footer>
+
+            </div>
+
+            {/* RIGHT PANEL: MINIMALIST BRANDING SHOWCASE (Desktop) */}
+            <div className={`hidden md:flex md:w-1/2 lg:w-7/12 flex-col justify-between p-10 lg:p-16 relative overflow-hidden text-white border-l transition-colors duration-700 ${
+                isDaara 
+                    ? "bg-gradient-to-br from-[#051c13] via-[#07291b] to-[#03130c] border-emerald-500/20" 
+                    : "bg-gradient-to-br from-[#1c1305] via-[#291b07] to-[#130c03] border-amber-500/20"
+            }`}>
+
+                {/* Background Ambient Glow Lights */}
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    <div className={`absolute top-[-20%] right-[-10%] w-[70%] h-[70%] rounded-full blur-[150px] animate-pulse ${
+                        isDaara ? "bg-emerald-500/15" : "bg-amber-500/15"
+                    }`} />
+                    <div className={`absolute bottom-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full blur-[150px] animate-pulse ${
+                        isDaara ? "bg-teal-500/10" : "bg-yellow-500/10"
+                    }`} />
+                </div>
+
+                {/* Grid Overlay */}
+                <div 
+                    className="absolute inset-0 opacity-[0.025] pointer-events-none"
+                    style={{
+                        backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.4) 1px, transparent 0)`,
+                        backgroundSize: "32px 32px",
+                    }}
+                />
+
+                {/* Top Header Branding */}
+                <div className="relative z-10 flex items-center gap-4">
+                    <div className="p-3 bg-slate-900/60 border border-white/10 rounded-2xl backdrop-blur-xl shadow-xl">
+                        <img 
+                            src={isDaara ? "/logo-daara-ibnoul-khayim.png" : "/logo-pathe-pogne.png"} 
+                            alt="Logo Établissement" 
+                            className="h-12 w-auto object-contain shrink-0" 
+                        />
+                    </div>
+                    <div>
+                        <h2 className="text-base font-extrabold text-amber-300 tracking-tight">
+                            {isDaara ? "ÉCOLE IBNOUL KHAYIM AL JAWZIYA" : "ÉCOLE FRANCO-ARABE PATHÉ POGNE"}
+                        </h2>
+                        <p className="text-xs text-emerald-400 font-arabic font-bold opacity-90" dir="rtl">
+                            {isDaara ? "مدرسة ابن القيم الجوزية" : "المدرسة العربية الفرنسية PATHÉ POGNE"}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Center Hero Title */}
+                <div className="relative z-10 my-auto py-10 space-y-4 max-w-lg">
+                    <h3 className="text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white">
+                        {isDaara 
+                            ? "Le suivi d'excellence pour votre Daara." 
+                            : "L'éducation qui réunit savoir, valeurs et réussite."}
+                    </h3>
+                    <p className="text-sm text-slate-300/80 leading-relaxed font-normal">
+                        {isDaara
+                            ? "Plateforme sécurisée de gestion coranique, suivi du Hifz 60 Hizbs et pilotage pédagogique."
+                            : "Portail de direction et de gestion de l'Établissement Franco-Arabe Pathé Pogne."}
+                    </p>
+                </div>
+
+                {/* Bottom Minimal Hadith / Citation */}
+                <div className="relative z-10 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col space-y-1 max-w-md">
+                    <p className="text-xs font-arabic font-bold text-amber-200" dir="rtl">
+                        {isDaara ? "« خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ »" : "« مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ طَرِيقًا إِلَى الْجَنَّةِ »"}
+                    </p>
+                    <p className="text-xs text-slate-300 italic">
+                        {isDaara 
+                            ? "« Le meilleur d'entre vous est celui qui apprend le Coran et l'enseigne. »" 
+                            : "« Une éducation de qualité et d'excellence. »"}
+                    </p>
+                </div>
+
+            </div>
 
         </div>
     );

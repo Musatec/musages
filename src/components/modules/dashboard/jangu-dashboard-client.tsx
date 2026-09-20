@@ -64,107 +64,115 @@ export function JanguDashboardClient({
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary/90 via-primary to-emerald-700 p-4 sm:p-6 md:p-8 text-white shadow-2xl">
+      {/* Header Banner — Thème Ambre / Or Écoles Franco-Arabes */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-950 via-amber-900 to-yellow-900 p-4 sm:p-6 md:p-8 text-white shadow-2xl border border-amber-500/30">
         <div className="absolute right-0 top-0 opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
-          <GraduationCap className="w-96 h-96" />
+          <GraduationCap className="w-96 h-96 text-amber-200" />
         </div>
 
         <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold uppercase tracking-wider">
-            <span>Jangu ERP — Sénégal</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 backdrop-blur-md text-xs font-bold uppercase tracking-wider text-amber-200">
+            <GraduationCap className="w-3.5 h-3.5" />
+            <span>École Franco-Arabe Pathé Pogne</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight">{schoolName}</h1>
-          <p className="text-white/80 text-xs sm:text-sm md:text-base max-w-xl">
-            Tableau de bord de suivi des écolages, des présences et des performances académiques pour le mois de <span className="font-bold underline">{MONTH_NAMES[currentMonth - 1]} {currentYear}</span>.
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-white">{schoolName}</h1>
+          <p className="text-amber-100/90 text-xs sm:text-sm md:text-base max-w-xl font-medium">
+            Tableau de bord de direction • Suivi des écolages, des bulletins scolaires et du corps enseignant bilingue pour <span className="font-extrabold underline text-amber-300">{MONTH_NAMES[currentMonth - 1]} {currentYear}</span>.
           </p>
 
           <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-2.5">
             <button
               onClick={handleGenerateMonthlyTuitions}
               disabled={generating}
-              className="px-4 py-2 bg-white text-primary font-bold text-xs sm:text-sm rounded-xl shadow-lg hover:bg-white/90 transition-all flex items-center gap-1.5"
+              className="px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-extrabold text-xs sm:text-sm rounded-xl shadow-lg hover:from-amber-300 hover:to-yellow-300 transition-all flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
               {generating ? "Génération..." : `Générer Écolages (${MONTH_NAMES[currentMonth - 1]})`}
             </button>
             <Link
               href="/tuition"
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs sm:text-sm rounded-xl transition-all flex items-center gap-1.5"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-amber-100 font-semibold text-xs sm:text-sm rounded-xl transition-all flex items-center gap-1.5"
             >
-              <CreditCard className="w-4 h-4" />
+              <CreditCard className="w-4 h-4 text-amber-400" />
               Recouvrement
+            </Link>
+            <Link
+              href="/grades"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-amber-100 font-semibold text-xs sm:text-sm rounded-xl transition-all flex items-center gap-1.5"
+            >
+              <BookOpen className="w-4 h-4 text-amber-400" />
+              Examens & Bulletins
             </Link>
           </div>
         </div>
       </div>
 
       {/* KPI Cards Grid — 2x2 sur Mobile */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6">
         {/* Élèves */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="p-6 rounded-2xl bg-card border border-border/50 shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Élèves Inscrits</span>
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
-              <Users className="w-5 h-5" />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="p-3.5 sm:p-6 rounded-2xl bg-card border border-border/50 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground truncate">Élèves Inscrits</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-black">{totalStudents}</span>
-            <span className="text-xs text-muted-foreground ml-2">élèves répertoriés</span>
+          <div className="mt-3 sm:mt-4">
+            <span className="text-xl sm:text-3xl font-black">{totalStudents}</span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground ml-1.5">élèves</span>
           </div>
-          <div className="mt-3 text-xs text-muted-foreground flex items-center gap-2">
+          <div className="mt-2.5 text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1.5 truncate">
             <span className="font-semibold text-foreground">{totalClasses}</span> classes configurées
           </div>
         </motion.div>
 
         {/* Taux de Recouvrement */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-6 rounded-2xl bg-card border border-border/50 shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Taux de Recouvrement</span>
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5" />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-3.5 sm:p-6 rounded-2xl bg-card border border-border/50 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground truncate">Recouvrement</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-black text-emerald-500">{collectionRate}%</span>
-            <span className="text-xs text-muted-foreground ml-2">mensualités encaissées</span>
+          <div className="mt-3 sm:mt-4">
+            <span className="text-xl sm:text-3xl font-black text-emerald-500">{collectionRate}%</span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground ml-1.5 hidden sm:inline">encaissés</span>
           </div>
-          <div className="w-full bg-secondary h-2 rounded-full mt-3 overflow-hidden">
+          <div className="w-full bg-secondary h-2 rounded-full mt-2.5 overflow-hidden">
             <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${collectionRate}%` }} />
           </div>
         </motion.div>
 
         {/* Écolages Collectés */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="p-6 rounded-2xl bg-card border border-border/50 shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Collecté ce mois</span>
-            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <CreditCard className="w-5 h-5" />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="p-3.5 sm:p-6 rounded-2xl bg-card border border-border/50 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground truncate">Collecté ce mois</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-2xl font-black">{totalAmountPaid.toLocaleString('fr-FR')} <span className="text-xs font-normal">FCFA</span></span>
+          <div className="mt-3 sm:mt-4">
+            <span className="text-lg sm:text-2xl font-black truncate block">{totalAmountPaid.toLocaleString('fr-FR')} <span className="text-[10px] sm:text-xs font-normal">FCFA</span></span>
           </div>
-          <div className="mt-3 text-xs text-muted-foreground">
-            Sur un objectif de <span className="font-semibold">{totalAmountDue.toLocaleString('fr-FR')} FCFA</span>
+          <div className="mt-2.5 text-[10px] sm:text-xs text-muted-foreground truncate">
+            Objectif: <span className="font-semibold">{totalAmountDue.toLocaleString('fr-FR')}</span>
           </div>
         </motion.div>
 
         {/* Enseignants */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="p-6 rounded-2xl bg-card border border-border/50 shadow-sm relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Corps Enseignant</span>
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
-              <BookOpen className="w-5 h-5" />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="p-3.5 sm:p-6 rounded-2xl bg-card border border-border/50 shadow-sm relative overflow-hidden">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground truncate">Corps Enseignant</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0">
+              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </div>
-          <div className="mt-4">
-            <span className="text-3xl font-black">{totalTeachers}</span>
-            <span className="text-xs text-muted-foreground ml-2">professeurs / vacataires</span>
+          <div className="mt-3 sm:mt-4">
+            <span className="text-xl sm:text-3xl font-black">{totalTeachers}</span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground ml-1.5">profs</span>
           </div>
-          <Link href="/teachers" className="mt-3 text-xs text-primary font-semibold hover:underline flex items-center gap-1">
-            Gérer les vacances <ArrowUpRight className="w-3 h-3" />
+          <Link href="/teachers" className="mt-2.5 text-[10px] sm:text-xs text-amber-500 font-semibold hover:underline flex items-center gap-1">
+            Gérer <ArrowUpRight className="w-3 h-3" />
           </Link>
         </motion.div>
       </div>

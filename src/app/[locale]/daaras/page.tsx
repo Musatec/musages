@@ -49,38 +49,39 @@ export default async function DaarasDirectoryPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-      
-      {/* Header */}
-      <div className="bg-slate-900 text-white py-12 px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-4">
-          <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        {/* Header Épuré */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
+          <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-emerald-600 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Retour à l'accueil
           </Link>
           <div className="space-y-2">
-            <span className="text-emerald-400 text-xs font-bold uppercase tracking-wider">Morceau 3 • Annuaire National</span>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Annuaire des Daaras du Sénégal</h1>
-            <p className="text-slate-300 text-sm max-w-2xl">
-              Permettez aux parents de rechercher un Daara de confiance, consulter son programme, ses régimes d'accueil et contacter directement la direction.
+            <span className="text-emerald-600 dark:text-emerald-400 text-xs font-extrabold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800/60 inline-block">
+              Annuaire National • Sénégal & Afrique de l'Ouest
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              Annuaire des Daaras du Sénégal
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
+              Recherchez un Daara de confiance, consultez son programme de mémorisation des 60 Hizbs, ses régimes d'accueil (internat/externat) et contactez directement la direction.
             </p>
           </div>
         </div>
-      </div>
 
-      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-10 space-y-8">
-        
-        {/* Barre de Recherche */}
-        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex items-center gap-3 w-full md:w-auto flex-1">
-            <Search className="w-5 h-5 text-slate-400" />
+        {/* Barre de Recherche & Filtres */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="flex items-center gap-3 w-full md:w-auto flex-1 bg-slate-50 dark:bg-slate-800/50 px-4 py-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700">
+            <Search className="w-4 h-4 text-slate-400 shrink-0" />
             <input 
               type="text"
               placeholder="Rechercher par nom de Daara, ville (Dakar, Touba, Kaolack...) ou quartier..."
-              className="bg-transparent w-full text-xs font-semibold outline-none text-slate-800 placeholder:text-slate-400"
+              className="bg-transparent w-full text-xs font-medium outline-none text-slate-800 dark:text-slate-200 placeholder:text-slate-400"
             />
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <select className="bg-slate-100 border border-slate-200 text-xs font-semibold px-3 py-2 rounded text-slate-700 outline-none">
+          <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
+            <select className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700 text-xs font-semibold px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 outline-none">
               <option>Toutes les villes</option>
               <option>Dakar</option>
               <option>Touba</option>
@@ -88,7 +89,7 @@ export default async function DaarasDirectoryPage() {
               <option>Kaolack</option>
               <option>Saint-Louis</option>
             </select>
-            <select className="bg-slate-100 border border-slate-200 text-xs font-semibold px-3 py-2 rounded text-slate-700 outline-none">
+            <select className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700 text-xs font-semibold px-3.5 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 outline-none">
               <option>Tous les régimes</option>
               <option>Internat Pensionnat</option>
               <option>Externat</option>
@@ -99,37 +100,37 @@ export default async function DaarasDirectoryPage() {
         {/* Liste des Daaras */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {daaras.map((daara) => (
-            <div key={daara.id} className="bg-white border border-slate-200 rounded-lg p-6 space-y-4 hover:border-emerald-600 transition-all shadow-sm flex flex-col justify-between">
+            <div key={daara.id} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-6 space-y-4 hover:border-emerald-500/50 transition-all shadow-xs flex flex-col justify-between group">
               <div className="space-y-3">
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between items-start gap-2">
                   <div>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">{daara.type}</span>
-                    <h3 className="text-xl font-bold text-slate-900 mt-2">{daara.name}</h3>
+                    <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800/60 inline-block">{daara.type}</span>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white mt-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{daara.name}</h3>
                   </div>
-                  <span className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                  <span className="flex items-center gap-1 text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800/60 shrink-0">
                     <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> {daara.rating}
                   </span>
                 </div>
 
-                <div className="text-xs text-slate-600 space-y-1">
-                  <p className="flex items-center gap-1.5 font-semibold text-slate-700">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-700" /> {daara.city} ({daara.district})
+                <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5">
+                  <p className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-300">
+                    <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" /> {daara.city} ({daara.district})
                   </p>
-                  <p className="flex items-center gap-1.5 text-slate-500">
-                    <BookOpen className="w-3.5 h-3.5 text-slate-400" /> Lecture : {daara.qiraat}
+                  <p className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                    <BookOpen className="w-4 h-4 text-slate-400 shrink-0" /> Lecture : {daara.qiraat}
                   </p>
                 </div>
 
-                <p className="text-xs text-slate-600 leading-relaxed italic border-t border-slate-100 pt-3">
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed italic border-t border-slate-100 dark:border-slate-800 pt-3">
                   "{daara.description}"
                 </p>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
-                  <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" /> {daara.studentsCount} Talibés</span>
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                  <Users className="w-4 h-4 text-slate-400" /> {daara.studentsCount} Talibés
                 </div>
-                <a href={`tel:${daara.phone}`} className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm">
+                <a href={`tel:${daara.phone}`} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-xs">
                   <Phone className="w-3.5 h-3.5" /> Contacter
                 </a>
               </div>

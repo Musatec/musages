@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { useRouter, usePathname } from "@/i18n/routing";
-import { Loader2 } from "lucide-react";
+import { DaaraLoadingScreen } from "@/components/ui/loading-screen";
 
 type SupabaseContextType = {
     session: Session | null;
@@ -97,10 +97,7 @@ export default function SupabaseProvider({
     return (
         <SupabaseContext.Provider value={value}>
             {isLoading ? (
-                <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center space-y-4">
-                    <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Initialisation Daara.net...</p>
-                </div>
+                <DaaraLoadingScreen message="Initialisation de l'Espace Daara..." />
             ) : (
                 children
             )}

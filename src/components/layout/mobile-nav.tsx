@@ -58,9 +58,9 @@ export function MobileNav() {
                             )} />
 
                             <span className={cn(
-                                "text-[9px] font-bold mt-0.5 transition-colors duration-200 truncate max-w-[55px] text-center",
-                                isAr && "font-arabic text-[10px]",
-                                isActive ? (isSchool ? "text-amber-300 font-extrabold" : "text-emerald-400 font-extrabold") : "text-slate-400"
+                                "text-[10px] font-bold mt-0.5 transition-colors duration-200 truncate max-w-[60px] text-center",
+                                isAr && "font-arabic text-[11px]",
+                                isActive ? (isSchool ? "text-amber-300 font-extrabold" : "text-emerald-400 font-extrabold") : "text-slate-300"
                             )}>
                                 {item.label}
                             </span>

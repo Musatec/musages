@@ -228,8 +228,8 @@ export function ExpensesClient({ transactions: initialTransactions }: ExpensesCl
 
       {/* Transactions Table */}
       <Card className="border border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto touch-pan-x">
+          <table className="w-full min-w-[650px] text-left text-sm">
             <thead className="bg-muted/60 text-muted-foreground text-xs uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-3.5 font-bold">Date</th>

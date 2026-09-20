@@ -54,23 +54,21 @@
         overflow-x: hidden;
     }
 
+    /* Dark Input Autofill Override for sleek dark forms */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active {
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: #ffffff !important;
+        transition: background-color 5000s ease-in-out 0s;
+        box-shadow: inset 0 0 20px 20px rgba(15, 23, 42, 0.95) !important;
+    }
+
     /* Regles d'optimisation typographique et de taille pour la langue Arabe (RTL) */
     [dir="rtl"] {
         font-family: 'Cairo', 'Amiri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 1.06rem; /* Augmentation globale de la taille en Arabe */
-        line-height: 1.7;   /* Hauteur de ligne aeree pour la calligraphie arabe */
-    }
-
-    [dir="rtl"] p, 
-    [dir="rtl"] span, 
-    [dir="rtl"] button, 
-    [dir="rtl"] input, 
-    [dir="rtl"] select, 
-    [dir="rtl"] label, 
-    [dir="rtl"] a,
-    [dir="rtl"] td,
-    [dir="rtl"] th {
-        font-size: 1.08em; /* Compensation de la taille des glyphes arabes */
+        line-height: 1.6;
     }
 
     h1, h2, h3, h4, h5, h6 {
