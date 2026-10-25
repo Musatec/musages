@@ -66,7 +66,7 @@ export default async function DashboardPage({
 
   return (
     <DashboardWrapperClient 
-      daaraName={daara?.name || "Daara Serigne Touba (Daara.net)"}
+      daaraName={daara?.name || "Daara Ibnoul Khayim Al Diawziya"}
       schoolName="École Franco-Arabe Pathé Pogne"
       totalTalibes={totalTalibes}
       totalInternes={totalInternes}

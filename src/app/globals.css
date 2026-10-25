@@ -141,3 +141,33 @@
 ::-webkit-scrollbar-thumb:hover {
     background: #0C5A34;
 }
+
+/* --- PERFORMANCE & RESPONSIVE TOUCH UTILITIES --- */
+html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+}
+
+body {
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+}
+
+/* Inertia touch scrolling for mobile & tablet tables */
+.touch-pan-x, .overflow-x-auto, .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+
+/* GPU Hardware acceleration for buttery-smooth animations & navigation */
+.gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Smooth touch tap feedback */
+button, a {
+    touch-action: manipulation;
+}

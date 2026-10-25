@@ -22,6 +22,7 @@ import { CSPostHogProvider } from "@/components/providers/posthog-provider";
 import PostHogPageView from "@/components/providers/posthog-pageview";
 import { CrispProvider } from "@/components/providers/crisp-provider";
 import { SpaceProvider } from "@/components/providers/space-provider";
+import { OfflineBanner } from "@/components/ui/offline-banner";
 import { Suspense } from "react";
 
 export const viewport: Viewport = {
@@ -79,6 +80,7 @@ export default async function RootLayout({
                     <SidebarProvider>
                       <PwaRegistrar />
                       <CrispProvider />
+                      <OfflineBanner />
                       <AppLayout>
                         {children}
                       </AppLayout>

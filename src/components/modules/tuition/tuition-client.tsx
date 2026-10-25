@@ -25,7 +25,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import * as XLSX from "xlsx";
 
 import { useSpace } from "@/components/providers/space-provider";
 
@@ -145,7 +144,7 @@ export function TuitionClient({
     }
   };
 
-  const handleExportExcelMatrix = () => {
+  const handleExportExcelMatrix = async () => {
     const matrixData = filteredTalibes.map(s => {
       const row: any = {
         "Matricule": s.matricule,
@@ -163,10 +162,12 @@ export function TuitionClient({
       return row;
     });
 
+    const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(matrixData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, `Cotisations_${selectedYear}`);
     XLSX.writeFile(wb, `matrice_cotisations_${selectedYear}.xlsx`);
+    toast.success("Matrice Excel exportée avec succès !");
   };
 
   return (

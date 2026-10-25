@@ -1,28 +1,48 @@
-# 🛡️ Stratégie de Sauvegarde & Résilience - MINDOS
+# 🛡️ Stratégie de Sauvegarde & Résilience - Daara Ibnoul Khayim Al Diawziya
 
-La protection des données est le cœur de la confiance utilisateur pour une plateforme ERP. Voici la stratégie de sauvegarde implémentée pour **MINDOS**.
-
-## 1. Sauvegardes Automatisées (Supabase)
-MINDOS utilise Supabase (Postgres), qui gère nativement la résilience des données :
-- **Daily Backups** : Sauvegardes complètes quotidiennes (Plan Pro).
-- **Point-in-Time Recovery (PITR)** : Permet de restaurer la base de données à n'importe quelle seconde précise des 7 derniers jours (indispensable pour les erreurs de manipulation humaine).
-
-## 2. Sauvegardes Manuelles (Disaster Recovery)
-Le script `scripts/backup-database.ps1` permet d'extraire un dump complet du schéma et des données.
-- **Usage** : `powershell ./scripts/backup-database.ps1`
-- **Destination** : Dossier `/backups` (ignoré par Git pour la sécurité).
-- **Fréquence recommandée** : Hebdomadaire avant toute migration majeure (`npx prisma migrate`).
-
-## 3. Intégrité Relationnelle (Isolation SaaS)
-L'intégrité est maintenue par :
-- **Foreign Key Constraints** : Empêche l'orphelinage de données (ex: une vente sans Store).
-- **Prisma Transactions** : Toutes les opérations critiques (Ventes + Stocks) sont atomiques. Si une partie échoue, tout est annulé.
-
-## 4. Plan de Restauration
-En cas de sinistre :
-1. Identifier le dernier dump stable dans `/backups` ou via le dashboard Supabase.
-2. Utiliser `psql $DATABASE_URL < last_backup.sql` pour restaurer l'état.
-3. Vérifier l'intégrité via le module `Laboratoire` du dashboard admin.
+La protection et la pérennité des données pédagogiques, financières et administratives sont indispensables pour la confiance des Serignes Daara, Oustazs, Ndeyi Daara et parents d'élèves. Voici la stratégie de sauvegarde et de haute disponibilité implémentée pour le **Daara Ibnoul Khayim Al Diawziya**.
 
 ---
-**Note Executive** : Pour le lancement public, il est **fortement recommandé** de passer au plan Supabase Pro pour activer le PITR et garantir 0 perte de données en cas d'erreur fatale.
+
+## 1. Sauvegardes Automatisées (Supabase Postgres Cloud)
+Le Daara Ibnoul Khayim Al Diawziya s'appuie sur l'infrastructure managée Supabase PostgreSQL :
+- **Sauvegardes quotidiennes (Daily Backups) :** Snapshots automatiques réguliers des données du cluster.
+- **Point-in-Time Recovery (PITR) :** Restauration granulaire à la seconde près (recommandé avec le plan Supabase Pro pour prévenir toute erreur de suppression accidentelle).
+
+---
+
+## 2. Sauvegardes Manuelles & Disaster Recovery
+Un script d'extraction d'urgence est disponible :
+- **Exécution :** `powershell ./scripts/backup-database.ps1`
+- **Destination :** Dossier local sécurisé `/backups` (exclu d'office du suivi Git par `.gitignore`).
+- **Périodicité recommandée :** Hebdomadaire et impérativement avant chaque migration de schéma (`npx prisma migrate` ou `npx supabase db push`).
+
+---
+
+## 3. Intégrité Relationnelle & Isolation Multi-Tenant
+La résilience logique de la base est assurée par :
+- **Clés Étrangères (Foreign Keys) :** Empêche tout orphelinage de données (ex: progression Hifz ou présences sans Talibé, transactions sans Daara).
+- **Indexations multi-critères :** Index optimisés sur `[daaraId, talibeId]`, `[daaraId, date]`, `[userId, createdAt]` pour garantir des temps de réponse ultra-rapides.
+- **Transactions Atomiques Prisma :** Toutes les opérations multi-tables (ex: Inscription d'un Talibé + affectation Halqa, ou Don Sadaqa + Transaction comptable) sont exécutées dans un bloc transactionnel atomique (`prisma.$transaction`). Si une étape échoue, aucun enregistrement corrompu n'est conservé.
+
+---
+
+## 4. Procédure de Restauration en Cas d'Incident
+En cas de sinistre :
+1. Sélectionner le snapshot le plus récent sur le dashboard Supabase ou le fichier SQL dans `/backups`.
+2. Restaurer la base :
+   ```bash
+   psql "$DATABASE_URL" < backups/backup_YYYYMMDD.sql
+   ```
+3. Valider l'intégrité des modèles :
+   ```bash
+   npx prisma validate
+   ```
+4. Exécuter la suite de tests unitaires pour confirmer la validité des flux métier :
+   ```bash
+   npx vitest run
+   ```
+
+---
+> [!TIP]
+> **Recommandation Production :** Pour le passage en production publique, l'activation du plan Supabase Pro avec rétention PITR 7 jours garantit un RPO (Recovery Point Objective) et un RTO (Recovery Time Objective) optimaux.

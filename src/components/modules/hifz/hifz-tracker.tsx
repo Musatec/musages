@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   BookOpen, 
   CheckCircle2, 
@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { addHifzRecord } from "@/lib/actions/hifz";
+import { enqueueOfflineAction, cacheHalqas, cacheTalibes } from "@/lib/offline/db";
 
 export interface TalibeHifzItem {
   id: string;
@@ -121,25 +122,53 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
     window.print();
   };
 
+  useEffect(() => {
+    if (initialHalqas && initialHalqas.length > 0) {
+      cacheHalqas(initialHalqas);
+    }
+    if (initialTalibes && initialTalibes.length > 0) {
+      cacheTalibes(initialTalibes);
+    }
+  }, [initialHalqas, initialTalibes]);
+
   const handleSaveHifz = async () => {
     if (!selectedTalibe) return;
 
     setIsSubmitting(true);
-    const res = await addHifzRecord({
+
+    const recordPayload = {
       talibeId: selectedTalibe.id,
       hizbNumber: currentHizb,
       grade: evaluation,
       allwaBoard: allwaNotes,
       notes: `Catégorie: ${category}`
-    });
+    };
 
-    setIsSubmitting(false);
-
-    if (res.success) {
-      toast.success(`Hifz enregistré avec succès pour ${selectedTalibe.name} ! 🎉`);
+    // Cas 1 : Appareil hors-ligne
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      await enqueueOfflineAction("SAVE_HIFZ", recordPayload);
+      setIsSubmitting(false);
       setIsModalOpen(false);
-    } else {
-      toast.error(res.error || "Erreur lors de l'enregistrement de la récitation.");
+      toast.success(`Hifz enregistré localement (Mode Hors-Ligne) pour ${selectedTalibe.name} 💾`);
+      return;
+    }
+
+    // Cas 2 : En ligne avec fallback
+    try {
+      const res = await addHifzRecord(recordPayload);
+      setIsSubmitting(false);
+
+      if (res.success) {
+        toast.success(`Hifz enregistré avec succès pour ${selectedTalibe.name} ! 🎉`);
+        setIsModalOpen(false);
+      } else {
+        toast.error(res.error || "Erreur lors de l'enregistrement de la récitation.");
+      }
+    } catch {
+      await enqueueOfflineAction("SAVE_HIFZ", recordPayload);
+      setIsSubmitting(false);
+      setIsModalOpen(false);
+      toast.info(`Connexion instable : progrès Hifz mis en attente hors-ligne 💾`);
     }
   };
 
@@ -261,10 +290,10 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
 
                 {/* LIGNE 3 & 4 : INTITULÉS DES COLONNES DU TABLEAU DE SUIVI DU HIFZ (STRUCTURE MULTI-LIGNES PHOTO) */}
                 <tr className="bg-emerald-100/90 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs sm:text-sm font-black">
-                  <th rowSpan={2} className="p-2 text-center border border-slate-400 dark:border-slate-700 bg-emerald-200/80 dark:bg-slate-700 w-12">
+                  <th rowSpan={2} className="p-2 text-center border border-slate-400 dark:border-slate-700 bg-emerald-200 dark:bg-slate-700 w-12 sticky right-0 z-20 shadow-xs">
                     الرقم
                   </th>
-                  <th rowSpan={2} className="p-2.5 border border-slate-400 dark:border-slate-700 text-right min-w-[150px]">
+                  <th rowSpan={2} className="p-2.5 border border-slate-400 dark:border-slate-700 text-right min-w-[150px] bg-emerald-200 dark:bg-slate-700 sticky right-12 z-20 shadow-xs">
                     الأسماء والألقاب
                   </th>
                   <th colSpan={4} className="p-2 text-center border border-slate-400 dark:border-slate-700 bg-emerald-200/70 dark:bg-slate-700">
@@ -305,12 +334,12 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                   <tr key={row.id} className="hover:bg-emerald-50/50 dark:hover:bg-slate-800/60 transition-colors">
                     
                     {/* الرقم (N°) */}
-                    <td className="p-2 text-center font-black bg-slate-100 dark:bg-slate-800 border border-slate-400 dark:border-slate-700 font-sans text-xs">
+                    <td className="p-2 text-center font-black bg-slate-100 dark:bg-slate-800 border border-slate-400 dark:border-slate-700 font-sans text-xs sticky right-0 z-10 shadow-xs">
                       {row.num}
                     </td>
 
                     {/* الأسماء والألقاب (Nom & Prénom) */}
-                    <td className="p-2 border border-slate-400 dark:border-slate-700 font-bold text-slate-900 dark:text-white">
+                    <td className="p-2 border border-slate-400 dark:border-slate-700 font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 sticky right-12 z-10 shadow-xs">
                       <div className="flex items-center justify-between gap-1">
                         <span>{row.nameAr}</span>
                         <span className="text-[10px] text-slate-400 font-sans font-normal print:hidden">
@@ -442,7 +471,7 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                     Effectif enregistré : {tableRows.length} Apprenants • {currentHalqa.name}
                   </td>
                   <td colSpan={5} className="p-3 border border-slate-400 dark:border-slate-700 font-arabic font-bold text-right">
-                    توقيع الأستاذ المشرف : .................................. • Daara.net
+                    توقيع الأستاذ المشرف : .................................. • Daara Ibnoul Khayim Al Diawziya
                   </td>
                 </tr>
               </tfoot>

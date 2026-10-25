@@ -7,7 +7,7 @@ generator client {
   engineType = "library"
 }
 
-// --- ENUMS DAARA.NET ---
+// --- ENUMS DAARA IBNOUL KHAYIM AL DIAWZIYA ---
 enum Role {
   SUPER_ADMIN
   SERIGNE_DAARA
@@ -79,7 +79,7 @@ enum TransactionType {
   EXPENSE
 }
 
-// --- STRUCTURE DAARA.NET (ÉTABLISSEMENT CORANIQUE) ---
+// --- STRUCTURE DAARA IBNOUL KHAYIM AL DIAWZIYA (ÉTABLISSEMENT CORANIQUE) ---
 model Daara {
   id          String     @id @default(cuid())
   name        String     // Nom du Daara (ex: Daara Serigne Touba, Daara Coki, Daara El-Hadj Malick)

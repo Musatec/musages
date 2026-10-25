@@ -160,7 +160,7 @@ export function KhatmClient({ initialRecords, talibeOptions, daaraInfo }: KhatmC
             </div>
             <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Établissement Certifié</p>
-              <h3 className="text-2xl font-black truncate">{daaraInfo?.name || "Daara.net"}</h3>
+              <h3 className="text-2xl font-black truncate">{daaraInfo?.name || "Daara Ibnoul Khayim Al Diawziya"}</h3>
             </div>
           </CardContent>
         </Card>
@@ -337,7 +337,7 @@ export function KhatmClient({ initialRecords, talibeOptions, daaraInfo }: KhatmC
                 </div>
 
                 <div className="space-y-1">
-                  <h3 className="text-xl font-bold text-stone-800 tracking-wider uppercase">{daaraInfo?.name || "ÉTABLISSEMENT CORANIQUE DAARA.NET"}</h3>
+                  <h3 className="text-xl font-bold text-stone-800 tracking-wider uppercase">{daaraInfo?.name || "DAARA IBNOUL KHAYIM AL DIAWZIYA"}</h3>
                   <p className="text-xs font-sans text-amber-900 font-semibold">{daaraInfo?.city || "Sénégal"} {daaraInfo?.ninea ? `• NINEA: ${daaraInfo.ninea}` : ""}</p>
                 </div>
 

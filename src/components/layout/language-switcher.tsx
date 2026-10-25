@@ -7,18 +7,15 @@ import { Loader2 } from 'lucide-react';
 
 export function LanguageSwitcher() {
     const locale = useLocale();
-    const [activeLocale, setActiveLocale] = useState<'fr' | 'ar'>(locale as 'fr' | 'ar');
+    const [selectedLocale, setSelectedLocale] = useState<'fr' | 'ar' | null>(null);
     const [isChanging, setIsChanging] = useState(false);
-
-    useEffect(() => {
-        setActiveLocale(locale as 'fr' | 'ar');
-    }, [locale]);
+    const activeLocale = selectedLocale ?? (locale as 'fr' | 'ar');
 
     const switchLocale = (newLocale: 'fr' | 'ar') => {
         if (newLocale === activeLocale || isChanging) return;
 
         setIsChanging(true);
-        setActiveLocale(newLocale);
+        setSelectedLocale(newLocale);
 
         // 1. Modifier la direction de la page immédiatement (LTR / RTL)
         document.documentElement.dir = newLocale === 'ar' ? 'rtl' : 'ltr';

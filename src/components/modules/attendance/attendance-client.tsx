@@ -16,6 +16,7 @@ import {
   PhoneCall
 } from "lucide-react";
 import { saveAttendance, markParentNotified } from "@/lib/actions/attendance";
+import { enqueueOfflineAction, cacheHalqas } from "@/lib/offline/db";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -82,17 +83,17 @@ export function AttendanceClient({
   const [selectedSession, setSelectedSession] = useState<string>("HALQA_MORNING");
   
   // Appel state
-  const [selectedClassId, setSelectedClassId] = useState(activeClasses[0]?.id || "");
+  const [selectedClassId, setSelectedClassId] = useState("");
   const [search, setSearch] = useState("");
   const [isSaving, setIsSaving] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (activeClasses.length > 0 && !activeClasses.some(c => c.id === selectedClassId)) {
-      setSelectedClassId(activeClasses[0].id);
-    }
-  }, [isSchool, activeClasses]);
-
   const selectedClass = activeClasses.find(c => c.id === selectedClassId) || activeClasses[0];
+
+  useEffect(() => {
+    if (activeClasses && activeClasses.length > 0) {
+      cacheHalqas(activeClasses);
+    }
+  }, [activeClasses]);
 
   const getTalibeStatus = (talibeId: string) => {
     const record = attendances.find(a => (a.talibeId === talibeId || a.studentId === talibeId));
@@ -103,23 +104,47 @@ export function AttendanceClient({
     setIsSaving(talibeId);
     
     // Optimistic UI update
+    const recordDate = new Date();
     setAttendances(prev => {
       const filtered = prev.filter(a => (a.talibeId !== talibeId && a.studentId !== talibeId));
-      return [...filtered, { talibeId, status, date: new Date() }];
+      return [...filtered, { talibeId, status, date: recordDate }];
     });
 
-    const res = await saveAttendance({
-      studentId: talibeId,
-      status,
-      date: new Date(),
-    });
+    // Cas 1 : Appareil hors-ligne
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      await enqueueOfflineAction("SAVE_ATTENDANCE", {
+        studentId: talibeId,
+        status,
+        date: recordDate.toISOString(),
+      });
+      setIsSaving(null);
+      toast.success("Présence enregistrée localement (Mode Hors-Ligne) 💾");
+      return;
+    }
 
-    setIsSaving(null);
+    // Cas 2 : En ligne avec fallback en cas de micro-coupure
+    try {
+      const res = await saveAttendance({
+        studentId: talibeId,
+        status,
+        date: recordDate,
+      });
 
-    if (res.error) {
-      toast.error(res.error);
-    } else {
-      toast.success("Statut de présence enregistré ! ✓");
+      setIsSaving(null);
+
+      if (res.error) {
+        toast.error(res.error);
+      } else {
+        toast.success("Statut de présence enregistré ! ✓");
+      }
+    } catch {
+      await enqueueOfflineAction("SAVE_ATTENDANCE", {
+        studentId: talibeId,
+        status,
+        date: recordDate.toISOString(),
+      });
+      setIsSaving(null);
+      toast.info("Connexion instable : présence mise en file d'attente hors-ligne 💾");
     }
   };
 
@@ -240,7 +265,7 @@ export function AttendanceClient({
                 {isSchool ? "Sélectionner la Classe" : "Sélectionner la Halqa"}
               </label>
               <select 
-                value={selectedClassId}
+                value={selectedClass?.id || ""}
                 onChange={(e) => setSelectedClassId(e.target.value)}
                 className="w-full bg-background border border-input rounded-xl px-4 py-2.5 text-sm font-bold text-foreground"
               >
@@ -272,7 +297,121 @@ export function AttendanceClient({
           {/* Student Table */}
           {selectedClassId ? (
             <Card className="border border-border shadow-sm overflow-hidden">
-              <div className="overflow-x-auto touch-pan-x">
+              {/* VUE MOBILE (< 768px) : Cartes Tactiles d'Appel Ultra-Rapides */}
+              <div className="md:hidden divide-y divide-border">
+                {filteredTalibes.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-xs font-bold">
+                    Aucun Talibé trouvé dans cette Halqa.
+                  </div>
+                ) : (
+                  filteredTalibes.map((s: any) => {
+                    const status = getTalibeStatus(s.id);
+                    return (
+                      <div 
+                        key={s.id} 
+                        className="p-3.5 space-y-3 transition-colors active:bg-muted/30"
+                        style={{ contentVisibility: "auto", containIntrinsicSize: "1px 120px" }}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-black text-sm text-foreground truncate">
+                              {s.firstName} {s.lastName}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="font-mono text-[10px] text-muted-foreground font-semibold">
+                                {s.matricule}
+                              </span>
+                              <Badge variant="outline" className={cn(
+                                "text-[10px] py-0 font-bold",
+                                s.status === "INTERNE" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" : "bg-blue-500/10 text-blue-600 border-blue-500/30"
+                              )}>
+                                {s.status || "INTERNE"}
+                              </Badge>
+                            </div>
+                          </div>
+
+                          {status && (
+                            <Badge className={cn(
+                              "text-[10px] font-extrabold uppercase shrink-0",
+                              status === "PRESENT" ? "bg-emerald-600 text-white" :
+                              status === "ABSENT" ? "bg-red-600 text-white" :
+                              status === "RETARD" ? "bg-amber-600 text-white" : "bg-blue-600 text-white"
+                            )}>
+                              {status === "PRESENT" ? "Présent ✓" : status === "ABSENT" ? "Absent ✗" : status === "RETARD" ? "Retard ⏱" : "Excusé"}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Boutons d'Appel Tactiles (Touch-Friendly 44px) */}
+                        <div className="grid grid-cols-4 gap-1.5 pt-1">
+                          <button
+                            type="button"
+                            disabled={isSaving === s.id}
+                            onClick={() => handleMarkAttendance(s.id, "PRESENT")}
+                            className={cn(
+                              "h-10 rounded-xl font-bold text-xs flex items-center justify-center transition-all cursor-pointer border",
+                              status === "PRESENT" 
+                                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm" 
+                                : "bg-background text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10 active:scale-95"
+                            )}
+                          >
+                            <UserCheck className="w-3.5 h-3.5 mr-1" />
+                            <span>Présent</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={isSaving === s.id}
+                            onClick={() => handleMarkAttendance(s.id, "ABSENT")}
+                            className={cn(
+                              "h-10 rounded-xl font-bold text-xs flex items-center justify-center transition-all cursor-pointer border",
+                              status === "ABSENT" 
+                                ? "bg-red-600 text-white border-red-600 shadow-sm" 
+                                : "bg-background text-red-600 border-red-500/30 hover:bg-red-500/10 active:scale-95"
+                            )}
+                          >
+                            <UserX className="w-3.5 h-3.5 mr-1" />
+                            <span>Absent</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={isSaving === s.id}
+                            onClick={() => handleMarkAttendance(s.id, "RETARD")}
+                            className={cn(
+                              "h-10 rounded-xl font-bold text-xs flex items-center justify-center transition-all cursor-pointer border",
+                              status === "RETARD" 
+                                ? "bg-amber-600 text-white border-amber-600 shadow-sm" 
+                                : "bg-background text-amber-600 border-amber-500/30 hover:bg-amber-500/10 active:scale-95"
+                            )}
+                          >
+                            <Clock className="w-3.5 h-3.5 mr-1" />
+                            <span>Retard</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={isSaving === s.id}
+                            onClick={() => handleMarkAttendance(s.id, "EXCUSED")}
+                            className={cn(
+                              "h-10 rounded-xl font-bold text-xs flex items-center justify-center transition-all cursor-pointer border",
+                              status === "EXCUSED" 
+                                ? "bg-blue-600 text-white border-blue-600 shadow-sm" 
+                                : "bg-background text-blue-600 border-blue-500/30 hover:bg-blue-500/10 active:scale-95"
+                            )}
+                          >
+                            <UserMinus className="w-3.5 h-3.5 mr-1" />
+                            <span>Excusé</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* VUE TABLETTE & DESKTOP (>= 768px) : Tableau Traditionnel */}
+              <div className="hidden md:block overflow-x-auto touch-pan-x">
                 <table className="w-full min-w-[650px] text-left text-sm">
                   <thead className="bg-muted/60 text-muted-foreground text-xs uppercase tracking-wider">
                     <tr>

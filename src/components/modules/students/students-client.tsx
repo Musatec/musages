@@ -12,7 +12,6 @@ import {
 import { createStudent } from "@/lib/actions/students";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import * as XLSX from "xlsx";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,10 +43,14 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
   const isSchool = activeSpace === "school";
 
   const [students, setStudents] = useState<any[]>(isSchool ? MOCK_SCHOOL_STUDENTS : initialStudents);
+  const [prevInitialStudents, setPrevInitialStudents] = useState(initialStudents);
+  const [prevIsSchool, setPrevIsSchool] = useState(isSchool);
 
-  useEffect(() => {
+  if (initialStudents !== prevInitialStudents || isSchool !== prevIsSchool) {
+    setPrevInitialStudents(initialStudents);
+    setPrevIsSchool(isSchool);
     setStudents(isSchool ? MOCK_SCHOOL_STUDENTS : initialStudents);
-  }, [isSchool, initialStudents]);
+  }
 
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState("");
@@ -94,7 +97,7 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
     return matchesSearch && matchesClass && matchesTab;
   });
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     const dataToExport = filteredStudents.map(s => ({
       [t("matricule")]: s.matricule,
       [t("fullname")]: `${s.firstName} ${s.lastName}`,
@@ -105,10 +108,12 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
       "Téléphone WhatsApp": s.parentPhone || 'N/A'
     }));
 
+    const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, `Effectif_${selectedYear}`);
     XLSX.writeFile(wb, `effectif_${isSchool ? 'ecole_pathe_pogne' : 'daara'}_${selectedYear}.xlsx`);
+    toast.success(isAr ? "تم تصدير ملف Excel بنجاح" : "Fichier Excel exporté avec succès !");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -414,7 +419,90 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
         "border shadow-sm overflow-hidden transition-colors duration-300",
         isSchool ? "border-amber-500/30 bg-card" : "border-emerald-500/20 bg-card"
       )}>
-        <div className="overflow-x-auto touch-pan-x">
+        {/* VUE MOBILE (< 768px) : Cartes Tactiles Ultra-Rapides */}
+        <div className="md:hidden divide-y divide-border/60">
+          {filteredStudents.length === 0 ? (
+            <div className="text-center py-10 px-4 text-muted-foreground">
+              <Users className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-xs font-bold">
+                {isSchool 
+                  ? (isAr ? "لا يوجد تلميذ يطابق معايير البحث." : "Aucun élève ne correspond aux critères sélectionnés.")
+                  : (isAr ? "لا يوجد طالب يطابق معايير البحث." : "Aucun Talibé ne correspond aux critères sélectionnés.")}
+              </p>
+            </div>
+          ) : (
+            filteredStudents.map((s) => (
+              <div 
+                key={s.id} 
+                className="p-3.5 space-y-2.5 transition-colors active:bg-muted/40"
+                style={{ contentVisibility: "auto", containIntrinsicSize: "1px 110px" }}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-black text-sm text-foreground truncate">
+                        {s.firstName} {s.lastName}
+                      </span>
+                      <span className="text-[11px] font-bold">
+                        {s.gender === "M" ? (
+                          <span className="text-blue-600">({isAr ? "ذكر" : "M"})</span>
+                        ) : (
+                          <span className="text-pink-600">({isAr ? "أنثى" : "F"})</span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={cn(
+                        "px-2 py-0.5 rounded font-mono text-[10px] font-bold border",
+                        isSchool 
+                          ? "bg-amber-100 dark:bg-amber-950/50 text-amber-950 dark:text-amber-200 border-amber-300 dark:border-amber-700" 
+                          : "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700"
+                      )}>
+                        {s.matricule || `EPP-2026-${String(s.id).slice(-4)}`}
+                      </span>
+                      <span className={cn(
+                        "px-2 py-0.5 rounded text-[10px] font-bold border truncate max-w-[140px]",
+                        isSchool ? "bg-amber-950/30 text-amber-300 border-amber-500/20" : "bg-emerald-950/30 text-emerald-300 border-emerald-500/20"
+                      )}>
+                        {s.class?.name || s.halqa?.name || (isSchool ? "Classe Primaire" : "Halqa Général")}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Badge variant="outline" className={cn(
+                    "text-[10px] shrink-0 font-bold",
+                    s.status === "INTERNE" ? "bg-amber-500/10 text-amber-600 border-amber-500/30" :
+                    s.status === "DEMI_PENSION" ? "bg-purple-500/10 text-purple-600 border-purple-500/30" :
+                    "bg-teal-500/10 text-teal-600 border-teal-500/30"
+                  )}>
+                    {s.status === "INTERNE" ? (isSchool ? "Pensionnaire" : t("interne")) : s.status === "DEMI_PENSION" ? t("demi_pension") : t("externe")}
+                  </Badge>
+                </div>
+
+                {/* Parent Contact & WhatsApp 1-Click */}
+                <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-2 text-xs">
+                  <div className="truncate text-muted-foreground text-[11px]">
+                    <span className="font-semibold text-foreground">{s.parentName || "Parent"}</span>
+                  </div>
+                  {s.parentPhone && (
+                    <a
+                      href={`https://wa.me/${s.parentPhone.replace(/[^0-9]/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600/10 hover:bg-emerald-600 text-emerald-600 hover:text-white font-mono text-[11px] font-bold border border-emerald-500/30 transition-all cursor-pointer shrink-0"
+                    >
+                      <Phone className="w-3 h-3 text-emerald-500" />
+                      <span>{s.parentPhone}</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* VUE TABLETTE & DESKTOP (>= 768px) : Tableau Détaillé */}
+        <div className="hidden md:block overflow-x-auto touch-pan-x">
           <table className="w-full min-w-[700px] text-left text-sm">
             <thead className={cn(
               "text-xs uppercase tracking-wider font-extrabold border-b",

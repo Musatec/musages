@@ -47,7 +47,7 @@ export default async function TuitionPage({
         classes={halqas as any}
         currentMonth={currentMonth}
         currentYear={currentYear}
-        schoolName={session.user.name || "Daara.net"}
+        schoolName={session.user.name || "Daara Ibnoul Khayim Al Diawziya"}
       />
     </div>
   );

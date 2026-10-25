@@ -334,7 +334,7 @@ export default async function HomePage() {
 
             {/* 3. FOOTER INFO */}
             <div className="pt-4 pb-8 text-center text-xs text-muted-foreground font-medium flex flex-col items-center gap-1.5">
-                <p>{isAr ? "مدرسة ابن القيم الجوزية — المنصة المتكاملة لإدارة Mémorisation Coran" : "Daara.net — Plateforme Intégrée de Gestion Coranique & Éducative"}</p>
+                <p>{isAr ? "مدرسة ابن القيم الجوزية — المنصة المتكاملة لإدارة تحفيظ القرآن الكريم" : "Daara Ibnoul Khayim Al Diawziya — Plateforme Intégrée de Gestion Coranique & Éducative"}</p>
                 <p className="text-[10px] opacity-70">
                     {isAr ? "جميع الحقوق محفوظة © ٢٠٢٦" : "Tous droits réservés © 2026 Daara Ibnoul Khayim Al Diawziya"}
                 </p>

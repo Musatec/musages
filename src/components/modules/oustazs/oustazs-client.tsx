@@ -323,7 +323,7 @@ export function OustazsClient({ daaraName, halqas, oustazUsers = [] }: OustazsCl
                 Total Enseignants Référents : {filteredOustazs.length} Oustazs & Seydas
               </td>
               <td colSpan={3} className="p-3 text-right font-arabic">
-                مدرسة ابن قيم الجوزية • Daara.net
+                مدرسة ابن قيم الجوزية • Daara Ibnoul Khayim Al Diawziya
               </td>
             </tr>
           </tfoot>

@@ -1,6 +1,4 @@
 
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 import { formatMoney } from "./utils";
 
 interface InvoiceData {
@@ -18,6 +16,8 @@ interface InvoiceData {
 }
 
 export async function generateInvoicePDF(data: InvoiceData) {
+    const { default: jsPDF } = await import("jspdf");
+    await import("jspdf-autotable");
     const doc = new jsPDF() as any;
     const margin = 20;
     

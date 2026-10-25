@@ -131,7 +131,12 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
     isSchool ? MOCK_SCHOOL_CLASSES[0].id : (initialClasses.length > 0 ? initialClasses[0].id : "")
   );
 
-  useEffect(() => {
+  const [prevInitialClasses, setPrevInitialClasses] = useState(initialClasses);
+  const [prevIsSchool, setPrevIsSchool] = useState(isSchool);
+
+  if (initialClasses !== prevInitialClasses || isSchool !== prevIsSchool) {
+    setPrevInitialClasses(initialClasses);
+    setPrevIsSchool(isSchool);
     if (isSchool) {
       setHalqas(MOCK_SCHOOL_CLASSES);
       setSelectedHalqaId(MOCK_SCHOOL_CLASSES[0].id);
@@ -141,7 +146,7 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
         setSelectedHalqaId(initialClasses[0].id);
       }
     }
-  }, [isSchool, initialClasses]);
+  }
 
   // Filtres Registre
   const [searchQuery, setSearchQuery] = useState("");
@@ -729,7 +734,7 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
                       Effectif total : {filteredTalibes.length} {isSchool ? "Élève(s)" : "Talibé(s)"}
                     </td>
                     <td colSpan={2} className="p-3 border border-slate-400 dark:border-slate-700 font-arabic font-bold text-right">
-                      {isSchool ? "مدرسة باثي بونغ الفرنكو عربية • École Pathé Pogne" : "مدرسة ابن قيم الجوزية • Daara.net"}
+                      {isSchool ? "مدرسة باثي بونغ الفرنكو عربية • École Pathé Pogne" : "مدرسة ابن قيم الجوزية • Daara Ibnoul Khayim Al Diawziya"}
                     </td>
                   </tr>
                 </tfoot>
