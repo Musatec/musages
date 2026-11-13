@@ -155,6 +155,51 @@ export async function payTeacher(data: {
   }
 }
 
+export async function updateTeacher(id: string, data: {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email?: string;
+  mainSubject?: string;
+  contractType?: string;
+  hourlyRate?: number;
+}) {
+  try {
+    const context = await getActionContext(DAARA_MANAGER_ROLES);
+    if (!context) return { error: "Non autorisé." };
+    if (!id || typeof id !== "string") return { error: "Enseignant introuvable." };
+
+    const firstName = typeof data?.firstName === "string" ? data.firstName.trim() : "";
+    const lastName = typeof data?.lastName === "string" ? data.lastName.trim() : "";
+    const phone = typeof data?.phone === "string" ? data.phone.trim() : "";
+    const email = typeof data?.email === "string" && data.email.trim() ? data.email.trim().toLowerCase() : null;
+
+    if (firstName.length < 2 || lastName.length < 2 || !phone) {
+      return { error: "Le prénom, le nom et le téléphone sont obligatoires." };
+    }
+
+    const updated = await prisma.user.updateMany({
+      where: { id, daaraId: context.daaraId, role: "OUSTAZ", deletedAt: null },
+      data: {
+        name: `${firstName} ${lastName}`,
+        phone,
+        email,
+      }
+    });
+
+    if (updated.count !== 1) return { error: "Enseignant introuvable." };
+
+    revalidatePath("/teachers");
+    return { success: true };
+  } catch (error: any) {
+    console.error("[UPDATE_TEACHER_ERROR]", error);
+    if (error?.code === "P2002") {
+      return { error: "Cet email est déjà utilisé par un autre utilisateur." };
+    }
+    return { error: "Erreur lors de la modification de l'enseignant." };
+  }
+}
+
 export async function deleteTeacher(id: string) {
   try {
     const context = await getActionContext(DAARA_MANAGER_ROLES);

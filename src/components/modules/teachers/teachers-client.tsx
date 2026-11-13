@@ -6,9 +6,11 @@ import {
   Plus, 
   Trash2, 
   Banknote,
-  Search
+  Search,
+  Pencil,
+  Loader2
 } from "lucide-react";
-import { addTeacher, deleteTeacher, payTeacher } from "@/lib/actions/teachers";
+import { addTeacher, updateTeacher, deleteTeacher, payTeacher } from "@/lib/actions/teachers";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ImportExcelModal } from "@/components/modules/common/import-excel-modal";
@@ -65,7 +67,17 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
   
   // Teacher state
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingTeacher, setEditingTeacher] = useState<any | null>(null);
   const [teacherForm, setTeacherForm] = useState({ 
+    firstName: "", 
+    lastName: "", 
+    phone: "", 
+    email: "", 
+    mainSubject: "", 
+    contractType: "VACATAIRE", 
+    hourlyRate: "" 
+  });
+  const [editTeacherForm, setEditTeacherForm] = useState({ 
     firstName: "", 
     lastName: "", 
     phone: "", 
@@ -135,6 +147,41 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
       setTimeout(() => window.location.reload(), 1000);
     }
     setIsSubmittingPay(false);
+  };
+
+  const handleOpenEditTeacher = (teacher: any) => {
+    setEditingTeacher(teacher);
+    setEditTeacherForm({
+      firstName: teacher.firstName || "",
+      lastName: teacher.lastName || "",
+      phone: teacher.phone || "",
+      email: teacher.email || "",
+      mainSubject: teacher.mainSubject || "",
+      contractType: teacher.contractType || "VACATAIRE",
+      hourlyRate: String(teacher.hourlyRate || "")
+    });
+  };
+
+  const handleUpdateTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTeacher) return;
+    setIsSubmittingTeacher(true);
+    toast.loading("Mise à jour...");
+
+    const res = await updateTeacher(editingTeacher.id, {
+      ...editTeacherForm,
+      hourlyRate: Number(editTeacherForm.hourlyRate) || 0
+    });
+    toast.dismiss();
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Fiche enseignant modifiée avec succès !");
+      setEditingTeacher(null);
+      setTimeout(() => window.location.reload(), 800);
+    }
+    setIsSubmittingTeacher(false);
   };
 
   const handleDeleteTeacher = async (id: string, name: string) => {
@@ -302,13 +349,24 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
                           {t.hourlyRate.toLocaleString('fr-FR')} FCFA<span className="text-[10px] text-muted-foreground font-normal">{t.contractType === 'VACATAIRE' ? '/h' : '/m'}</span>
                         </td>
                         <td className="px-3 py-2 text-center border-b border-slate-200 dark:border-slate-700/80">
-                          <button 
-                            onClick={() => handleDeleteTeacher(t.id, t.lastName)}
-                            className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded transition-all"
-                            title="Supprimer l'enseignant"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center justify-center gap-1">
+                            <button 
+                              type="button"
+                              onClick={() => handleOpenEditTeacher(t)}
+                              className="p-1.5 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded transition-all"
+                              title="Modifier l'enseignant"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => handleDeleteTeacher(t.id, t.lastName)}
+                              className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded transition-all"
+                              title="Supprimer l'enseignant"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -588,6 +646,94 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
                 <div className="pt-4 flex gap-3">
                   <button type="button" onClick={() => setShowPayModal(false)} className="flex-1 py-3 rounded-xl border border-border/50 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all">Annuler</button>
                   <button type="submit" disabled={isSubmittingPay} className="flex-[2] py-3 rounded-xl bg-primary text-black text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">Valider le Paiement</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL DE MODIFICATION ENSEIGNANT */}
+      <AnimatePresence>
+        {editingTeacher && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-card border border-border rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative">
+              <h2 className="text-xl font-black uppercase tracking-tight mb-2">Modifier l&apos;Enseignant</h2>
+              <p className="text-xs text-muted-foreground mb-6">Mettre à jour les coordonnées ou le statut de l&apos;enseignant</p>
+              
+              <form onSubmit={handleUpdateTeacher} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Prénom *</label>
+                    <input 
+                      required
+                      type="text"
+                      value={editTeacherForm.firstName}
+                      onChange={(e) => setEditTeacherForm({...editTeacherForm, firstName: e.target.value})}
+                      className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Nom *</label>
+                    <input 
+                      required
+                      type="text"
+                      value={editTeacherForm.lastName}
+                      onChange={(e) => setEditTeacherForm({...editTeacherForm, lastName: e.target.value})}
+                      className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Téléphone *</label>
+                    <input 
+                      required
+                      type="text"
+                      value={editTeacherForm.phone}
+                      onChange={(e) => setEditTeacherForm({...editTeacherForm, phone: e.target.value})}
+                      className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Email</label>
+                    <input 
+                      type="email"
+                      value={editTeacherForm.email}
+                      onChange={(e) => setEditTeacherForm({...editTeacherForm, email: e.target.value})}
+                      className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Discipline / Spécialité</label>
+                    <input 
+                      type="text"
+                      value={editTeacherForm.mainSubject}
+                      onChange={(e) => setEditTeacherForm({...editTeacherForm, mainSubject: e.target.value})}
+                      placeholder="Ex: Arabe, Coran, Maths..."
+                      className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 block">Type Contrat</label>
+                    <select
+                      value={editTeacherForm.contractType}
+                      onChange={(e) => setEditTeacherForm({...editTeacherForm, contractType: e.target.value})}
+                      className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
+                    >
+                      <option value="VACATAIRE">Vacataire</option>
+                      <option value="FIXE">Permanent / Fixe</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <button type="button" onClick={() => setEditingTeacher(null)} className="flex-1 py-3 rounded-xl border border-border/50 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:bg-muted transition-all">Annuler</button>
+                  <button type="submit" disabled={isSubmittingTeacher} className="flex-[2] py-3 rounded-xl bg-blue-600 text-white text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">Enregistrer</button>
                 </div>
               </form>
             </motion.div>

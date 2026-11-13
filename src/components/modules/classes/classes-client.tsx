@@ -12,10 +12,12 @@ import {
   Grid, 
   Search, 
   UserPlus,
-  Phone
+  Phone,
+  Pencil,
+  Loader2
 } from "lucide-react";
-import { createHalqa, deleteClass } from "@/lib/actions/classes";
-import { createStudent } from "@/lib/actions/students";
+import { createHalqa, deleteClass, updateHalqa } from "@/lib/actions/classes";
+import { createStudent, deleteStudent } from "@/lib/actions/students";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +89,12 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
   const [tParentName, setTParentName] = useState("");
   const [tParentPhone, setTParentPhone] = useState("");
   const [isAddingTalibe, setIsAddingTalibe] = useState(false);
+
+  // State Modal Modification Halqa
+  const [editingHalqa, setEditingHalqa] = useState<HalqaItem | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editLevel, setEditLevel] = useState("");
+  const [editOustazName, setEditOustazName] = useState("");
 
   // Active selected Halqa for Register view
   const currentHalqa = halqas.find(h => h.id === selectedHalqaId) || halqas[0];
@@ -184,6 +192,50 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
       setTParentPhone("");
     } else {
       toast.error(res.error || "Erreur lors de l'inscription.");
+    }
+  };
+
+  const handleOpenEditHalqa = (h: HalqaItem) => {
+    setEditingHalqa(h);
+    setEditName(h.name);
+    setEditLevel(h.level || (isSchool ? "Primaire" : "Hifz"));
+    setEditOustazName(h.oustazName || "");
+  };
+
+  const handleUpdateHalqa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingHalqa || !editName) return;
+    setIsSubmitting(true);
+    const res = await updateHalqa(editingHalqa.id, {
+      name: editName,
+      level: editLevel,
+      oustazName: editOustazName
+    });
+    setIsSubmitting(false);
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Classe mise à jour avec succès !");
+      setHalqas(halqas.map(h => h.id === editingHalqa.id ? { ...h, name: editName, level: editLevel, oustazName: editOustazName } : h));
+      setEditingHalqa(null);
+    }
+  };
+
+  const handleDeleteTalibeFromHalqa = async (talibeId: string, name: string) => {
+    if (!confirm(`Retirer ${name} de cette classe ?`)) return;
+    const res = await deleteStudent(talibeId);
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success(`${name} a été retiré.`);
+      setHalqas(halqas.map(h => {
+        if (h.id === selectedHalqaId) {
+          const updated = (h.talibes || []).filter(t => t.id !== talibeId);
+          return { ...h, talibes: updated, _count: { talibes: updated.length } };
+        }
+        return h;
+      }));
     }
   };
 
@@ -617,8 +669,11 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
                       <th className="w-36 py-2.5 px-3 text-center border-r border-emerald-600/50">
                         Téléphone
                       </th>
-                      <th className="w-20 py-2.5 px-2 text-center">
+                      <th className="w-20 py-2.5 px-2 text-center border-r border-emerald-600/50">
                         WhatsApp
+                      </th>
+                      <th className="w-20 py-2.5 px-2 text-center">
+                        Action
                       </th>
                     </tr>
                   </thead>
@@ -692,7 +747,7 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
                             </td>
 
                             {/* Actions WhatsApp */}
-                            <td className="py-2 px-2 text-center border-b border-slate-200 dark:border-slate-700/80">
+                            <td className="py-2 px-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
                               {talibe.parentPhone ? (
                                 <a 
                                   href={`https://wa.me/${talibe.parentPhone.replace(/\D/g, '')}`}
@@ -706,6 +761,18 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
                               ) : (
                                 <span className="text-slate-400 text-[10px]">—</span>
                               )}
+                            </td>
+
+                            {/* Action Retirer */}
+                            <td className="py-2 px-2 text-center border-b border-slate-200 dark:border-slate-700/80">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteTalibeFromHalqa(talibe.id, `${talibe.firstName} ${talibe.lastName}`)}
+                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded transition-all"
+                                title="Retirer de la classe"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </td>
                           </tr>
                         );
@@ -817,16 +884,25 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
                                 setActiveTab("register");
                               }}
                               size="sm"
-                              className="h-7 px-2.5 text-[11px] font-bold bg-[#107c41] hover:bg-[#0d6937] text-white gap-1 rounded"
+                              className="h-7 px-2 text-[11px] font-bold bg-[#107c41] hover:bg-[#0d6937] text-white gap-1 rounded"
                             >
-                              <FileSpreadsheet className="w-3.5 h-3.5" /> Ouvrir Feuille
+                              <FileSpreadsheet className="w-3.5 h-3.5" /> Ouvrir
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleOpenEditHalqa(h)}
+                              className="h-7 w-7 p-0 text-blue-600 hover:bg-blue-500/10 rounded"
+                              title="Modifier la classe"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
                             </Button>
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => handleDeleteHalqa(h.id, h.name)}
                               className="h-7 w-7 p-0 text-rose-500 hover:bg-rose-500/10 rounded"
-                              title="Supprimer la Halqa"
+                              title="Supprimer la classe"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
@@ -853,6 +929,78 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
         </div>
       )}
 
+      {/* MODAL DE MODIFICATION CLASSE / HALQA */}
+      <Dialog open={!!editingHalqa} onOpenChange={(open) => !open && setEditingHalqa(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold">
+              <Pencil className="w-4 h-4 text-blue-600" />
+              <span>{isSchool ? "Modifier la Classe" : "Modifier la Halqa"}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleUpdateHalqa} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase text-muted-foreground">
+                {isSchool ? "Nom de la Classe *" : "Nom de la Halqa *"}
+              </label>
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder={isSchool ? "Ex: CP A, CE1 B, 6ème..." : "Ex: Halqa Omar Ibn Al-Khattab"}
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase text-muted-foreground">
+                {isSchool ? "Palier Pédagogique" : "Niveau d'Enseignement"}
+              </label>
+              <select
+                value={editLevel}
+                onChange={(e) => setEditLevel(e.target.value)}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background text-xs font-medium"
+              >
+                {isSchool ? (
+                  <>
+                    <option value="Maternelle">Maternelle / Petite Enfance</option>
+                    <option value="Primaire">Primaire (CI - CM2)</option>
+                    <option value="Collège">Collège (6ème - 3ème)</option>
+                    <option value="Franco-Arabe">Spécial Franco-Arabe</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="MÉMORISATION (Hifz)">Mémorisation Complète (Hifz / القرآن)</option>
+                    <option value="TAHAJJI (Initiation)">Initiation & Alphabet (Tahajji / التهجي)</option>
+                    <option value="TAJWEED & RÈGLES">Tajweed & Récitation (التجويد والأحكام)</option>
+                  </>
+                )}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase text-muted-foreground">
+                {isSchool ? "Enseignant Référent" : "Oustaz / Maître Référent"}
+              </label>
+              <Input
+                value={editOustazName}
+                onChange={(e) => setEditOustazName(e.target.value)}
+                placeholder="Ex: Oustaz Moussa Ndaw"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setEditingHalqa(null)}>
+                Annuler
+              </Button>
+              <Button type="submit" size="sm" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs gap-1.5">
+                {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Pencil className="w-3.5 h-3.5" />}
+                <span>Enregistrer</span>
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

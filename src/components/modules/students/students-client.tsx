@@ -7,9 +7,12 @@ import {
   UserPlus, 
   FileSpreadsheet,
   Phone,
-  Sparkles
+  Sparkles,
+  Pencil,
+  Trash2,
+  Loader2
 } from "lucide-react";
-import { createStudent } from "@/lib/actions/students";
+import { createStudent, updateStudent, deleteStudent } from "@/lib/actions/students";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
@@ -48,10 +51,24 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
   const [selectedTab, setSelectedTab] = useState<"ALL" | "GARCON" | "FILLE" | "INTERNE" | "EXTERNE" | "DEMI_PENSION">("ALL");
   
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<any | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    gender: "M",
+    classId: "",
+    status: "EXTERNE",
+    healthNotes: "",
+    parentName: "",
+    parentPhone: "",
+    parentEmail: ""
+  });
+
+  const [editFormData, setEditFormData] = useState({
     firstName: "",
     lastName: "",
     gender: "M",
@@ -141,6 +158,62 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
         parentPhone: "",
         parentEmail: ""
       });
+    }
+  };
+
+  const handleOpenEdit = (student: any) => {
+    setEditingStudent(student);
+    setEditFormData({
+      firstName: student.firstName || "",
+      lastName: student.lastName || "",
+      gender: student.gender || "M",
+      classId: student.classId || student.halqaId || "",
+      status: student.status || (isSchool ? "EXTERNE" : "INTERNE"),
+      healthNotes: student.healthNotes || "",
+      parentName: student.parentName || "",
+      parentPhone: student.parentPhone || "",
+      parentEmail: student.parentEmail || ""
+    });
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStudent) return;
+    if (!editFormData.firstName || !editFormData.lastName) {
+      toast.error(isAr ? "الاسم الأول واسم العائلة مطلوبان." : "Le prénom et le nom sont obligatoires.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    const res = await updateStudent(editingStudent.id, {
+      ...editFormData,
+      status: editFormData.status as any
+    });
+    setIsSubmitting(false);
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success(isAr ? "تم تحديث بيانات الطالب بنجاح" : "Fiche élève mise à jour avec succès !");
+      setStudents(students.map(s => s.id === editingStudent.id ? { ...s, ...editFormData } : s));
+      setEditingStudent(null);
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(isAr ? `هل أنت متأكد من حذف ${name}؟` : `Voulez-vous vraiment supprimer définitivement ${name} ?`)) {
+      return;
+    }
+
+    setIsDeleting(id);
+    const res = await deleteStudent(id);
+    setIsDeleting(null);
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success(isAr ? "تم حذف الطالب بنجاح" : `${name} a été supprimé du registre.`);
+      setStudents(students.filter(s => s.id !== id));
     }
   };
 
@@ -406,15 +479,18 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
                 <th className="py-2.5 px-3 border-r border-emerald-600/50 min-w-[140px]">
                   {isSchool ? "Classe" : t("halqa")}
                 </th>
-                <th className="py-2.5 px-3 min-w-[200px]">
+                <th className="py-2.5 px-3 border-r border-emerald-600/50 min-w-[200px]">
                   {isSchool ? "Parent & Contact" : t("parent_contact")}
+                </th>
+                <th className="w-24 py-2.5 px-2 text-center border-b border-emerald-600/50">
+                  Actions
                 </th>
               </tr>
             </thead>
             <tbody>
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-slate-400 border-b border-slate-200 dark:border-slate-800 italic">
+                  <td colSpan={8} className="text-center py-12 text-slate-400 border-b border-slate-200 dark:border-slate-800 italic">
                     <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
                     <p className="text-xs">
                       {isSchool 
@@ -481,7 +557,7 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
                       </td>
 
                       {/* Parent & Contact */}
-                      <td className="py-2 px-3 border-b border-slate-200 dark:border-slate-700/80">
+                      <td className="py-2 px-3 border-r border-b border-slate-200 dark:border-slate-700/80">
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">{s.parentName || "—"}</span>
                           {s.parentPhone && (
@@ -497,6 +573,33 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
                           )}
                         </div>
                       </td>
+
+                      {/* Actions (Modifier / Supprimer) */}
+                      <td className="py-2 px-2 text-center border-b border-slate-200 dark:border-slate-700/80">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEdit(s)}
+                            className="p-1 rounded text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
+                            title="Modifier"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isDeleting === s.id}
+                            onClick={() => handleDelete(s.id, `${s.firstName} ${s.lastName}`)}
+                            className="p-1 rounded text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors disabled:opacity-50"
+                            title="Supprimer"
+                          >
+                            {isDeleting === s.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-red-600" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })
@@ -510,11 +613,11 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
                   <span className="text-slate-500 uppercase tracking-wider text-[10px] mr-2">TOTAL :</span>
                   <span>{filteredStudents.length} Inscrits au registre</span>
                 </td>
-                <td colSpan={2} className="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
+                <td colSpan={3} className="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
                   <span className="mr-3">Garçons : {countBoys}</span>
                   <span>Filles : {countGirls}</span>
                 </td>
-                <td colSpan={2} className="py-2.5 px-3 text-right font-mono text-[11px] text-slate-500">
+                <td colSpan={3} className="py-2.5 px-3 text-right font-mono text-[11px] text-slate-500">
                   Internes : {countInternes} | Externes : {countExternes}
                 </td>
               </tr>
@@ -522,6 +625,117 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
           </table>
         </div>
       </div>
+
+      {/* MODAL DE MODIFICATION ÉLÈVE */}
+      <Dialog open={!!editingStudent} onOpenChange={(open) => !open && setEditingStudent(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base font-bold">
+              <Pencil className="w-4 h-4 text-blue-600" />
+              <span>{isSchool ? "Modifier la fiche de l'élève" : "Modifier la fiche du Talibé"}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleUpdate} className="space-y-4 pt-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-muted-foreground">Prénom *</label>
+                <Input 
+                  value={editFormData.firstName}
+                  onChange={(e) => setEditFormData({ ...editFormData, firstName: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-muted-foreground">Nom *</label>
+                <Input 
+                  value={editFormData.lastName}
+                  onChange={(e) => setEditFormData({ ...editFormData, lastName: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-muted-foreground">Genre</label>
+                <select 
+                  value={editFormData.gender}
+                  onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value })}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-xs font-medium"
+                >
+                  <option value="M">Masculin</option>
+                  <option value="F">Féminin</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-muted-foreground">Régime</label>
+                <select 
+                  value={editFormData.status}
+                  onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-xs font-medium"
+                >
+                  <option value="INTERNE">{isSchool ? "Pensionnaire (Interne)" : "Interne (Pensionnat)"}</option>
+                  <option value="EXTERNE">Externe (Journée)</option>
+                  <option value="DEMI_PENSION">Demi-Pension</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase text-muted-foreground">Classe / Halqa</label>
+              <select 
+                value={editFormData.classId}
+                onChange={(e) => setEditFormData({ ...editFormData, classId: e.target.value })}
+                className="w-full h-10 px-3 rounded-md border border-input bg-background text-xs font-medium"
+              >
+                <option value="">-- Sans classe assignée --</option>
+                {classes.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-muted-foreground">Nom du parent</label>
+                <Input 
+                  value={editFormData.parentName}
+                  onChange={(e) => setEditFormData({ ...editFormData, parentName: e.target.value })}
+                  placeholder="Ex: Ibrahima Sow"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase text-muted-foreground">Téléphone parent</label>
+                <Input 
+                  value={editFormData.parentPhone}
+                  onChange={(e) => setEditFormData({ ...editFormData, parentPhone: e.target.value })}
+                  placeholder="Ex: 771234567"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase text-muted-foreground">Notes de santé / Particularités</label>
+              <Input 
+                value={editFormData.healthNotes}
+                onChange={(e) => setEditFormData({ ...editFormData, healthNotes: e.target.value })}
+                placeholder="Allergies, traitement, etc."
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setEditingStudent(null)}>
+                Annuler
+              </Button>
+              <Button type="submit" size="sm" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs gap-1.5">
+                {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Pencil className="w-3.5 h-3.5" />}
+                <span>Enregistrer les modifications</span>
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
