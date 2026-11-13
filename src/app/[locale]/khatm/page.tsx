@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getKhatmRecords } from "@/lib/actions/khatm";
 import { KhatmClient } from "@/components/modules/khatm/khatm-client";
+import { DAARA_STAFF_ROLES, hasAnyRole } from "@/lib/action-context";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +18,10 @@ export default async function KhatmPage({
   if (!session?.user?.id) {
     redirect(`/${locale}/login`);
   }
+  if (!hasAnyRole(session.user.role, DAARA_STAFF_ROLES)) redirect(`/${locale}/home`);
 
-  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
+  const daaraId = session.user.daaraId;
+  if (!daaraId) redirect(`/${locale}/setup`);
 
   // Fetch Khatm records and Daara info
   const { records, daara } = await getKhatmRecords();

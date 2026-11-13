@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import { cn } from "@/lib/utils";
 
 interface DaaraDashboardClientProps {
   daaraName: string;
@@ -47,16 +48,16 @@ export function DaaraDashboardClient({
     <div className="space-y-6 py-4 max-w-7xl mx-auto font-sans">
       
       {/* En-tête de Bienvenue Épuré */}
-      <div className="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-800 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="app-hero rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1.5 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/15 text-primary text-xs font-semibold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
             {isAr ? "منصة المحضرة الرقمية" : "E-Daara • Ibnoul Khayim"}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight font-arabic">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight font-arabic">
             {daaraName}
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
+          <p className="text-muted-foreground text-sm leading-relaxed">
             {isAr 
               ? "جدول المتابعة الشامل: متابعة حفظ الـ 60 حزباً، سجل الطلاب والطلاب المقيمين."
               : "Tableau récapitulatif de gestion du Daara : Suivi des 60 Hizbs, registre des apprenants et présences."
@@ -66,7 +67,7 @@ export function DaaraDashboardClient({
 
         <div className="flex items-center gap-3 shrink-0 flex-wrap">
           <Link href="/hifz">
-            <Button className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs gap-2 rounded-xl px-4 py-2.5 shadow-xs">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-2 rounded-xl px-4 py-2.5 shadow-xs">
               <BookOpen className="w-4 h-4" /> {isAr ? "متابعة ٦٠ حزباً" : "Suivi 60 Hizbs"}
             </Button>
           </Link>
@@ -79,8 +80,8 @@ export function DaaraDashboardClient({
       </div>
 
       {/* TABLEAU RÉCAPITULATIF DES MÉTRIQUES (STYLE TABLEAU WORD / EXCEL ÉPURÉ - PAS DE GRANDES CARTES BOUFFIES) */}
-      <div className="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
-        <div className="bg-slate-900 text-white px-4 sm:px-6 py-3.5 flex items-center justify-between border-b-2 border-slate-700">
+      <div className="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-muted/60 text-foreground px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-border">
           <div className="flex items-center gap-2">
             <TableIcon className="w-4 h-4 text-emerald-400" />
             <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider font-arabic">
@@ -93,7 +94,7 @@ export function DaaraDashboardClient({
         <div className="overflow-x-auto touch-pan-x">
           <table className="w-full min-w-[650px] text-left border-collapse">
             <thead>
-              <tr className="bg-slate-100 dark:bg-slate-800/80 text-slate-900 dark:text-slate-200 text-xs font-black uppercase tracking-wider border-b border-slate-300 dark:border-slate-700">
+              <tr className="bg-muted text-foreground text-xs font-semibold uppercase tracking-wider border-b border-border">
                 <th className="py-3 px-5 border-r border-slate-300 dark:border-slate-700">Indicateur / Métrique</th>
                 <th className="py-3 px-5 border-r border-slate-300 dark:border-slate-700 text-center w-32">Valeur</th>
                 <th className="py-3 px-5 border-r border-slate-300 dark:border-slate-700">Détails & Précisions</th>
@@ -200,29 +201,31 @@ export function DaaraDashboardClient({
       </div>
 
       {/* TABLEAU DES RÉCITATIONS RÉCENTES DES 60 HIZBS */}
-      <div className="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xs">
-        <div className="bg-slate-900 text-white px-4 sm:px-6 py-3.5 flex items-center justify-between border-b-2 border-slate-700">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 sm:px-6 py-2.5 flex items-center justify-between border-b border-slate-200 dark:border-slate-700 select-none">
           <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-emerald-400" />
-            <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider font-arabic">
-              {isAr ? "سجل التسميع اليومي (٦٠ حزباً)" : "Registre des Récitations Récentes (60 Hizbs)"}
+            <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+              <span>XLSX</span>
+            </span>
+            <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wide text-slate-800 dark:text-slate-200 font-arabic">
+              {isAr ? "سجل التسميع اليومي (٦٠ حزباً)" : "Feuille : Récitations Récentes (60 Hizbs)"}
             </h2>
           </div>
           <Link href="/hifz">
-            <Button size="sm" variant="ghost" className="text-xs text-emerald-400 hover:text-emerald-300 font-bold gap-1">
+            <Button size="sm" variant="ghost" className="text-xs text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 font-bold gap-1">
               {isAr ? "عرض الكل" : "Voir tout"} <ChevronRight className="w-4 h-4" />
             </Button>
           </Link>
         </div>
 
         <div className="overflow-x-auto touch-pan-x">
-          <table className="w-full min-w-[650px] text-left border-collapse">
+          <table className="w-full min-w-[650px] text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-100 dark:bg-slate-800/80 text-slate-900 dark:text-slate-200 text-xs font-black uppercase tracking-wider border-b border-slate-300 dark:border-slate-700">
-                <th className="py-3 px-5 border-r border-slate-300 dark:border-slate-700">Hizb N°</th>
-                <th className="py-3 px-5 border-r border-slate-300 dark:border-slate-700">Nom & Prénom du Talibé</th>
-                <th className="py-3 px-5 border-r border-slate-300 dark:border-slate-700">Sourate & Versets</th>
-                <th className="py-3 px-5 text-center w-36">Évaluation</th>
+              <tr className="bg-[#107c41] text-white text-[11px] font-black uppercase tracking-wider select-none">
+                <th className="py-2.5 px-4 border-r border-b border-emerald-600/50">Hizb N°</th>
+                <th className="py-2.5 px-4 border-r border-b border-emerald-600/50">Nom & Prénom du Talibé</th>
+                <th className="py-2.5 px-4 border-r border-b border-emerald-600/50">Sourate & Versets</th>
+                <th className="py-2.5 px-4 border-b border-emerald-600/50 text-center w-36">Évaluation</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-xs sm:text-sm font-arabic">
@@ -233,19 +236,25 @@ export function DaaraDashboardClient({
                   </td>
                 </tr>
               ) : (
-                recentHifz.map((record) => (
-                  <tr key={record.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3.5 px-5 font-black text-emerald-700 dark:text-emerald-400 border-r border-slate-200 dark:border-slate-800">
+                recentHifz.map((record, idx) => (
+                  <tr 
+                    key={record.id} 
+                    className={cn(
+                      "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                      idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                    )}
+                  >
+                    <td className="py-3 px-4 font-black text-emerald-700 dark:text-emerald-400 border-r border-b border-slate-200 dark:border-slate-800 font-mono">
                       Hizb {record.hizbNumber}
                     </td>
-                    <td className="py-3.5 px-5 font-bold text-slate-900 dark:text-white border-r border-slate-200 dark:border-slate-800">
+                    <td className="py-3 px-4 font-bold text-slate-900 dark:text-white border-r border-b border-slate-200 dark:border-slate-800">
                       {record.talibe?.firstName} {record.talibe?.lastName}
                     </td>
-                    <td className="py-3.5 px-5 text-slate-600 dark:text-slate-300 border-r border-slate-200 dark:border-slate-800 font-medium">
+                    <td className="py-3 px-4 text-slate-600 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-800 font-medium">
                       {record.surahName ? `Sourate ${record.surahName}` : "Récitation générale"}
                     </td>
-                    <td className="py-3.5 px-5 text-center">
-                      <Badge variant="outline" className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 font-bold px-3 py-1 rounded-full text-xs">
+                    <td className="py-3 px-4 text-center border-b border-slate-200 dark:border-slate-800">
+                      <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 font-bold px-2.5 py-0.5 rounded-md text-[11px]">
                         {record.evaluation || "MUMTAZ ممتاز"}
                       </Badge>
                     </td>

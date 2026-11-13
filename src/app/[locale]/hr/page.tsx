@@ -28,6 +28,7 @@ export default function HRPage() {
     const [loading, setLoading] = useState(true);
     const [isActionPending, setIsActionPending] = useState(false);
     const [data, setData] = useState<HRData | null>(null);
+    const [moduleUnavailable, setModuleUnavailable] = useState<string | null>(null);
     const [search, setSearch] = useState("");
     const [openAdd, setOpenAdd] = useState(false);
 
@@ -36,8 +37,13 @@ export default function HRPage() {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await getEmployees() as unknown as HRData;
-            setData(res);
+            const res = await getEmployees();
+            if (!res.success) {
+                setData(null);
+                setModuleUnavailable(res.error || "Le registre RH n'est pas disponible.");
+                return;
+            }
+            setData(res as unknown as HRData);
         } finally {
             setLoading(false);
         }
@@ -84,6 +90,23 @@ export default function HRPage() {
     const filteredEmployees = useMemo(() => {
         return data?.employees?.filter((e: any) => (e.firstName + " " + e.lastName).toLowerCase().includes(search.toLowerCase()));
     }, [data, search]);
+
+    if (loading && !moduleUnavailable) {
+        return <div className="p-8"><TopLoader /><p className="text-sm text-muted-foreground">Chargement du registre RH…</p></div>;
+    }
+
+    if (moduleUnavailable) {
+        return (
+            <div className="flex-1 p-6 md:p-8">
+                <div className="max-w-3xl mx-auto space-y-6">
+                    <h1 className="text-2xl font-bold">Ressources humaines</h1>
+                    <div role="status" className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6 text-sm text-muted-foreground">
+                        {moduleUnavailable}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-4">
@@ -217,87 +240,117 @@ export default function HRPage() {
                     />
                 </div>
 
-                {/* --- STAFF DIRECTORY TABLE --- */}
-                <div className="bg-card border border-border shadow-sm rounded-xl overflow-hidden min-h-[300px] md:min-h-[500px] flex flex-col">
-                    {/* Desktop Table View */}
-                    <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full text-left text-sm border-separate border-spacing-0">
-                            <thead className="bg-muted/10 text-muted-foreground text-xs font-semibold border-b border-border">
-                                <tr>
-                                    <th className="px-6 py-4">Collaborateur</th>
-                                    <th className="px-6 py-4">Date Recrutement</th>
-                                    <th className="px-6 py-4">Salaire Base</th>
-                                    <th className="px-6 py-4">Acomptes</th>
-                                    <th className="px-6 py-4">Reste à payer</th>
-                                    <th className="px-6 py-4 text-center">Statut Paie</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                {/* --- REGISTRE EXCEL PRO DU PERSONNEL & SALAIRES --- */}
+                <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
+                    {/* Barre de Titre Feuille Excel */}
+                    <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+                        <div className="flex items-center gap-2">
+                            <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+                                <span>XLSX</span>
+                            </span>
+                            <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+                                Feuille : Registre des Salaires RH & Collaborateurs
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                {filteredEmployees?.length || 0} collaborateurs
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Grille Excel */}
+                    <div className="w-full overflow-x-auto touch-pan-x">
+                        <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+                            <thead>
+                                <tr className="bg-[#107c41] text-white select-none">
+                                    <th className="w-12 text-center px-2 py-2 text-[10px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">N°</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[180px]">Collaborateur (Nom & Prénom)</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[120px]">Contact</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[100px] text-center">Recrutement</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-right min-w-[120px]">Salaire Base</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-right min-w-[110px]">Acomptes</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-right min-w-[120px]">Solde Net</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-center min-w-[90px]">Statut</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-b border-emerald-600/50 text-center w-36">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-border/50">
+                            <tbody>
                                 {filteredEmployees?.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="py-20 text-center text-muted-foreground italic">Aucun membre d'équipe enregistré.</td>
+                                        <td colSpan={9} className="py-10 text-center text-muted-foreground border-b border-slate-200 dark:border-slate-700/80 italic bg-white dark:bg-slate-900">
+                                            Aucun membre d'équipe enregistré.
+                                        </td>
                                     </tr>
-                                ) : filteredEmployees?.map((employee: any) => {
+                                ) : filteredEmployees?.map((employee: any, idx: number) => {
                                     const salary = Number(employee.salary) || 0;
                                     const advances = Number(employee.advances) || 0;
                                     const net = salary - advances;
-                                    const advPercent = salary > 0 ? Math.min(100, (advances / salary) * 100) : 0;
                                     const displayName = employee.name || `${employee.firstName || ''} ${employee.lastName || ''}`.trim() || "Collaborateur";
 
                                     return (
-                                        <tr key={employee.id} className="group hover:bg-muted/20 transition-all">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0 shadow-sm transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                                                        <UserIcon className="w-4 h-4 opacity-40 group-hover:opacity-100" />
-                                                    </div>
-                                                    <div className="overflow-hidden">
-                                                        <h3 className="font-bold text-foreground text-sm uppercase truncate mb-0.5">{displayName}</h3>
-                                                        <p className="text-[10px] text-muted-foreground font-mono uppercase truncate opacity-60">{employee.phone || "Non renseigné"}</p>
-                                                    </div>
-                                                </div>
+                                        <tr 
+                                            key={employee.id} 
+                                            className={cn(
+                                                "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                                                idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                                            )}
+                                        >
+                                            <td className="w-12 text-center bg-[#f1f3f5] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                                                {idx + 1}
                                             </td>
-                                            <td className="px-6 py-4 text-xs font-medium text-muted-foreground">
-                                                {employee.createdAt ? new Date(employee.createdAt).toLocaleDateString('fr-FR') : "-"}
+                                            <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                {displayName}
                                             </td>
-                                            <td className="px-6 py-4 text-sm font-bold text-foreground">
+                                            <td className="px-3 py-2 font-mono text-[11px] text-slate-600 dark:text-slate-400 border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                {employee.phone || "—"}
+                                            </td>
+                                            <td className="px-3 py-2 text-center font-mono text-xs text-slate-600 dark:text-slate-400 border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                {employee.createdAt ? new Date(employee.createdAt).toLocaleDateString('fr-FR') : "—"}
+                                            </td>
+                                            <td className="px-3 py-2 text-right font-mono font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
                                                 {formatMoney(salary)} F
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col gap-1 w-32">
-                                                    <div className="flex justify-between items-end mb-1">
-                                                        <span className="text-xs font-bold text-amber-600">-{formatMoney(advances)} F</span>
-                                                    </div>
-                                                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-                                                        <div className={cn("h-full transition-all duration-700", advPercent > 70 ? "bg-red-500" : "bg-amber-500")} style={{ width: `${advPercent}%` }} />
-                                                    </div>
-                                                </div>
+                                            <td className="px-3 py-2 text-right font-mono font-bold text-amber-600 dark:text-amber-400 border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                {advances > 0 ? `-${formatMoney(advances)} F` : "0 F"}
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <span className={cn("text-sm font-bold", net > 0 ? "text-emerald-600" : "text-muted-foreground italic opacity-40")}>
-                                                    {net > 0 ? formatMoney(net) + " F" : "SOLDÉ"}
+                                            <td className="px-3 py-2 text-right font-mono font-bold text-sm border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                <span className={net > 0 ? "text-emerald-700 dark:text-emerald-400" : "text-slate-500"}>
+                                                    {formatMoney(net)} F
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-center">
+                                            <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
                                                 <span className={cn(
-                                                    "px-3 py-1 rounded-md text-[10px] font-bold border block w-fit mx-auto shadow-sm",
-                                                    net <= 0 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                                                    "inline-block px-1.5 py-0.5 rounded text-[9px] font-black uppercase border",
+                                                    net <= 0 
+                                                        ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300" 
+                                                        : "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300"
                                                 )}>
-                                                    {net <= 0 ? "PAYÉ" : "EN ATTENTE"}
+                                                    {net <= 0 ? "Payé" : "À Payer"}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => handleAdvance(employee.id, displayName)} className="p-2 bg-background border border-border rounded-lg hover:bg-amber-500 hover:text-white transition-colors shadow-sm" title="Verser acompte">
-                                                        <Wallet className="w-3.5 h-3.5" />
+                                            <td className="px-3 py-2 text-center border-b border-slate-200 dark:border-slate-700/80">
+                                                <div className="flex items-center justify-center gap-1.5">
+                                                    <button 
+                                                        onClick={() => handleAdvance(employee.id, displayName)} 
+                                                        className="px-2 py-0.5 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 rounded border border-amber-200 dark:border-amber-700 text-[10px] font-bold transition-all"
+                                                        title="Verser un acompte"
+                                                    >
+                                                        Acompte
                                                     </button>
-                                                    <button onClick={() => handleSalaryPayment(employee.id, displayName, net)} disabled={net <= 0} className={cn("p-2 bg-background border border-border rounded-lg transition-colors shadow-sm", net <= 0 ? "opacity-20 cursor-not-allowed" : "hover:bg-primary hover:text-primary-foreground")}>
-                                                        <ArrowUpRight className="w-3.5 h-3.5" />
+                                                    <button 
+                                                        onClick={() => handleSalaryPayment(employee.id, displayName, net)} 
+                                                        disabled={net <= 0} 
+                                                        className={cn(
+                                                            "px-2 py-0.5 rounded border text-[10px] font-bold transition-all",
+                                                            net <= 0 
+                                                                ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-40" 
+                                                                : "bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-700 shadow-sm"
+                                                        )}
+                                                        title="Payer le solde du mois"
+                                                    >
+                                                        Payer Solde
                                                     </button>
-                                                </div>
-                                                <div className="group-hover:hidden text-muted-foreground">
-                                                    <MoreHorizontal className="w-4 h-4 ml-auto" />
                                                 </div>
                                             </td>
                                         </tr>
@@ -307,49 +360,17 @@ export default function HRPage() {
                         </table>
                     </div>
 
-                    {/* Mobile Card View */}
-                    <div className="md:hidden divide-y divide-border/20">
-                        {filteredEmployees?.length === 0 ? (
-                            <div className="py-20 text-center text-muted-foreground italic">Aucun collaborateur trouvé.</div>
-                        ) : filteredEmployees?.map((employee: any) => {
-                            const salary = Number(employee.salary) || 0;
-                            const advances = Number(employee.advances) || 0;
-                            const net = salary - advances;
-                            const displayName = employee.name || `${employee.firstName || ''} ${employee.lastName || ''}`.trim() || "Collaborateur";
-                            return (
-                                <div key={employee.id} className="p-4 space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0">
-                                            <UserIcon className="w-4 h-4 opacity-40" />
-                                        </div>
-                                        <div className="flex-1 overflow-hidden">
-                                            <h3 className="font-bold text-foreground text-sm uppercase truncate">{displayName}</h3>
-                                            <p className="text-[10px] text-muted-foreground font-mono uppercase">{employee.phone || "Non renseigné"}</p>
-                                        </div>
-                                        <span className={cn(
-                                            "px-2 py-0.5 rounded text-[8px] font-black uppercase border",
-                                            net <= 0 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                                        )}>
-                                            {net <= 0 ? "Payé" : "Paie"}
-                                        </span>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/40">
-                                        <div className="space-y-0.5">
-                                            <p className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest">Salaire Net</p>
-                                            <p className="text-sm font-black italic">{formatMoney(salary)} F</p>
-                                        </div>
-                                        <div className="space-y-0.5 text-right">
-                                            <p className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest">Solde Actuel</p>
-                                            <p className={cn("text-sm font-black italic", net > 0 ? "text-primary" : "text-emerald-500")}>{formatMoney(net)} F</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-end gap-2 pt-2">
-                                        <button onClick={() => handleAdvance(employee.id, displayName)} className="px-4 py-2 bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Acompte</button>
-                                        <button onClick={() => handleSalaryPayment(employee.id, displayName, net)} disabled={net <= 0} className={cn("px-4 py-2 bg-primary text-primary-foreground rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg shadow-primary/10", net <= 0 && "opacity-20")}>Payer Solde</button>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                    {/* Barre d'état Excel */}
+                    <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium select-none">
+                        <div className="flex items-center gap-3">
+                            <span className="font-bold text-emerald-800 dark:text-emerald-400">PRÊT</span>
+                            <span>•</span>
+                            <span>Affichage : {filteredEmployees?.length || 0} collaborateurs</span>
+                        </div>
+                        <div className="flex items-center gap-4 font-mono">
+                            <span>Masse Salariale Base : <strong>{formatMoney(filteredEmployees?.reduce((acc: number, e: any) => acc + (Number(e.salary) || 0), 0) || 0)} F</strong></span>
+                            <span>Total Net Restant : <strong className="text-emerald-700 dark:text-emerald-400">{formatMoney(filteredEmployees?.reduce((acc: number, e: any) => acc + (Math.max(0, (Number(e.salary) || 0) - (Number(e.advances) || 0))), 0) || 0)} F</strong></span>
+                        </div>
                     </div>
                 </div>
             </div>

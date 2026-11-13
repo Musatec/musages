@@ -12,7 +12,8 @@ import {
     Activity,
     CreditCard,
     HeartHandshake,
-    BadgeDollarSign
+    BadgeDollarSign,
+    Gift
 } from "lucide-react";
 
 export interface NavItem {
@@ -55,9 +56,11 @@ export const NAV_SECTIONS: NavSection[] = [
         title: "FINANCES & CAISSE DAARA",
         titleAr: "المالية والخزينة",
         items: [
-            { label: "Paiements (12 Mois)", labelAr: "سجل الاشتراكات", icon: CreditCard, href: "/tuition", roles: ["SERIGNE_DAARA", "SUPER_ADMIN", "GESTIONNAIRE"] },
+            { label: "Frais scolaires (12 mois)", labelAr: "الرسوم المدرسية", icon: CreditCard, href: "/tuition", roles: ["SERIGNE_DAARA", "SUPER_ADMIN", "GESTIONNAIRE"] },
             { label: "Salaires des Oustazs", labelAr: "أجور المشايخ", icon: BadgeDollarSign, href: "/hr", roles: ["SERIGNE_DAARA", "SUPER_ADMIN"] },
             { label: "Cas Sociaux & Exonérés", labelAr: "الحالات الاجتماعية", icon: HeartHandshake, href: "/cas-sociaux" },
+            { label: "Parrainages & Ndeyi Daara", labelAr: "كفالة الطلاب", icon: HeartHandshake, href: "/parrainage", roles: ["SERIGNE_DAARA", "SUPER_ADMIN", "GESTIONNAIRE"] },
+            { label: "Dons & Sadaqa", labelAr: "الصدقات", icon: Gift, href: "/sadaqa", roles: ["SERIGNE_DAARA", "SUPER_ADMIN", "GESTIONNAIRE"] },
             { label: "Trésorerie & Dépenses", labelAr: "المصروفات والخزينة", icon: TrendingUp, href: "/expenses", roles: ["SERIGNE_DAARA", "SUPER_ADMIN"] },
             { label: "Paramètres Daara", labelAr: "إعدادات المحضرة", icon: Settings, href: "/settings", roles: ["SERIGNE_DAARA", "SUPER_ADMIN"] },
         ]
@@ -121,6 +124,6 @@ export const BOTTOM_NAV_ITEMS = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
     { label: "Effectif", icon: Users, href: "/students" },
     { label: "60 Hizb", icon: BookOpen, href: "/hifz" },
-    { label: "Paiements", icon: CreditCard, href: "/tuition" },
+    { label: "Frais scolaires", icon: CreditCard, href: "/tuition" },
     { label: "Présences", icon: CalendarCheck, href: "/attendance" },
 ];

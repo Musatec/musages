@@ -3,46 +3,62 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  UsersRound, 
-  Briefcase, 
   Plus, 
   Trash2, 
-  CreditCard,
   Banknote,
-  Search,
-  BookOpen
+  Search
 } from "lucide-react";
 import { addTeacher, deleteTeacher, payTeacher } from "@/lib/actions/teachers";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ImportExcelModal } from "@/components/modules/common/import-excel-modal";
 
 import { useSpace } from "@/components/providers/space-provider";
 
-const MOCK_SCHOOL_TEACHERS = [
-  { id: "sch_t1", firstName: "Mamadou", lastName: "Diallo", mainSubject: "Langue Française & Dictée", contractType: "FIXE", hourlyRate: 150000, phone: "+221 77 123 45 67", email: "m.diallo@pathepogne.sn" },
-  { id: "sch_t2", firstName: "Oustaz Ibrahim", lastName: "Sarr", mainSubject: "Langue Arabe & Éducation Religieuse", contractType: "FIXE", hourlyRate: 160000, phone: "+221 77 234 56 78", email: "i.sarr@pathepogne.sn" },
-  { id: "sch_t3", firstName: "Fatou", lastName: "Sow", mainSubject: "Calcul & Mathématiques", contractType: "VACATAIRE", hourlyRate: 3500, phone: "+221 77 345 67 89", email: "f.sow@pathepogne.sn" },
-  { id: "sch_t4", firstName: "Aïssatou", lastName: "Diop", mainSubject: "Histoire, Géographie & Éveil", contractType: "VACATAIRE", hourlyRate: 3000, phone: "+221 77 456 78 90", email: "a.diop@pathepogne.sn" },
-  { id: "sch_t5", firstName: "Cheikh", lastName: "Tidiane Ndiaye", mainSubject: "Sciences & Grammaire", contractType: "FIXE", hourlyRate: 140000, phone: "+221 77 567 89 01", email: "c.ndiaye@pathepogne.sn" },
-];
+interface TeacherItem {
+  id: string;
+  name?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  mainSubject?: string | null;
+  contractType?: string | null;
+  hourlyRate?: number | null;
+}
 
-const MOCK_SCHOOL_PAYMENTS = [
-  { id: "sch_p1", createdAt: new Date().toISOString(), description: "Salaire Enseignant Français - Mr. Mamadou Diallo", amount: 150000 },
-  { id: "sch_p2", createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), description: "Vacations Calculs - Mme Fatou Sow", amount: 45000 },
-  { id: "sch_p3", createdAt: new Date(Date.now() - 86400000 * 5).toISOString(), description: "Salaire Professeur Arabe - Oustaz Ibrahim Sarr", amount: 160000 },
-];
+interface PaymentItem {
+  id: string;
+  createdAt: string | Date;
+  description?: string | null;
+  amount: number;
+}
 
 interface TeachersClientProps {
-  teachers: any[];
-  recentPayments: any[];
+  teachers: TeacherItem[];
+  recentPayments: PaymentItem[];
+}
+
+function normalizeTeacher(teacher: TeacherItem) {
+  const parts = (teacher.name || "").trim().split(/\s+/).filter(Boolean);
+  const firstName = teacher.firstName || parts[0] || "Oustaz";
+  const lastName = teacher.lastName || parts.slice(1).join(" ") || "";
+  return {
+    ...teacher,
+    firstName,
+    lastName,
+    mainSubject: teacher.mainSubject || null,
+    contractType: teacher.contractType || "OUSTAZ",
+    hourlyRate: Number(teacher.hourlyRate ?? 0),
+  };
 }
 
 export function TeachersClient({ teachers: initialTeachers, recentPayments: initialPayments }: TeachersClientProps) {
   const { activeSpace } = useSpace();
   const isSchool = activeSpace === "school";
 
-  const teachersList = isSchool ? MOCK_SCHOOL_TEACHERS : initialTeachers;
-  const paymentsList = isSchool ? MOCK_SCHOOL_PAYMENTS : initialPayments;
+  const teachersList = initialTeachers.map(normalizeTeacher);
+  const paymentsList = initialPayments;
 
   const [activeTab, setActiveTab] = useState<"TEACHERS" | "PAYMENTS">("TEACHERS");
   const [search, setSearch] = useState("");
@@ -65,7 +81,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
   const [payForm, setPayForm] = useState({ teacherId: "", amount: "", description: "Salaire du mois" });
   const [isSubmittingPay, setIsSubmittingPay] = useState(false);
 
-  const filteredTeachers = teachersList.filter(t => 
+  const filteredTeachers = teachersList.filter((t) => 
     t.firstName.toLowerCase().includes(search.toLowerCase()) || 
     t.lastName.toLowerCase().includes(search.toLowerCase()) ||
     (t.mainSubject || "").toLowerCase().includes(search.toLowerCase())
@@ -183,6 +199,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
               />
             </div>
             <div className="flex gap-2">
+              <ImportExcelModal type="teachers" onSuccess={() => window.location.reload()} />
               <button 
                 onClick={() => setShowPayModal(true)}
                 className="bg-card hover:bg-muted border border-border/50 text-foreground font-black uppercase text-[11px] px-4 sm:px-6 py-3 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 tracking-widest flex-1"
@@ -198,95 +215,196 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {filteredTeachers.length === 0 ? (
-              <div className="col-span-full text-center py-12 text-muted-foreground border-2 border-dashed border-border/50 rounded-2xl">
-                <UsersRound className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>Aucun enseignant trouvé.</p>
+          {/* --- REGISTRE EXCEL PRO DU CORPS ENSEIGNANT --- */}
+          <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
+            {/* Barre de Titre Feuille Excel */}
+            <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+              <div className="flex items-center gap-2">
+                <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+                  <span>XLSX</span>
+                </span>
+                <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+                  {isSchool ? "Feuille : Corps Enseignant • Bilingue" : "Feuille : Corps Professoral & Shuyukhs"}
+                </span>
               </div>
-            ) : (
-              filteredTeachers.map((t) => (
-                <div key={t.id} className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all group relative">
-                  <button 
-                    onClick={() => handleDeleteTeacher(t.id, t.lastName)}
-                    className="absolute top-4 right-4 text-muted-foreground hover:text-red-500 md:opacity-0 md:group-hover:opacity-100 opacity-100 transition-all"
-                    title="Supprimer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className={cn(
-                      "w-14 h-14 rounded-full flex items-center justify-center font-black text-xl uppercase shrink-0 border shadow-inner",
-                      isSchool ? "bg-amber-100 dark:bg-amber-950/50 text-amber-950 dark:text-amber-300 border-amber-300 dark:border-amber-700" : "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700"
-                    )}>
-                      {t.firstName[0]}{t.lastName[0]}
-                    </div>
-                    <div>
-                      <h3 className="font-black text-xl uppercase tracking-tight leading-tight">{t.lastName}</h3>
-                      <h4 className="font-bold text-muted-foreground">{t.firstName}</h4>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3 border-t border-border/50 pt-4 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center gap-2"><BookOpen className="w-4 h-4 text-amber-400" /> {isSchool ? "Discipline / Matière" : "Matière(s)"}</span>
-                      <span className="font-bold">{t.mainSubject || "-"}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center gap-2"><Briefcase className="w-4 h-4 text-amber-400" /> Contrat</span>
-                      <span className={cn("font-black text-[10px] uppercase tracking-wider px-2 py-1 rounded-md", t.contractType === "FIXE" ? "bg-blue-500/10 text-blue-500" : "bg-amber-500/10 text-amber-500")}>
-                        {t.contractType}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground flex items-center gap-2"><CreditCard className="w-4 h-4 text-amber-400" /> Taux / Salaire</span>
-                      <span className={cn("font-extrabold", isSchool ? "text-amber-700 dark:text-amber-300" : "text-emerald-700 dark:text-emerald-400")}>{t.hourlyRate.toLocaleString('fr-FR')} FCFA{t.contractType === 'VACATAIRE' ? '/h' : '/mois'}</span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+              <div className="flex items-center gap-2">
+                <span className="bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  {filteredTeachers.length} {filteredTeachers.length > 1 ? "enseignants" : "enseignant"}
+                </span>
+              </div>
+            </div>
+
+            {/* Grille Excel */}
+            <div className="w-full overflow-x-auto touch-pan-x">
+              <table className="w-full min-w-[760px] border-collapse text-left text-xs">
+                <thead>
+                  <tr className="bg-[#107c41] text-white select-none">
+                    <th className="w-12 text-center px-2 py-2 text-[10px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">N°</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[180px]">
+                      {isSchool ? "Enseignant (Nom & Prénom)" : "Oustaz / Enseignant"}
+                    </th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[140px]">Contact Téléphonique</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[150px]">
+                      {isSchool ? "Discipline / Matière" : "Matière(s)"}
+                    </th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[110px] text-center">Type Contrat</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[140px] text-right">Rémunération</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-b border-emerald-600/50 text-center w-24">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTeachers.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-10 text-muted-foreground border-b border-slate-200 dark:border-slate-700/80 italic bg-white dark:bg-slate-900">
+                        Aucun enseignant trouvé.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredTeachers.map((t, idx) => (
+                      <tr 
+                        key={t.id} 
+                        className={cn(
+                          "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                          idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                        )}
+                      >
+                        <td className="w-12 text-center bg-[#f1f3f5] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                          {idx + 1}
+                        </td>
+                        <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                          <div className="flex items-center gap-2">
+                            <span className={cn(
+                              "w-6 h-6 rounded-full flex items-center justify-center font-black text-[10px] uppercase shrink-0 border",
+                              isSchool ? "bg-amber-100 text-amber-900 border-amber-300" : "bg-emerald-100 text-emerald-900 border-emerald-300"
+                            )}>
+                              {t.firstName[0]}{t.lastName[0]}
+                            </span>
+                            <span>{t.lastName} {t.firstName}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 font-mono text-[11px] text-slate-600 dark:text-slate-400 border-r border-b border-slate-200 dark:border-slate-700/80">
+                          {t.phone || t.email || "—"}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-slate-700 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-700/80">
+                          {t.mainSubject || "Généraliste"}
+                        </td>
+                        <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                          <span className={cn(
+                            "inline-block font-black text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border",
+                            t.contractType === "FIXE" 
+                              ? "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950 dark:text-blue-300" 
+                              : "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300"
+                          )}>
+                            {t.contractType}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                          {t.hourlyRate.toLocaleString('fr-FR')} FCFA<span className="text-[10px] text-muted-foreground font-normal">{t.contractType === 'VACATAIRE' ? '/h' : '/m'}</span>
+                        </td>
+                        <td className="px-3 py-2 text-center border-b border-slate-200 dark:border-slate-700/80">
+                          <button 
+                            onClick={() => handleDeleteTeacher(t.id, t.lastName)}
+                            className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded transition-all"
+                            title="Supprimer l'enseignant"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Barre d'état Excel */}
+            <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium select-none">
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-emerald-800 dark:text-emerald-400">PRÊT</span>
+                <span>•</span>
+                <span>Affichage : {filteredTeachers.length} lignes</span>
+              </div>
+              <div className="flex items-center gap-3 font-mono">
+                <span>Total Rémunération : <strong>{filteredTeachers.reduce((acc, t) => acc + (t.hourlyRate || 0), 0).toLocaleString('fr-FR')} FCFA</strong></span>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {activeTab === "PAYMENTS" && (
-        <div className="space-y-6">
-          <div className={cn("border rounded-2xl shadow-sm overflow-hidden", isSchool ? "border-amber-500/30 bg-card" : "border-emerald-500/20 bg-card")}>
-            <div className={cn("p-4 border-b flex justify-between items-center", isSchool ? "border-amber-500/30 bg-amber-950/20" : "border-emerald-500/20 bg-emerald-950/20")}>
-              <h2 className="font-bold text-sm">{isSchool ? "Historique des Salaires de l'École Pathé Pogne" : "Historique des Paiements de Salaires"}</h2>
-              <button 
-                onClick={() => setShowPayModal(true)}
-                className={cn("text-xs font-bold hover:underline", isSchool ? "text-amber-400" : "text-primary")}
-              >
-                + Nouveau Paiement
-              </button>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center bg-card p-4 rounded-2xl border border-border/50">
+            <div>
+              <h2 className="font-extrabold text-sm uppercase tracking-wide">
+                {isSchool ? "Registre Officiel des Salaires Décaissés — École Pathé Pogne" : "Registre Officiel des Salaires Décaissés"}
+              </h2>
+              <p className="text-xs text-muted-foreground">Historique chronologique des émoluments et salaires versés.</p>
             </div>
-            {/* Vue Desktop: Table */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wider">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Date</th>
-                    <th className="px-6 py-4 font-semibold">Description</th>
-                    <th className="px-6 py-4 font-semibold text-right">Montant Versé</th>
+            <button 
+              onClick={() => setShowPayModal(true)}
+              className="text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-xl bg-primary text-black hover:bg-primary/90 transition-all shadow-md shadow-primary/20"
+            >
+              + Nouveau Paiement
+            </button>
+          </div>
+
+          {/* --- REGISTRE EXCEL PRO DES PAIEMENTS --- */}
+          <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
+            {/* Barre de Titre Feuille Excel */}
+            <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+              <div className="flex items-center gap-2">
+                <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+                  <span>XLSX</span>
+                </span>
+                <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+                  {isSchool ? "Feuille : Registre Paie • École Pathé Pogne" : "Feuille : Registre Salaires Décaissés"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  {paymentsList.length} règlements
+                </span>
+              </div>
+            </div>
+
+            {/* Grille Excel */}
+            <div className="w-full overflow-x-auto touch-pan-x">
+              <table className="w-full min-w-[650px] border-collapse text-left text-xs">
+                <thead>
+                  <tr className="bg-[#107c41] text-white select-none">
+                    <th className="w-12 text-center px-2 py-2 text-[10px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">N°</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[130px]">Date d'Émission</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">Libellé / Motif du Règlement</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-b border-emerald-600/50 text-right min-w-[140px]">Montant Versé</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/50">
+                <tbody>
                   {paymentsList.length === 0 ? (
                     <tr>
-                      <td colSpan={3} className="px-6 py-8 text-center text-muted-foreground">
-                        Aucun paiement enregistré.
+                      <td colSpan={4} className="p-8 text-center text-muted-foreground border-b border-slate-200 dark:border-slate-700/80 italic bg-white dark:bg-slate-900">
+                        Aucun paiement enregistré pour le moment.
                       </td>
                     </tr>
                   ) : (
-                    paymentsList.map((p) => (
-                      <tr key={p.id} className="hover:bg-muted/20 transition-all">
-                        <td className="px-6 py-4 font-mono text-xs">
+                    paymentsList.map((p, idx) => (
+                      <tr 
+                        key={p.id} 
+                        className={cn(
+                          "transition-all hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                          idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                        )}
+                      >
+                        <td className="w-12 text-center bg-[#f1f3f5] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                          {idx + 1}
+                        </td>
+                        <td className="px-3 py-2 font-mono text-xs text-slate-600 dark:text-slate-400 border-r border-b border-slate-200 dark:border-slate-700/80">
                           {new Date(p.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </td>
-                        <td className="px-6 py-4 font-medium">{p.description}</td>
-                        <td className="px-6 py-4 text-right font-black text-red-500">
+                        <td className="px-3 py-2 font-medium text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                          {p.description}
+                        </td>
+                        <td className="px-3 py-2 text-right font-mono font-bold text-red-600 dark:text-red-400 border-b border-slate-200 dark:border-slate-700/80">
                           - {p.amount.toLocaleString('fr-FR')} FCFA
                         </td>
                       </tr>
@@ -296,27 +414,16 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
               </table>
             </div>
 
-            {/* Vue Mobile: Cartes */}
-            <div className="md:hidden flex flex-col p-4 gap-3">
-              {paymentsList.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  Aucun paiement enregistré.
-                </div>
-              ) : (
-                paymentsList.map((p) => (
-                  <div key={p.id} className="bg-background border border-border/50 rounded-xl p-4 flex flex-col gap-2">
-                    <div className="flex justify-between items-start">
-                      <span className="font-medium text-sm leading-tight">{p.description}</span>
-                      <span className="font-black text-red-500 whitespace-nowrap ml-4">
-                        - {p.amount.toLocaleString('fr-FR')} F
-                      </span>
-                    </div>
-                    <div className="text-xs text-muted-foreground font-mono">
-                      {new Date(p.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </div>
-                  </div>
-                ))
-              )}
+            {/* Barre d'état Excel */}
+            <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium select-none">
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-emerald-800 dark:text-emerald-400">PRÊT</span>
+                <span>•</span>
+                <span>Affichage : {paymentsList.length} décaissements</span>
+              </div>
+              <div className="flex items-center gap-3 font-mono">
+                <span>Total Décaissé : <strong className="text-red-600 dark:text-red-400">- {paymentsList.reduce((acc, p) => acc + (p.amount || 0), 0).toLocaleString('fr-FR')} FCFA</strong></span>
+              </div>
             </div>
           </div>
         </div>
@@ -450,7 +557,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
                     className="w-full bg-background border border-border/50 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary/50"
                   >
                     <option value="">Sélectionner un professeur...</option>
-                    {initialTeachers.map(t => (
+                    {teachersList.map(t => (
                       <option key={t.id} value={t.id}>{t.firstName} {t.lastName} ({t.contractType})</option>
                     ))}
                   </select>

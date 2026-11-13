@@ -1,9 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { TransactionType } from "@prisma/client";
+import { DAARA_MANAGER_ROLES, getActionContext } from "@/lib/action-context";
 
 export async function addExpense(data: {
   amount: number;
@@ -11,17 +11,24 @@ export async function addExpense(data: {
   description: string;
 }) {
   try {
-    const session = await auth();
-    const daaraId = session?.user?.daaraId || session?.user?.id;
-    if (!daaraId) return { error: "Session non valide." };
+    const context = await getActionContext(DAARA_MANAGER_ROLES);
+    if (!context) return { error: "Non autorisé." };
+
+    const amount = Number(data?.amount);
+    const category = typeof data?.category === "string" ? data.category.trim() : "";
+    const description = typeof data?.description === "string" ? data.description.trim() : "";
+    if (!Number.isFinite(amount) || amount <= 0 || !category || category.length > 100 || !description || description.length > 1000) {
+      return { error: "Vérifiez le montant, la catégorie et la description." };
+    }
 
     const transaction = await prisma.transaction.create({
       data: {
-        daaraId,
-        amount: Number(data.amount),
+        daaraId: context.daaraId,
+        space: context.space,
+        amount,
         type: TransactionType.EXPENSE,
-        category: data.category,
-        description: data.description,
+        category,
+        description,
       }
     });
 
@@ -37,17 +44,17 @@ export const createExpense = addExpense;
 
 export async function deleteTransaction(id: string) {
   try {
-    const session = await auth();
-    const daaraId = session?.user?.daaraId || session?.user?.id;
-    if (!daaraId) return { error: "Session non valide." };
+    const context = await getActionContext(DAARA_MANAGER_ROLES);
+    if (!context) return { error: "Non autorisé." };
 
-    await prisma.transaction.delete({
-      where: { id }
+    const result = await prisma.transaction.deleteMany({
+      where: { id, daaraId: context.daaraId, space: context.space }
     });
+    if (result.count !== 1) return { error: "Transaction introuvable." };
 
     revalidatePath("/expenses");
     return { success: true };
-  } catch (error: any) {
+  } catch {
     return { error: "Impossible de supprimer la transaction." };
   }
 }

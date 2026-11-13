@@ -4,12 +4,12 @@ import { supabase } from "./supabase";
 /**
  * Uploads a file to Supabase Storage
  * @param file The file to upload
- * @param bucket The bucket name (default: 'product-images')
+ * @param bucket The bucket name (default: 'daara-uploads')
  * @returns The public URL of the uploaded file
  */
-export async function uploadImage(file: File, bucket = 'products') {
+export async function uploadImage(file: File, bucket = "daara-uploads") {
   try {
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split(".").pop();
     const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
@@ -17,8 +17,8 @@ export async function uploadImage(file: File, bucket = 'products') {
     const { error: uploadError } = await supabase.storage
       .from(bucket)
       .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
+        cacheControl: "3600",
+        upsert: false,
       });
 
     if (uploadError) throw uploadError;
@@ -30,7 +30,7 @@ export async function uploadImage(file: File, bucket = 'products') {
 
     return { success: true, url: data.publicUrl };
   } catch (error: any) {
-    console.error('Error uploading image:', error.message);
-    return { success: false, error: error.message };
+    console.error("[STORAGE_UPLOAD_ERROR]", error?.message || error);
+    return { success: false, error: "Erreur lors du téléversement du document." };
   }
 }

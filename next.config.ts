@@ -1,4 +1,3 @@
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
 import createNextIntlPlugin from 'next-intl/plugin';
@@ -73,7 +72,7 @@ const nextConfig: NextConfig = {
     ];
   },
   // Forcer webpack pour next-pwa
-  webpack: (config, { isServer }) => {
+  webpack: (config) => {
     return config;
   },
 };
@@ -83,23 +82,8 @@ const pwaConfig = withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
-  runtimeCaching: [
-    {
-      urlPattern: /^https?.*/,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'https-calls',
-        networkTimeoutSeconds: 15,
-        expiration: {
-          maxEntries: 150,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-        },
-        cacheableResponse: {
-          statuses: [0, 200],
-        },
-      },
-    },
-  ],
+  // Do not cache authenticated pages or API responses in a shared browser cache.
+  runtimeCaching: [],
 });
 
 import { withSentryConfig } from "@sentry/nextjs";

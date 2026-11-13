@@ -3,7 +3,7 @@ import { createNavigation } from 'next-intl/navigation';
 
 export const routing = defineRouting({
     // Locales supportés pour TaleemApp (Français, Arabe, Anglais)
-    locales: ['fr', 'ar', 'en'],
+    locales: ['fr', 'ar'],
 
     // Langue par défaut
     defaultLocale: 'fr',

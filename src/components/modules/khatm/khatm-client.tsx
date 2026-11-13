@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { createKhatmRecord } from "@/lib/actions/khatm";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface TalibeOption {
   id: string;
@@ -108,204 +109,240 @@ export function KhatmClient({ initialRecords, talibeOptions, daaraInfo }: KhatmC
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-950 via-emerald-950 to-teal-950 p-6 md:p-8 text-white border border-amber-500/20 shadow-2xl">
-        <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
-          <Award className="w-96 h-96 text-amber-400" />
-        </div>
-        <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-extrabold uppercase tracking-widest">
-            <Sparkles className="w-4 h-4 text-amber-400" /> Registre Officiel des Ijazahs & Khatm Coranique
+    <div className="space-y-3">
+      {/* TOOLBAR COMPACTE PRO - SANS GRANDES CARTES */}
+      <div className="bg-card border border-border rounded-xl p-3 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center font-bold shrink-0 bg-amber-500/10 text-amber-600 border border-amber-500/20">
+            <Award className="w-5 h-5" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
-            شهادات ختم القرآن الكريم والإجازات القرآنيّة
-          </h1>
-          <p className="text-amber-100/80 text-sm md:text-base leading-relaxed">
-            Délivrez et imprimez les attestations de mémorisation intégrale du Saint Coran (60 Hizbs) certifiées par les Shuyukhs du Daara.
-          </p>
-        </div>
-      </div>
-
-      {/* Quick Stats Grid — 2x2 sur Mobile */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <Card className="bg-card border-amber-500/20 shadow-sm">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20">
-              <Award className="w-6 h-6" />
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm md:text-base font-black text-foreground">
+                Registre Officiel des Ijazahs & Khatm Coranique
+              </h1>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 border border-amber-500/20 font-arabic">
+                ختم القرآن
+              </span>
             </div>
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Khatimins</p>
-              <h3 className="text-2xl font-black">{records.length} Diplômés</h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-emerald-500/20 shadow-sm">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center border border-emerald-500/20">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Récitation Principale</p>
-              <h3 className="text-2xl font-black">Warsh 'an Nafi'</h3>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-teal-500/20 shadow-sm">
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-500 flex items-center justify-center border border-teal-500/20">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Établissement Certifié</p>
-              <h3 className="text-2xl font-black truncate">{daaraInfo?.name || "Daara Ibnoul Khayim Al Diawziya"}</h3>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Actions Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/40 p-4 rounded-2xl border border-border">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
-          <Input 
-            placeholder="Rechercher un Khatim par nom ou matricule..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-10 text-sm bg-background"
-          />
-        </div>
-
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-bold gap-2 shadow-lg shadow-amber-600/20">
-              <Plus className="w-4 h-4" /> Décerné un Nouveau Khatm
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-                <Award className="w-5 h-5 text-amber-500" /> Enregistrer un Khatm Al-Quran
-              </DialogTitle>
-            </DialogHeader>
-
-            <form onSubmit={handleCreateKhatm} className="space-y-4 pt-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sélectionner le Talibé</label>
-                <select 
-                  value={selectedTalibeId} 
-                  onChange={(e) => setSelectedTalibeId(e.target.value)}
-                  className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-semibold"
-                >
-                  {talibeOptions.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.matricule} - {t.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Récitation (Qira'at)</label>
-                <select 
-                  value={qiraatVersion} 
-                  onChange={(e) => setQiraatVersion(e.target.value)}
-                  className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-semibold"
-                >
-                  <option value="Warsh 'an Nafi'">Warsh 'an Nafi' (ورش عن نافع)</option>
-                  <option value="Hafs 'an 'Asim">Hafs 'an 'Asim (حفص عن عاصم)</option>
-                  <option value="Qaloun 'an Nafi'">Qaloun 'an Nafi' (قالون عن نافع)</option>
-                  <option value="Al-Duri 'an Abi 'Amr">Al-Duri 'an Abi 'Amr (الدوري عن أبي عمرو)</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Oustaz / Sheikh Certificateur</label>
-                <Input 
-                  placeholder="Ex: Oustaz Serigne Cheikh Ndiaye" 
-                  value={oustazName}
-                  onChange={(e) => setOustazName(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Appréciation / Notes</label>
-                <Input 
-                  placeholder="Ex: Récitation intégrale avec maîtrise parfaite du Tajwid." 
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Annuler
-                </Button>
-                <Button type="submit" disabled={isSubmitting} className="bg-amber-600 hover:bg-amber-700 text-white font-bold">
-                  {isSubmitting ? "Enregistrement..." : "Valider & Générer le Diplôme"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Diplômes List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredRecords.length === 0 ? (
-          <div className="col-span-full text-center py-12 border border-dashed rounded-3xl bg-muted/20 space-y-3">
-            <Award className="w-12 h-12 text-muted-foreground mx-auto opacity-40" />
-            <h3 className="text-lg font-bold text-muted-foreground">Aucun diplôme enregistré pour le moment.</h3>
-            <p className="text-xs text-muted-foreground">Cliquez sur "Décerné un Nouveau Khatm" pour enregistrer une fin de mémorisation.</p>
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              Attestations de mémorisation intégrale (60 Hizbs) certifiées par les Shuyukhs
+            </p>
           </div>
-        ) : (
-          filteredRecords.map((r) => (
-            <Card key={r.id} className="relative group overflow-hidden border border-amber-500/20 hover:border-amber-500/50 transition-all shadow-md hover:shadow-xl">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-amber-500/10 to-transparent rounded-bl-full pointer-events-none" />
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30 font-mono text-[10px] font-bold">
-                    {r.talibe.matricule}
-                  </Badge>
-                  <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
-                    60 HIZB KHATM
-                  </Badge>
-                </div>
-                <CardTitle className="text-lg font-extrabold text-foreground pt-2">
-                  {r.talibe.firstName} {r.talibe.lastName}
-                </CardTitle>
-                <CardDescription className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-amber-500" /> Certifié par {r.oustazName}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 pt-0">
-                <div className="p-3 rounded-xl bg-muted/40 text-xs space-y-1.5 border border-border/50">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground font-semibold">Récitation :</span>
-                    <span className="font-bold text-emerald-600 font-arabic">{r.qiraatVersion}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground font-semibold">Date d'obtention :</span>
-                    <span className="font-bold">{format(new Date(r.completionDate), "dd MMMM yyyy", { locale: fr })}</span>
-                  </div>
+        </div>
+
+        {/* Action + Nouveau Khatm */}
+        <div className="flex items-center gap-2">
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs gap-1.5 rounded-lg shadow-xs">
+                <Plus className="w-4 h-4" /> Décerner un Nouveau Khatm
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+                  <Award className="w-5 h-5 text-amber-500" /> Enregistrer un Khatm Al-Quran
+                </DialogTitle>
+              </DialogHeader>
+
+              <form onSubmit={handleCreateKhatm} className="space-y-4 pt-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Sélectionner le Talibé</label>
+                  <select 
+                    value={selectedTalibeId} 
+                    onChange={(e) => setSelectedTalibeId(e.target.value)}
+                    className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-semibold"
+                  >
+                    {talibeOptions.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.matricule} - {t.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <Button 
-                  onClick={() => {
-                    setSelectedKhatm(r);
-                    setIsCertDialogOpen(true);
-                  }}
-                  className="w-full bg-amber-600/10 text-amber-700 hover:bg-amber-600 hover:text-white border border-amber-500/30 font-bold gap-2 text-xs transition-all"
-                >
-                  <FileCheck className="w-4 h-4" /> Voir & Imprimer l'Ijazah
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Récitation (Qira'at)</label>
+                  <select 
+                    value={qiraatVersion} 
+                    onChange={(e) => setQiraatVersion(e.target.value)}
+                    className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-semibold"
+                  >
+                    <option value="Warsh 'an Nafi'">Warsh 'an Nafi' (ورش عن نافع)</option>
+                    <option value="Hafs 'an 'Asim">Hafs 'an 'Asim (حفص عن عاصم)</option>
+                    <option value="Qaloun 'an Nafi'">Qaloun 'an Nafi' (قالون عن نافع)</option>
+                    <option value="Al-Duri 'an Abi 'Amr">Al-Duri 'an Abi 'Amr (الدوري عن أبي عمرو)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Oustaz / Sheikh Certificateur</label>
+                  <Input 
+                    placeholder="Ex: Oustaz Serigne Cheikh Ndiaye" 
+                    value={oustazName}
+                    onChange={(e) => setOustazName(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Appréciation / Notes</label>
+                  <Input 
+                    placeholder="Ex: Récitation intégrale avec maîtrise parfaite du Tajwid." 
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
+                </div>
+
+                <Button type="submit" disabled={isSubmitting} className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold h-10 rounded-xl">
+                  {isSubmitting ? "Enregistrement..." : "Enregistrer et Valider"}
                 </Button>
-              </CardContent>
-            </Card>
-          ))
-        )}
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Mini-Barre de Métriques Compacte (1 seule ligne) */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-card border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Total Khatimins</p>
+            <p className="text-sm font-black text-amber-500">{records.length} Diplômés</p>
+          </div>
+          <Award className="w-4 h-4 text-amber-500 shrink-0" />
+        </div>
+        <div className="bg-card border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Récitation</p>
+            <p className="text-sm font-black text-foreground">Warsh 'an Nafi'</p>
+          </div>
+          <BookOpen className="w-4 h-4 text-emerald-500 shrink-0" />
+        </div>
+        <div className="bg-card border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Établissement</p>
+            <p className="text-sm font-black text-teal-600 dark:text-teal-400 truncate max-w-[150px]">{daaraInfo?.name || "Daara Ibnoul Khayim"}</p>
+          </div>
+          <ShieldCheck className="w-4 h-4 text-teal-500 shrink-0" />
+        </div>
+      </div>
+
+      {/* Barre de Recherche Compacte */}
+      <div className="relative">
+        <Search className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
+        <Input 
+          placeholder="Rechercher un Khatim par nom ou matricule..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-9 h-9 text-xs bg-card border-border"
+        />
+      </div>
+
+      {/* --- REGISTRE EXCEL PRO DES DIPLÔMÉS KHATM AL-QUR'AN --- */}
+      <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
+        {/* Barre de Titre Feuille Excel */}
+        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+          <div className="flex items-center gap-2">
+            <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+              <span>XLSX</span>
+            </span>
+            <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+              Feuille : Registre Officiel des Ijazahs & Khatm Coranique
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              {filteredRecords.length} {filteredRecords.length > 1 ? "diplômés" : "diplômé"}
+            </span>
+          </div>
+        </div>
+
+        {/* Grille Excel */}
+        <div className="w-full overflow-x-auto touch-pan-x">
+          <table className="w-full min-w-[800px] border-collapse text-left text-xs">
+            <thead>
+              <tr className="bg-[#107c41] text-white select-none">
+                <th className="w-12 text-center px-2 py-2 text-[10px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">N°</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[180px]">Talibé / Récitateur (Hafiz)</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[100px] text-center">Matricule</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[160px]">Maître Validateur (Oustaz)</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[140px] text-center">Version de Lecture (Qirā'at)</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[110px] text-center">Consécration</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[120px] text-center">Date de Khatm</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-b border-emerald-600/50 text-center w-36">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRecords.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-10 text-center text-muted-foreground border-b border-slate-200 dark:border-slate-700/80 italic bg-white dark:bg-slate-900">
+                    Aucun diplôme enregistré pour le moment.
+                  </td>
+                </tr>
+              ) : (
+                filteredRecords.map((r, idx) => (
+                  <tr 
+                    key={r.id} 
+                    className={cn(
+                      "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                      idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                    )}
+                  >
+                    <td className="w-12 text-center bg-[#f1f3f5] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                      {idx + 1}
+                    </td>
+                    <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                      {r.talibe.firstName} {r.talibe.lastName}
+                    </td>
+                    <td className="px-3 py-2 text-center font-mono font-bold text-emerald-700 dark:text-emerald-400 text-[11px] border-r border-b border-slate-200 dark:border-slate-700/80">
+                      {r.talibe.matricule}
+                    </td>
+                    <td className="px-3 py-2 font-semibold text-slate-700 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-700/80">
+                      {r.oustazName}
+                    </td>
+                    <td className="px-3 py-2 text-center font-arabic font-bold text-emerald-700 dark:text-emerald-400 text-sm border-r border-b border-slate-200 dark:border-slate-700/80">
+                      {r.qiraatVersion}
+                    </td>
+                    <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                      <span className="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800">
+                        60 HIZB KHATM
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-center font-mono text-xs text-slate-600 dark:text-slate-400 border-r border-b border-slate-200 dark:border-slate-700/80">
+                      {format(new Date(r.completionDate), "dd MMM yyyy", { locale: fr })}
+                    </td>
+                    <td className="px-3 py-2 text-center border-b border-slate-200 dark:border-slate-700/80">
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedKhatm(r);
+                          setIsCertDialogOpen(true);
+                        }}
+                        className="bg-amber-600 hover:bg-amber-700 text-white font-bold gap-1.5 text-[11px] h-7 px-2.5 shadow-sm"
+                      >
+                        <FileCheck className="w-3.5 h-3.5" /> Voir l'Ijazah
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Barre d'état Excel */}
+        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium select-none">
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-emerald-800 dark:text-emerald-400">PRÊT</span>
+            <span>•</span>
+            <span>Affichage : {filteredRecords.length} diplômés certifiés</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">Récitation prédominante : Warsh 'an Nafi' (60 Hizbs)</span>
+          </div>
+        </div>
       </div>
 
       {/* Official Certificate Modal */}

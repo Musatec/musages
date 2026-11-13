@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { DashboardWrapperClient } from "@/components/modules/dashboard/dashboard-wrapper-client";
+import { DAARA_STAFF_ROLES, hasAnyRole } from "@/lib/action-context";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +14,13 @@ export default async function DashboardPage({
   const session = await auth();
   const { locale } = await params;
   
-  if (!session) {
+  if (!session?.user?.id) {
     redirect(`/${locale}/login`);
   }
+  if (!hasAnyRole(session.user.role, DAARA_STAFF_ROLES)) redirect(`/${locale}/home`);
 
-  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
+  const daaraId = session.user.daaraId;
+  if (!daaraId) redirect(`/${locale}/setup`);
 
   const fetchSafe = async (fn: () => Promise<any>, defaultValue: any) => {
     try {
@@ -33,25 +36,26 @@ export default async function DashboardPage({
     where: { id: daaraId }
   }), null);
 
+  // Métriques Daara (space: "daara")
   const totalTalibes = await fetchSafe(() => prisma.talibe.count({
-    where: { daaraId, deletedAt: null }
-  }), 120);
+    where: { daaraId, space: "daara", deletedAt: null }
+  }), 0);
 
   const totalInternes = await fetchSafe(() => prisma.talibe.count({
-    where: { daaraId, status: "INTERNE", deletedAt: null }
-  }), 85);
+    where: { daaraId, space: "daara", status: "INTERNE", deletedAt: null }
+  }), 0);
 
   const totalHalqas = await fetchSafe(() => prisma.halqa.count({
-    where: { daaraId }
-  }), 6);
+    where: { daaraId, space: "daara" }
+  }), 0);
 
   const totalSponsorships = await fetchSafe(() => prisma.sponsorship.count({
     where: { daaraId, status: "ACTIVE" }
-  }), 45);
+  }), 0);
 
   const hifzRecordsToday = await fetchSafe(() => prisma.hifzProgress.count({
     where: { daaraId }
-  }), 38);
+  }), 0);
 
   const recentHifz = await fetchSafe(() => prisma.hifzProgress.findMany({
     where: { daaraId },
@@ -60,9 +64,18 @@ export default async function DashboardPage({
     take: 6,
   }), []);
 
-  const totalTeachers = await fetchSafe(() => prisma.user.count({
-    where: { daaraId, role: "OUSTAZ" }
-  }), 12);
+  // Métriques École Pathé Pogne (space: "school")
+  const totalSchoolStudents = await fetchSafe(() => prisma.talibe.count({
+    where: { daaraId, space: "school", deletedAt: null }
+  }), 0);
+
+  const totalSchoolClasses = await fetchSafe(() => prisma.halqa.count({
+    where: { daaraId, space: "school" }
+  }), 0);
+
+  const totalSchoolTeachers = await fetchSafe(() => prisma.user.count({
+    where: { daaraId, space: "school", role: "OUSTAZ", deletedAt: null }
+  }), 0);
 
   return (
     <DashboardWrapperClient 
@@ -71,8 +84,9 @@ export default async function DashboardPage({
       totalTalibes={totalTalibes}
       totalInternes={totalInternes}
       totalHalqas={totalHalqas}
-      totalClasses={totalHalqas + 2}
-      totalTeachers={totalTeachers}
+      totalSchoolStudents={totalSchoolStudents}
+      totalClasses={totalSchoolClasses}
+      totalTeachers={totalSchoolTeachers}
       totalSponsorships={totalSponsorships}
       hifzRecordsToday={hifzRecordsToday}
       recentHifz={recentHifz}

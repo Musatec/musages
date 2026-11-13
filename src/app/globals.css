@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Amiri:wght@400;700&family=Cairo:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -44,14 +44,19 @@
         outline-color: hsl(var(--ring) / 0.5);
     }
 
-    body, button, input, select, textarea {
-        background-color: #FAFAF7;
-        color: #0A192F;
-        font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-weight: 450;
+    body {
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-family: var(--font-plus-jakarta), 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-weight: 400;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         overflow-x: hidden;
+    }
+
+    button, input, select, textarea {
+        font-family: inherit;
+        color: inherit;
     }
 
     /* Dark Input Autofill Override for sleek dark forms */
@@ -60,9 +65,9 @@
     input:-webkit-autofill:focus, 
     input:-webkit-autofill:active {
         -webkit-background-clip: text;
-        -webkit-text-fill-color: #ffffff !important;
+        -webkit-text-fill-color: hsl(var(--foreground)) !important;
         transition: background-color 5000s ease-in-out 0s;
-        box-shadow: inset 0 0 20px 20px rgba(15, 23, 42, 0.95) !important;
+        box-shadow: inset 0 0 0 1000px hsl(var(--card)) !important;
     }
 
     /* Regles d'optimisation typographique et de taille pour la langue Arabe (RTL) */
@@ -72,10 +77,10 @@
     }
 
     h1, h2, h3, h4, h5, h6 {
-        font-family: 'Cinzel', 'Amiri', 'Cairo', 'Outfit', serif;
+        font-family: var(--font-plus-jakarta), 'Plus Jakarta Sans', 'Cairo', 'Amiri', sans-serif;
         color: #0A192F;
         font-weight: 700;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.015em;
     }
 
     [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
@@ -85,12 +90,12 @@
     }
 
     .font-classic {
-        font-family: 'Cinzel', 'Amiri', Georgia, serif;
+        font-family: var(--font-plus-jakarta), 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     .font-arabic {
-        font-family: 'Amiri', 'Cairo', 'Traditional Arabic', serif;
-        font-size: 1.1em;
+        font-family: 'Cairo', 'Amiri', 'Traditional Arabic', serif;
+        font-size: 1.05em;
     }
 
     p, span, label {
@@ -170,4 +175,180 @@ body {
 /* Smooth touch tap feedback */
 button, a {
     touch-action: manipulation;
+}
+
+/* Shared application visual system */
+@layer base {
+    :root {
+        --background: 144 24% 97%;
+        --foreground: 155 28% 13%;
+        --card: 0 0% 100%;
+        --card-foreground: 155 28% 13%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 155 28% 13%;
+        --primary: 154 48% 25%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 42 48% 91%;
+        --secondary-foreground: 155 28% 18%;
+        --muted: 144 18% 93%;
+        --muted-foreground: 155 10% 42%;
+        --accent: 42 48% 91%;
+        --accent-foreground: 155 28% 18%;
+        --destructive: 0 62% 46%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 145 14% 87%;
+        --input: 145 14% 84%;
+        --ring: 154 48% 32%;
+        --radius: 1rem;
+        color-scheme: light;
+    }
+
+    .dark {
+        --background: 158 25% 8%;
+        --foreground: 145 20% 94%;
+        --card: 158 20% 11%;
+        --card-foreground: 145 20% 94%;
+        --popover: 158 20% 11%;
+        --popover-foreground: 145 20% 94%;
+        --primary: 151 42% 52%;
+        --primary-foreground: 155 30% 9%;
+        --secondary: 158 16% 18%;
+        --secondary-foreground: 145 20% 92%;
+        --muted: 158 16% 17%;
+        --muted-foreground: 145 10% 66%;
+        --accent: 158 16% 18%;
+        --accent-foreground: 145 20% 92%;
+        --destructive: 0 54% 40%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 158 13% 22%;
+        --input: 158 13% 24%;
+        --ring: 151 42% 52%;
+        color-scheme: dark;
+    }
+
+    body {
+        background: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-family: 'Inter', 'Outfit', ui-sans-serif, system-ui, sans-serif;
+        font-weight: 400;
+        line-height: 1.55;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: hsl(var(--foreground));
+        font-family: 'Outfit', 'Inter', ui-sans-serif, system-ui, sans-serif;
+        font-weight: 650;
+        letter-spacing: -0.025em;
+    }
+
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    input:-webkit-autofill:active {
+        -webkit-text-fill-color: hsl(var(--foreground)) !important;
+        box-shadow: inset 0 0 0 1000px hsl(var(--card)) !important;
+    }
+}
+
+@layer components {
+    .app-hero {
+        isolation: isolate;
+        border: 1px solid hsl(var(--border) / 0.8);
+        background:
+            radial-gradient(ellipse at top right, hsl(var(--primary) / 0.08), transparent 42%),
+            linear-gradient(135deg, hsl(var(--card)), hsl(var(--background)));
+        box-shadow: 0 18px 44px -36px rgba(20, 48, 36, 0.4);
+    }
+
+    .dark .app-hero {
+        background:
+            radial-gradient(ellipse at top right, hsl(var(--primary) / 0.14), transparent 42%),
+            linear-gradient(135deg, hsl(var(--card)), hsl(var(--background)));
+    }
+
+    .app-surface {
+        border: 1px solid hsl(var(--border) / 0.85);
+        border-radius: 1.25rem;
+        background: hsl(var(--card));
+        box-shadow: 0 10px 30px -24px rgba(20, 48, 36, 0.32);
+    }
+
+    .app-eyebrow {
+        color: hsl(var(--primary));
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .app-page-title {
+        font-size: clamp(1.6rem, 2.5vw, 2.15rem);
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+    }
+
+    .app-focus-ring:focus-visible {
+        outline: 3px solid hsl(var(--ring) / 0.38);
+        outline-offset: 2px;
+    }
+
+    :where(.app-content) table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1.5px solid #94a3b8;
+    }
+
+    :where(.dark .app-content) table {
+        border-color: #475569;
+    }
+
+    :where(.app-content) th,
+    :where(.app-content) td {
+        border: 1px solid #cbd5e1;
+        vertical-align: middle;
+    }
+
+    :where(.dark .app-content) th,
+    :where(.dark .app-content) td {
+        border-color: #334155;
+    }
+
+    :where(.app-content) thead th {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 0.5rem 0.75rem;
+        white-space: nowrap;
+    }
+
+    :where(.app-content) tbody td {
+        padding: 0.5rem 0.75rem;
+    }
+
+    :where(.app-content) tbody tr {
+        transition: background-color 150ms ease;
+    }
+
+    :where(.app-content) tbody tr:hover {
+        background-color: hsl(var(--muted) / 0.45);
+    }
+
+    .app-content [class*="bg-gradient-to-r"][class*="from-amber-950"],
+    .app-content [class*="bg-gradient-to-r"][class*="from-emerald-950"],
+    .app-content [class*="bg-gradient-to-r"][class*="from-emerald-900"],
+    .app-content [class*="bg-gradient-to-r"][class*="from-teal-900"] {
+        background: linear-gradient(125deg, #173f32 0%, #1c4a39 54%, #245640 100%) !important;
+        border-color: rgba(201, 169, 104, 0.28) !important;
+        box-shadow: 0 20px 48px -36px rgba(10, 35, 25, 0.7) !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }

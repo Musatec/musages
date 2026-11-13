@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { TuitionClient } from "@/components/modules/tuition/tuition-client";
 import { getTuitionRecords } from "@/lib/actions/tuition";
+import { DAARA_MANAGER_ROLES, getActiveSpace, hasAnyRole } from "@/lib/action-context";
 
 export const dynamic = "force-dynamic";
 
@@ -17,18 +18,21 @@ export default async function TuitionPage({
   if (!session?.user?.id) {
     redirect(`/${locale}/login`);
   }
+  if (!hasAnyRole(session.user.role, DAARA_MANAGER_ROLES)) redirect(`/${locale}/home`);
 
-  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
+  const daaraId = session.user.daaraId;
+  if (!daaraId) redirect(`/${locale}/setup`);
+  const space = await getActiveSpace();
 
-  // Fetch all halqas for filtering
+  // Fetch all halqas for active space
   const halqas = await prisma.halqa.findMany({
-    where: { daaraId },
+    where: { daaraId, space },
     orderBy: { name: "asc" }
   });
 
-  // Fetch all active Talibes for tuition recording
+  // Fetch all active Talibes/students for active space
   const talibes = await prisma.talibe.findMany({
-    where: { daaraId, deletedAt: null },
+    where: { daaraId, space, deletedAt: null },
     include: { halqa: true },
     orderBy: { lastName: "asc" }
   });

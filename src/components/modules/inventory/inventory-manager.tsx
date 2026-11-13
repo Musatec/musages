@@ -184,131 +184,135 @@ export function InventoryManager({ initialProducts }: { initialProducts: Product
                     />
                 </div>
 
-                {/* --- STOCK TABLE (Desktop) --- */}
-                <div className="hidden md:block bg-card border border-border shadow-sm rounded-xl overflow-hidden min-h-[500px] flex flex-col">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm border-separate border-spacing-0">
-                            <thead className="bg-muted/10 text-muted-foreground text-xs font-semibold border-b border-border">
-                                <tr>
-                                    <th className="px-6 py-4">Article</th>
-                                    <th className="px-6 py-4">Catégorie</th>
-                                    <th className="px-6 py-4 text-center">Stock</th>
-                                    <th className="px-6 py-4 text-right">État</th>
-                                    <th className="px-6 py-4 text-right">P. Vente</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                {/* --- REGISTRE EXCEL PRO D'INVENTAIRE --- */}
+                <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
+                    {/* Barre de Titre Feuille Excel */}
+                    <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+                        <div className="flex items-center gap-2">
+                            <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+                                <span>XLSX</span>
+                            </span>
+                            <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+                                Feuille : Inventaire & Approvisionnement Entrepôt
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                {filteredProducts.length} {filteredProducts.length > 1 ? "articles" : "article"}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Grille Excel */}
+                    <div className="w-full overflow-x-auto touch-pan-x">
+                        <table className="w-full min-w-[700px] border-collapse text-left text-xs">
+                            <thead>
+                                <tr className="bg-[#107c41] text-white select-none">
+                                    <th className="w-12 text-center px-2 py-2 text-[10px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">N°</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[180px]">Article / Fourniture</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[90px] text-center">Réf</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[120px]">Catégorie</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[90px] text-center">Stock</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[90px] text-center">Statut</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-right min-w-[110px]">Prix Vente</th>
+                                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-b border-emerald-600/50 text-center w-28">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-border/50">
+                            <tbody>
                                 {filteredProducts.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="py-20 text-center text-muted-foreground italic">Aucun produit trouvé.</td>
+                                        <td colSpan={8} className="py-10 text-center text-muted-foreground border-b border-slate-200 dark:border-slate-700/80 italic bg-white dark:bg-slate-900">
+                                            Aucun produit trouvé dans l'inventaire.
+                                        </td>
                                     </tr>
-                                ) : filteredProducts.map((p) => {
-                                    const isLow = p.stock <= (p.minStock || 5);
-                                    const isOut = p.stock === 0;
-                                    return (
-                                        <tr key={p.id} className="group hover:bg-muted/20 transition-all">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+                                ) : (
+                                    filteredProducts.map((p, idx) => {
+                                        const isLow = p.stock <= (p.minStock || 5);
+                                        const isOut = p.stock === 0;
+                                        return (
+                                            <tr 
+                                                key={p.id} 
+                                                className={cn(
+                                                    "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                                                    idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                                                )}
+                                            >
+                                                <td className="w-12 text-center bg-[#f1f3f5] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                                                    {idx + 1}
+                                                </td>
+                                                <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                    <div className="flex items-center gap-2">
                                                         {p.image ? (
-                                                            <SafeImage src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                                            <div className="w-7 h-7 rounded border border-slate-200 overflow-hidden shrink-0">
+                                                                <SafeImage src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                                            </div>
                                                         ) : (
-                                                            <Package className="w-4 h-4 text-muted-foreground/30" />
+                                                            <Package className="w-4 h-4 text-slate-400 shrink-0" />
                                                         )}
+                                                        <span className="truncate">{p.name}</span>
                                                     </div>
-                                                    <div>
-                                                        <h3 className="font-bold text-foreground text-sm uppercase truncate">{p.name}</h3>
-                                                        <p className="text-[9px] text-muted-foreground font-mono uppercase opacity-60">REF: {p.id.slice(-6).toUpperCase()}</p>
+                                                </td>
+                                                <td className="px-3 py-2 text-center font-mono font-bold text-muted-foreground text-[10px] border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                    {p.id.slice(-6).toUpperCase()}
+                                                </td>
+                                                <td className="px-3 py-2 text-slate-700 dark:text-slate-300 font-medium border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                    {p.category || "Standard"}
+                                                </td>
+                                                <td className="px-3 py-2 text-center font-mono font-bold text-sm border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                    <span className={cn(isOut ? "text-red-600 dark:text-red-400" : isLow ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-slate-100")}>
+                                                        {p.stock}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                    <span className={cn(
+                                                        "inline-block px-1.5 py-0.5 rounded text-[9px] font-black uppercase border",
+                                                        isOut ? "bg-red-50 text-red-800 border-red-200 dark:bg-red-950 dark:text-red-300" : 
+                                                        isLow ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300" : 
+                                                        "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300"
+                                                    )}>
+                                                        {isOut ? "Rupture" : isLow ? "Seuil" : "OK"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-2 text-right font-mono font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                    {formatMoney(Number(p.price))} F
+                                                </td>
+                                                <td className="px-3 py-2 text-center border-b border-slate-200 dark:border-slate-700/80">
+                                                    <div className="flex items-center justify-center gap-1">
+                                                        <button 
+                                                            onClick={() => handleQuickStock(p.id, p.name)} 
+                                                            className="px-2 py-0.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white rounded border border-emerald-200 text-[10px] font-bold transition-all" 
+                                                            title="Réapprovisionner"
+                                                        >
+                                                            + Stock
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDelete(p.id, p.name)} 
+                                                            className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-all" 
+                                                            title="Supprimer"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-xs font-medium text-muted-foreground">{p.category || "Standard"}</td>
-                                            <td className="px-6 py-4 text-center">
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
-                                                            <div 
-                                                                className={cn("h-full transition-all duration-500", isLow ? "bg-orange-500" : "bg-emerald-500")}
-                                                                style={{ width: `${Math.min((Number(p.stock) / 20) * 100, 100)}%` }}
-                                                            />
-                                                        </div>
-                                                        <span className="text-xs font-bold font-mono">{p.stock}</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <span className={cn(
-                                                    "px-2 py-0.5 rounded text-[9px] font-black uppercase border",
-                                                    isOut ? "bg-red-500/10 text-red-500 border-red-500/20" : 
-                                                    isLow ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : 
-                                                    "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                                                )}>
-                                                    {isOut ? "Rupture" : isLow ? "Seuil" : "OK"}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right font-bold text-foreground">{formatMoney(Number(p.price))} F</td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button onClick={() => handleQuickStock(p.id, p.name)} className="p-2 hover:bg-primary/10 text-primary rounded-lg transition-colors border border-transparent hover:border-primary/20" title="Réapprovisionner">
-                                                        <Plus className="w-4 h-4" />
-                                                    </button>
-                                                    <button onClick={() => handleDelete(p.id, p.name)} className="p-2 hover:bg-red-500/10 text-red-500/40 hover:text-red-500 rounded-lg transition-all" title="Supprimer">
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
                             </tbody>
                         </table>
                     </div>
-                </div>
 
-                {/* --- MOBILE CARD VIEW --- */}
-                <div className="md:hidden space-y-4">
-                    {filteredProducts.length === 0 ? (
-                         <div className="py-20 text-center text-muted-foreground italic">Aucun produit trouvé.</div>
-                    ) : filteredProducts.map((p) => {
-                        const isLow = p.stock <= (p.minStock || 5);
-                        const isOut = p.stock === 0;
-                        return (
-                            <div key={p.id} className="bg-card border border-border p-4 rounded-2xl space-y-4 shadow-sm">
-                                <div className="flex items-center gap-4">
-                                     <div className="w-12 h-12 rounded-xl bg-muted border border-border flex items-center justify-center shrink-0 overflow-hidden">
-                                        {p.image ? <SafeImage src={p.image} alt={p.name} className="w-full h-full object-cover" /> : <Package className="w-5 h-5 text-muted-foreground/30" />}
-                                    </div>
-                                    <div className="flex-1 overflow-hidden">
-                                        <h3 className="font-bold text-foreground text-sm uppercase truncate">{p.name}</h3>
-                                        <div className="flex items-center gap-2 mt-0.5">
-                                            <span className="text-[10px] font-black text-primary">{formatMoney(p.price)} F</span>
-                                            <span className="text-[8px] text-muted-foreground/50 uppercase font-bold tracking-tighter">REF: {p.id.slice(-6).toUpperCase()}</span>
-                                        </div>
-                                    </div>
-                                    <span className={cn(
-                                        "px-2 py-0.5 rounded text-[8px] font-black uppercase border",
-                                        isOut ? "bg-red-500/10 text-red-500 border-red-500/20" : 
-                                        isLow ? "bg-amber-500/10 text-amber-500 border-amber-500/20" : 
-                                        "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                                    )}>
-                                        {isOut ? "Out" : isLow ? "Alert" : "OK"}
-                                    </span>
-                                </div>
-                                
-                                <div className="flex items-center justify-between pt-2 border-t border-border/40">
-                                    <div className="flex flex-col">
-                                        <span className="text-[8px] font-black text-muted-foreground/50 uppercase tracking-widest">Stock Disponible</span>
-                                        <span className={cn("text-lg font-black", isLow ? "text-red-500" : "text-foreground")}>{p.stock}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <button onClick={() => handleQuickStock(p.id, p.name)} className="px-3 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all">Réappro.</button>
-                                        <button onClick={() => handleDelete(p.id, p.name)} className="p-2.5 bg-red-500/5 text-red-500 border border-red-500/10 rounded-xl active:scale-95 transition-all"><Trash2 className="w-4 h-4" /></button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
+                    {/* Barre d'état Excel */}
+                    <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium select-none">
+                        <div className="flex items-center gap-3">
+                            <span className="font-bold text-emerald-800 dark:text-emerald-400">PRÊT</span>
+                            <span>•</span>
+                            <span>Affichage : {filteredProducts.length} articles</span>
+                        </div>
+                        <div className="flex items-center gap-3 font-mono">
+                            <span>Valeur globale du stock : <strong>{formatMoney(metrics.totalValue)} FCFA</strong></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

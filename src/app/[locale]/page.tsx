@@ -73,18 +73,10 @@ export default function LandingPage() {
           <a href="#programmes" className="hover:text-[#0C5A34] hover:bg-emerald-50/70 px-3.5 py-2 rounded-xl transition-all">{tNav("programmes")}</a>
           <a href="#huffaz" className="hover:text-[#0C5A34] hover:bg-emerald-50/70 px-3.5 py-2 rounded-xl transition-all">{tNav("huffaz")}</a>
           <a href="#inscription" className="hover:text-[#0C5A34] hover:bg-emerald-50/70 px-3.5 py-2 rounded-xl transition-all">{tNav("inscription")}</a>
-          <a href="#portail" className="hover:text-[#0C5A34] hover:bg-emerald-50/70 px-3.5 py-2 rounded-xl transition-all">{tNav("portail")}</a>
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <LanguageSwitcher />
-          
-          <Link
-            href="/login"
-            className="text-xs sm:text-sm font-bold px-3.5 sm:px-5 py-2 sm:py-2.5 bg-[#0C5A34] hover:bg-[#06381F] text-white rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
-          >
-            <span>{tLanding("cta_portal")}</span>
-          </Link>
         </div>
       </header>
 
@@ -94,7 +86,6 @@ export default function LandingPage() {
         <a href="#programmes" className="px-3 py-1.5 bg-slate-100 rounded-lg hover:bg-emerald-50 hover:text-[#0C5A34] shrink-0">{tNav("programmes")}</a>
         <a href="#huffaz" className="px-3 py-1.5 bg-slate-100 rounded-lg hover:bg-emerald-50 hover:text-[#0C5A34] shrink-0">{tNav("huffaz")}</a>
         <a href="#inscription" className="px-3 py-1.5 bg-slate-100 rounded-lg hover:bg-emerald-50 hover:text-[#0C5A34] shrink-0">{tNav("inscription")}</a>
-        <a href="#portail" className="px-3 py-1.5 bg-slate-100 rounded-lg hover:bg-emerald-50 hover:text-[#0C5A34] shrink-0">{tNav("portail")}</a>
       </div>
 
       {/* 2. HERO SECTION MAJESTUEUSE */}
@@ -124,12 +115,6 @@ export default function LandingPage() {
               >
                 <span>{tLanding("cta_enroll")}</span>
               </a>
-              <Link
-                href="/login"
-                className="w-full sm:w-auto px-7 py-3.5 bg-white border border-[#D4AF37] hover:bg-slate-50 text-[#0A192F] font-semibold text-xs uppercase tracking-widest rounded-xl transition-all text-center flex items-center justify-center gap-2"
-              >
-                <span>{tLanding("cta_portal")}</span>
-              </Link>
             </div>
 
             {/* Statistiques Clés */}

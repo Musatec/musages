@@ -13,12 +13,12 @@ interface MetricCardProps {
 }
 
 const variants = {
-    orange: "from-orange-500 to-orange-600 shadow-orange-500/20",
-    amber: "from-amber-500 to-amber-600 shadow-amber-500/20",
-    red: "from-red-500 to-red-600 shadow-red-500/20",
-    emerald: "from-emerald-500 to-emerald-600 shadow-emerald-500/20",
-    blue: "from-blue-500 to-blue-600 shadow-blue-500/20",
-    purple: "from-purple-500 to-purple-600 shadow-purple-500/20",
+    orange: "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300",
+    amber: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+    red: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
+    emerald: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+    blue: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+    purple: "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300",
 };
 
 export function EliteMetricCard({ 
@@ -31,27 +31,21 @@ export function EliteMetricCard({
 }: MetricCardProps) {
     return (
         <div className={cn(
-            "relative overflow-hidden rounded-2xl p-4 shadow-lg transition-all duration-300 hover:scale-[1.02] flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 border-none text-white", 
-            "bg-gradient-to-br",
-            variants[variant],
+            "relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-border/80 bg-card p-4 text-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:flex-row sm:items-center sm:gap-4",
             className
         )}>
             {/* Abstract Pattern Overlay */}
-            <div className="absolute top-0 right-0 opacity-10 pointer-events-none translate-x-2 -translate-y-2">
-                <Icon className="w-16 h-16" />
-            </div>
-
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-white/20 backdrop-blur-md">
-                <Icon className="w-5 h-5 text-white" />
+            <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", variants[variant])}>
+                <Icon className="h-5 w-5" />
             </div>
             
             <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">{label}</p>
-                <h3 className="text-xl font-black tracking-tight leading-none">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
+                <h3 className="mt-1 text-xl font-bold leading-none tracking-tight text-foreground">
                     {value}
                 </h3>
                 {sub && (
-                    <p className="text-[8px] font-bold opacity-40 uppercase tracking-widest mt-1">{sub}</p>
+                    <p className="mt-1 text-[10px] font-medium text-muted-foreground">{sub}</p>
                 )}
             </div>
         </div>

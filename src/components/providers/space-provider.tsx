@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export type ActiveSpace = "daara" | "school";
 
@@ -14,22 +15,52 @@ const SpaceContext = createContext<SpaceContextType | undefined>(undefined);
 
 const STORAGE_KEY = "musages_active_space";
 
-export function SpaceProvider({ children }: { children: React.ReactNode }) {
-    const [activeSpace, setActiveSpaceState] = useState<ActiveSpace>(() => {
+function writeSpaceCookie(space: ActiveSpace) {
+    if (typeof document !== "undefined") {
+        document.cookie = `${STORAGE_KEY}=${space}; path=/; max-age=31536000; SameSite=Lax`;
+    }
+}
+
+export function SpaceProvider({ 
+    children,
+    initialSpace = "daara",
+}: { 
+    children: React.ReactNode;
+    initialSpace?: ActiveSpace;
+}) {
+    const router = useRouter();
+    const [activeSpace, setActiveSpaceState] = useState<ActiveSpace>(initialSpace);
+
+    useEffect(() => {
         if (typeof window !== "undefined") {
             const saved = localStorage.getItem(STORAGE_KEY) as ActiveSpace;
-            if (saved === "daara" || saved === "school") {
-                return saved;
+            if ((saved === "daara" || saved === "school") && saved !== activeSpace) {
+                setActiveSpaceState(saved);
+                writeSpaceCookie(saved);
             }
         }
-        return "daara";
-    });
+    }, []);
+
+    useEffect(() => {
+        if (typeof document !== "undefined") {
+            const cookieMatch = document.cookie.match(new RegExp(`(?:^|; )${STORAGE_KEY}=([^;]*)`));
+            const cookieVal = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
+            if (cookieVal !== activeSpace) {
+                writeSpaceCookie(activeSpace);
+                if (activeSpace === "school") {
+                    router.refresh();
+                }
+            }
+        }
+    }, [activeSpace, router]);
 
     const setActiveSpace = (space: ActiveSpace) => {
         setActiveSpaceState(space);
         if (typeof window !== "undefined") {
             localStorage.setItem(STORAGE_KEY, space);
         }
+        writeSpaceCookie(space);
+        router.refresh();
     };
 
     const toggleSpace = () => {

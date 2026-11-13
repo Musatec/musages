@@ -4,6 +4,11 @@ import { useEffect } from "react";
 
 export function PwaRegistrar() {
     useEffect(() => {
+        // Remove the old catch-all cache, which could contain authenticated API responses.
+        if (typeof window !== "undefined" && "caches" in window) {
+            void caches.delete("https-calls");
+        }
+
         if (
             typeof window !== "undefined" &&
             process.env.NODE_ENV === "production" &&

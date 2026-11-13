@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { getSocialCases, getAvailableTalibesForSocialCase, toggleSocialCase } from "@/lib/actions/cas-sociaux";
+import { cn } from "@/lib/utils";
 
 interface CasSociauxClientProps {
   initialSocialCases?: any[];
@@ -131,217 +132,239 @@ export function CasSociauxClient({
   });
 
   return (
-    <div className="space-y-6">
-      {/* En-tête / Bannière */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-900 via-emerald-900 to-slate-900 p-6 md:p-8 text-white border border-emerald-500/20 shadow-xl">
-        <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-            <HeartHandshake className="w-3.5 h-3.5" /> {t("title")}
+    <div className="space-y-3">
+      {/* TOOLBAR COMPACTE PRO - SANS GRANDES CARTES */}
+      <div className="bg-card border border-border rounded-xl p-3 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center font-bold shrink-0 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+            <HeartHandshake className="w-5 h-5" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic text-white drop-shadow-md">
-            سجل الحالات الاجتماعية والمعفين من الرسوم
-          </h1>
-          <p className="text-emerald-100/80 text-sm md:text-base leading-relaxed">
-            {t("subtitle")}
-          </p>
-        </div>
-      </div>
-
-      {/* Cartes KPI */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <Card className="border-border/50 shadow-sm bg-gradient-to-br from-emerald-500/5 to-transparent">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("total_exempted")}</p>
-              <h3 className="text-2xl font-black text-emerald-400 mt-1">{stats.totalSocialCases} Talibés</h3>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Exonération totale des frais mensuels</p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm md:text-base font-black text-foreground">
+                {t("title")}
+              </h1>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-arabic">
+                الحالات الاجتماعية
+              </span>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <HeartHandshake className="w-6 h-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 shadow-sm">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("internes_exempted")}</p>
-              <h3 className="text-2xl font-black text-foreground mt-1">{stats.totalInternesExempted} Pensionnaires</h3>
-              <p className="text-[11px] text-emerald-400 font-bold mt-0.5">Nourriture & Hébergement inclus</p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
-              <UserCheck className="w-6 h-6" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 shadow-sm">
-          <CardContent className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Effectif Total Daara</p>
-              <h3 className="text-2xl font-black text-amber-400 mt-1">{stats.totalTalibes} Talibés</h3>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                {stats.totalTalibes > 0 
-                  ? `${Math.round((stats.totalSocialCases / stats.totalTalibes) * 100)}% de prise en charge sociale`
-                  : "0%"}
-              </p>
-            </div>
-            <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Barre de recherche & Action */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
-          <Input 
-            placeholder={t("search_placeholder")} 
-            className="pl-9 h-10 text-xs"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              {t("subtitle")}
+            </p>
+          </div>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button 
-              onClick={handleOpenDialog} 
-              className="bg-emerald-500 hover:bg-emerald-600 text-black font-bold gap-2 w-full sm:w-auto"
-            >
-              <Plus className="w-4 h-4" /> {t("add_social_case")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold flex items-center gap-2">
-                <HeartHandshake className="w-5 h-5 text-emerald-400" /> {t("add_social_case")}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-3">
-              <div>
-                <label className="text-xs font-bold text-muted-foreground uppercase">{t("select_student")}</label>
-                <select
-                  value={selectedTalibeId}
-                  onChange={(e) => setSelectedTalibeId(e.target.value)}
-                  className="w-full mt-1 p-2 text-xs border rounded-md bg-background text-foreground"
-                >
-                  <option value="">-- Sélectionner un Talibé --</option>
-                  {availableTalibes.map((talibe) => (
-                    <option key={talibe.id} value={talibe.id}>
-                      {talibe.firstName} {talibe.lastName} ({talibe.matricule}) — Parent: {talibe.parentName || "N/A"}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-muted-foreground uppercase">{t("social_notes")}</label>
-                <Textarea 
-                  placeholder={t("reason_placeholder")} 
-                  value={socialNotes}
-                  onChange={(e) => setSocialNotes(e.target.value)}
-                  className="mt-1 text-xs min-h-[90px]"
-                />
-              </div>
-
+        {/* Action + Enregistrer Cas Social */}
+        <div className="flex items-center gap-2">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
               <Button 
-                onClick={handleAddSocialCase} 
-                disabled={submitting} 
-                className="w-full bg-emerald-500 text-black font-bold"
+                onClick={handleOpenDialog} 
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 rounded-lg shadow-xs"
               >
-                {submitting ? tCommon("loading") : "Valider le Statut Cas Social"}
+                <Plus className="w-4 h-4" /> {t("add_social_case")}
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                  <HeartHandshake className="w-5 h-5 text-emerald-500" /> {t("add_social_case")}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-3">
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground uppercase">{t("select_student")}</label>
+                  <select
+                    value={selectedTalibeId}
+                    onChange={(e) => setSelectedTalibeId(e.target.value)}
+                    className="w-full mt-1 p-2 text-xs border rounded-md bg-background text-foreground"
+                  >
+                    <option value="">-- Sélectionner un Talibé --</option>
+                    {availableTalibes.map((talibe) => (
+                      <option key={talibe.id} value={talibe.id}>
+                        {talibe.firstName} {talibe.lastName} ({talibe.matricule}) — Parent: {talibe.parentName || "N/A"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground uppercase">{t("social_notes")}</label>
+                  <Textarea 
+                    placeholder={t("reason_placeholder")} 
+                    value={socialNotes}
+                    onChange={(e) => setSocialNotes(e.target.value)}
+                    className="mt-1 text-xs min-h-[90px]"
+                  />
+                </div>
+
+                <Button 
+                  onClick={handleAddSocialCase} 
+                  disabled={submitting} 
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                >
+                  {submitting ? tCommon("loading") : "Valider le Statut Cas Social"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      {/* Liste Synchronisée des Cas Sociaux */}
-      <Card className="border-border/50 shadow-md">
-        <CardHeader className="p-4 border-b flex flex-row items-center justify-between">
-          <CardTitle className="text-base font-bold flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Liste Officielle des Talibés Cas Sociaux
-          </CardTitle>
-          <Badge variant="outline" className="text-xs font-bold bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-            {filtered.length} Enregistrés
-          </Badge>
-        </CardHeader>
-        <CardContent className="p-0 divide-y">
-          {filtered.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground text-sm space-y-2">
-              <Info className="w-8 h-8 mx-auto text-muted-foreground/50" />
-              <p>{t("no_cases")}</p>
-            </div>
-          ) : (
-            filtered.map((item) => {
-              const arrivalYear = item.createdAt ? new Date(item.createdAt).getFullYear() : new Date().getFullYear();
-              return (
-                <div 
-                  key={item.id} 
-                  className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-accent/20 transition-all"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 mt-1 sm:mt-0">
-                      <HeartHandshake className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold flex items-center gap-2 flex-wrap">
-                        {item.firstName} {item.lastName}
-                        <Badge variant="outline" className="text-[10px] bg-slate-500/10 text-muted-foreground border-slate-500/30">
-                          Matricule: {item.matricule}
-                        </Badge>
-                        <Badge className="text-[10px] bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
-                          {item.status || "INTERNE"}
-                        </Badge>
-                      </h4>
-                      
-                      <div className="text-xs text-muted-foreground space-y-0.5 mt-1">
-                        <p className="flex items-center gap-1.5">
-                          <span className="font-semibold text-foreground">{t("parent_name")}:</span> {item.parentName || "Non spécifié"} 
-                          {item.parentPhone && (
-                            <span className="text-muted-foreground flex items-center gap-1 ml-1">
-                              (<Phone className="w-3 h-3 text-emerald-400 inline" /> {item.parentPhone})
-                            </span>
-                          )}
-                        </p>
-                        <p className="flex items-center gap-1.5">
-                          <Calendar className="w-3 h-3 text-amber-400" />
-                          <span className="font-semibold text-foreground">{t("arrival_year")}:</span> {arrivalYear}
-                        </p>
-                        {item.socialNotes && (
-                          <p className="text-emerald-400 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-md inline-block mt-1 text-[11px]">
-                            {t("social_notes")}: {item.socialNotes}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+      {/* Mini-Barre de Métriques Compacte (1 seule ligne) */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-card border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">{t("total_exempted")}</p>
+            <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">{stats.totalSocialCases} Talibés</p>
+          </div>
+          <HeartHandshake className="w-4 h-4 text-emerald-500 shrink-0" />
+        </div>
+        <div className="bg-card border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">{t("internes_exempted")}</p>
+            <p className="text-sm font-black text-foreground">{stats.totalInternesExempted} Pensionnaires</p>
+          </div>
+          <UserCheck className="w-4 h-4 text-blue-500 shrink-0" />
+        </div>
+        <div className="bg-card border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Taux Exonération</p>
+            <p className="text-sm font-black text-amber-500">
+              {stats.totalTalibes > 0 ? `${Math.round((stats.totalSocialCases / stats.totalTalibes) * 100)}%` : "0%"}
+            </p>
+          </div>
+          <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0" />
+        </div>
+      </div>
 
-                  <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0">
-                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 font-bold px-3 py-1">
-                      Exonéré (100%) ✓
-                    </Badge>
+      {/* Barre de Recherche Compacte */}
+      <div className="relative">
+        <Search className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
+        <Input 
+          placeholder={t("search_placeholder")} 
+          className="pl-9 h-9 text-xs bg-card border-border"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveSocialCase(item.id, `${item.firstName} ${item.lastName}`)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs gap-1"
-                      title={t("remove_social_case")}
+      {/* --- REGISTRE EXCEL PRO DES CAS SOCIAUX --- */}
+      <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
+        {/* Barre de Titre Feuille Excel */}
+        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+          <div className="flex items-center gap-2">
+            <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+              <span>XLSX</span>
+            </span>
+            <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+              Feuille : Cas Sociaux & Exonérations de Frais
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              {filtered.length} {filtered.length > 1 ? "bénéficiaires" : "bénéficiaire"}
+            </span>
+          </div>
+        </div>
+
+        {/* Grille Excel */}
+        <div className="w-full overflow-x-auto touch-pan-x">
+          <table className="w-full min-w-[850px] border-collapse text-left text-xs">
+            <thead>
+              <tr className="bg-[#107c41] text-white select-none">
+                <th className="w-12 text-center px-2 py-2 text-[10px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">N°</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[180px]">Talibé (Nom & Prénom)</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[100px] text-center">Matricule</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[90px] text-center">Régime</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[180px]">Parent / Tuteur & Contact</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[90px] text-center">Année Entrée</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[160px]">Motif Prise en Charge</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[110px] text-center">Exonération</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-b border-emerald-600/50 text-center w-24">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="py-10 text-center text-muted-foreground border-b border-slate-200 dark:border-slate-700/80 italic bg-white dark:bg-slate-900">
+                    {t("no_cases")}
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((item, idx) => {
+                  const arrivalYear = item.createdAt ? new Date(item.createdAt).getFullYear() : new Date().getFullYear();
+                  return (
+                    <tr 
+                      key={item.id} 
+                      className={cn(
+                        "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                        idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                      )}
                     >
-                      <UserX className="w-4 h-4" />
-                      <span className="hidden sm:inline">{t("remove_social_case")}</span>
-                    </Button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </CardContent>
-      </Card>
+                      <td className="w-12 text-center bg-[#f1f3f5] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                        {idx + 1}
+                      </td>
+                      <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                        {item.firstName} {item.lastName}
+                      </td>
+                      <td className="px-3 py-2 text-center font-mono font-bold text-emerald-700 dark:text-emerald-400 text-[11px] border-r border-b border-slate-200 dark:border-slate-700/80">
+                        {item.matricule}
+                      </td>
+                      <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                          {item.status || "INTERNE"}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-700/80">
+                        <div className="font-semibold">{item.parentName || "Non spécifié"}</div>
+                        {item.parentPhone && (
+                          <div className="font-mono text-[11px] text-muted-foreground">Tél: {item.parentPhone}</div>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-center font-mono font-bold text-slate-700 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-700/80">
+                        {arrivalYear}
+                      </td>
+                      <td className="px-3 py-2 font-medium text-slate-700 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-700/80">
+                        {item.socialNotes || "Prise en charge intégrale daara"}
+                      </td>
+                      <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                        <span className="inline-block font-black text-[10px] uppercase px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800">
+                          100% Exonéré
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-center border-b border-slate-200 dark:border-slate-700/80">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveSocialCase(item.id, `${item.firstName} ${item.lastName}`)}
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 text-xs p-1 h-auto"
+                          title={t("remove_social_case")}
+                        >
+                          <UserX className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Barre d'état Excel */}
+        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium select-none">
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-emerald-800 dark:text-emerald-400">PRÊT</span>
+            <span>•</span>
+            <span>Affichage : {filtered.length} talibés</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="font-semibold text-emerald-700 dark:text-emerald-400">Taux d'exonération : 100% (Prise en charge sociale totale)</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

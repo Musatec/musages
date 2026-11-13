@@ -20,12 +20,12 @@ export function ElitePageHeader({
     className
 }: ElitePageHeaderProps) {
     return (
-        <header className={cn("flex flex-col md:flex-row md:items-end justify-between gap-8 pb-6 border-b border-border/40 mb-6", className)}>
-            <div className="space-y-1">
+        <header className={cn("flex flex-col md:flex-row md:items-end justify-between gap-5 pb-5 border-b border-border/70 mb-6", className)}>
+            <div className="space-y-2">
                 {subtitle && (
-                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500">
-                        <div className="w-8 h-0.5 bg-primary rounded-full shadow-[0_0_12px_rgba(var(--primary-rgb),0.4)]" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary italic">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-1.5 h-1.5 bg-secondary rounded-full" />
+                        <span className="app-eyebrow">
                             {subtitle}
                         </span>
                     </div>
@@ -33,20 +33,14 @@ export function ElitePageHeader({
                 
                 <div className="flex items-center gap-4">
                     {Icon && (
-                        <div className="p-3 bg-primary/10 border border-primary/20 rounded-2xl hidden md:flex">
+                        <div className="p-3 bg-primary/10 border border-primary/15 rounded-2xl hidden md:flex">
                             <Icon className="w-6 h-6 text-primary" />
                         </div>
                     )}
                     <div className="space-y-0.5">
-                        <h1 className="text-2xl md:text-3xl font-black tracking-tighter italic uppercase text-foreground leading-none">
-                            {title.split(' ').map((word, i) => (
-                                <span key={i} className={i % 2 === 1 ? "text-primary italic" : ""}>
-                                    {word}{' '}
-                                </span>
-                            ))}
-                        </h1>
+                        <h1 className="app-page-title">{title}</h1>
                         {description && (
-                            <p className="text-sm text-muted-foreground font-medium max-w-2xl">
+                            <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
                                 {description}
                             </p>
                         )}
@@ -55,7 +49,7 @@ export function ElitePageHeader({
             </div>
 
             {actions && (
-                <div className="flex flex-wrap items-center gap-3 md:justify-end animate-in fade-in zoom-in duration-700 w-full md:w-auto">
+                <div className="flex flex-wrap items-center gap-2.5 md:justify-end w-full md:w-auto">
                     {actions}
                 </div>
             )}

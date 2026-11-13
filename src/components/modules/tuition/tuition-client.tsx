@@ -4,26 +4,14 @@ import { useState } from "react";
 import { 
   CreditCard, 
   Search, 
-  Plus, 
-  CheckCircle2, 
-  Clock, 
-  Wallet, 
-  MessageSquare,
   Sparkles,
-  Receipt,
-  User,
-  ArrowUpRight,
-  Check,
-  X,
   FileSpreadsheet
 } from "lucide-react";
-import { payTuitionFee } from "@/lib/actions/tuition";
+import { recordTuitionPayment } from "@/lib/actions/tuition";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 import { useSpace } from "@/components/providers/space-provider";
@@ -38,16 +26,6 @@ interface TalibeOption {
   parentPhone?: string | null;
   halqa?: { name: string } | null;
 }
-
-const MOCK_SCHOOL_STUDENTS: TalibeOption[] = [
-  { id: "sch-1", firstName: "Alioune", lastName: "Badara", matricule: "EP-2026-001", status: "INTERNE", parentName: "Mamadou Badara", parentPhone: "+221 77 123 45 67", halqa: { name: "Classe CI" } },
-  { id: "sch-2", firstName: "Fatoumata", lastName: "Sarr", matricule: "EP-2026-002", status: "EXTERNE", parentName: "Oumar Sarr", parentPhone: "+221 78 234 56 78", halqa: { name: "Classe CI" } },
-  { id: "sch-3", firstName: "Moussa", lastName: "Kante", matricule: "EP-2026-003", status: "INTERNE", parentName: "Cheikh Kante", parentPhone: "+221 70 345 67 89", halqa: { name: "Classe CP" } },
-  { id: "sch-4", firstName: "Aïssatou", lastName: "Fall", matricule: "EP-2026-004", status: "EXTERNE", parentName: "Ibrahima Fall", parentPhone: "+221 77 456 78 90", halqa: { name: "Classe CE1" } },
-  { id: "sch-5", firstName: "Cheikh Tidiane", lastName: "Sy", matricule: "EP-2026-005", status: "INTERNE", parentName: "Serigne Sy", parentPhone: "+221 76 567 89 01", halqa: { name: "Classe CE2" } },
-  { id: "sch-6", firstName: "Mariama", lastName: "Bâ", matricule: "EP-2026-006", status: "INTERNE", parentName: "Alassane Bâ", parentPhone: "+221 77 678 90 12", halqa: { name: "Classe CM1" } },
-  { id: "sch-7", firstName: "Ousmane", lastName: "Kane", matricule: "EP-2026-007", status: "INTERNE", parentName: "Saliou Kane", parentPhone: "+221 77 012 34 56", halqa: { name: "Classe CM2" } },
-];
 
 interface TuitionClientProps {
   tuitions: any[];
@@ -72,7 +50,7 @@ export function TuitionClient({
   const { activeSpace } = useSpace();
   const isSchool = activeSpace === "school";
   const schoolName = isSchool ? "École Franco-Arabe Pathé Pogne" : rawSchoolName;
-  const activeTalibes = (isSchool || !initialTalibeList || initialTalibeList.length === 0) ? MOCK_SCHOOL_STUDENTS : initialTalibeList;
+  const activeTalibes: TalibeOption[] = initialTalibeList || [];
 
   const [tuitions, setTuitions] = useState<any[]>(initialTuitions);
   const [search, setSearch] = useState("");
@@ -82,18 +60,23 @@ export function TuitionClient({
   // Inline Quick Payment Modal state
   const [activeCell, setActiveCell] = useState<{ talibe: TalibeOption; month: string } | null>(null);
   const [quickAmount, setQuickAmount] = useState("40000");
-  const [paymentMethod, setPaymentMethod] = useState<"WAVE" | "ORANGE_MONEY" | "CASH" | "CHEQUE">("WAVE");
+  const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CHEQUE">("CASH");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Map payments per student & month
   // Key format: `${talibeId}_${monthName}`
   const paymentMap: Record<string, number> = {};
   tuitions.forEach(t => {
-    // Description contains month name or talibe info
+    const desc = t.description || "";
     ACADEMIC_MONTHS.forEach(m => {
-      if ((t.description || "").includes(m)) {
-        // Find matching talibe
-        const matchingTalibe = activeTalibes.find(s => (t.description || "").includes(s.lastName) || (t.description || "").includes(s.matricule));
+      if (desc.includes(m)) {
+        // Prioriser la correspondance exacte par matricule avant le nom complet
+        const matchingTalibe =
+          activeTalibes.find((s: TalibeOption) => Boolean(s.matricule) && desc.includes(s.matricule)) ||
+          activeTalibes.find((s: TalibeOption) => {
+            const fullName = `${s.firstName} ${s.lastName}`.trim();
+            return fullName.length > 0 && desc.includes(fullName);
+          });
         if (matchingTalibe) {
           const key = `${matchingTalibe.id}_${m}`;
           paymentMap[key] = (paymentMap[key] || 0) + (t.amount || 0);
@@ -102,7 +85,7 @@ export function TuitionClient({
     });
   });
 
-  const filteredTalibes = activeTalibes.filter(s => {
+  const filteredTalibes = activeTalibes.filter((s: TalibeOption) => {
     const fullName = `${s.firstName} ${s.lastName}`.toLowerCase();
     const mat = (s.matricule || "").toLowerCase();
     const query = search.toLowerCase();
@@ -116,7 +99,7 @@ export function TuitionClient({
     if (!activeCell || !quickAmount) return;
 
     setIsSubmitting(true);
-    const res = await payTuitionFee({
+    const res = await recordTuitionPayment({
       talibeId: activeCell.talibe.id,
       amountPaid: Number(quickAmount),
       month: activeCell.month,
@@ -127,7 +110,7 @@ export function TuitionClient({
     if (res.error) {
       toast.error(res.error);
     } else {
-      toast.success(`Paiement de ${Number(quickAmount).toLocaleString()} FCFA enregistré pour ${activeCell.month} ! 🎉`);
+      toast.success(`Règlement de ${Number(quickAmount).toLocaleString()} FCFA enregistré pour ${activeCell.month} ! 🎉`);
       setTuitions([res.transaction, ...tuitions]);
       setActiveCell(null);
 
@@ -171,43 +154,58 @@ export function TuitionClient({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className={cn(
-        "relative overflow-hidden rounded-3xl p-6 md:p-8 text-white border shadow-2xl transition-colors",
-        isSchool
-          ? "bg-gradient-to-r from-amber-950 via-amber-900 to-yellow-950 border-amber-500/30"
-          : "bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 border-emerald-500/20"
-      )}>
-        <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
-          <CreditCard className={cn("w-96 h-96", isSchool ? "text-amber-400" : "text-emerald-400")} />
-        </div>
-        <div className="relative z-10 max-w-3xl space-y-3">
+    <div className="space-y-3">
+      {/* TOOLBAR COMPACTE PRO - SANS GRANDES CARTES */}
+      <div className="bg-card border border-border rounded-xl p-3 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
           <div className={cn(
-            "inline-flex max-w-full flex-wrap items-center gap-2 px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider border",
-            isSchool ? "bg-amber-500/20 border-amber-500/40 text-amber-300" : "bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
+            "w-9 h-9 rounded-lg flex items-center justify-center font-bold shrink-0 border",
+            isSchool ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
           )}>
-            <Sparkles className={cn("w-4 h-4 shrink-0", isSchool ? "text-amber-300" : "text-emerald-400")} /> 
-            {isSchool ? "Tableau des 12 Mois & Recouvrement des Écolages (Août à Juillet)" : "Tableau des 12 Mois & Recouvrement des Cotisations (Août à Juillet)"}
+            <CreditCard className="w-5 h-5" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
-            {isSchool ? "جدول تحصيل المصاريف والرسوم الدراسية (١٢ شهراً)" : "جدول الاشتراكات والدفعات الشهريّة (١٢ شهراً)"}
-          </h1>
-          <p className="text-amber-100/80 text-sm md:text-base leading-relaxed">
-            {isSchool
-              ? "Consultez le tableau récapitulatif des écolages mensuels pour tous les élèves de l'École Pathé Pogne (CI à CM2). Cliquez sur un mois pour enregistrer les règlements."
-              : "Consultez le tableau récapitulatif des cotisations mensuelles pour tous les Talibés (Internes, Externes, Demi-pensionnaires). Cliquez sur un mois pour saisir le montant payé."}
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm md:text-base font-black text-foreground">
+                {isSchool ? "Recouvrement des Écolages (12 Mois)" : "Recouvrement des Cotisations (12 Mois)"}
+              </h1>
+              <span className={cn(
+                "text-[10px] font-bold px-2 py-0.5 rounded border",
+                isSchool ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+              )}>
+                Août à Juillet
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              {isSchool ? "Matrice annuelle des frais de scolarité par élève" : "Matrice annuelle des cotisations et participations par talibé"}
+            </p>
+          </div>
+        </div>
+
+        {/* Année & Export Excel */}
+        <div className="flex items-center gap-2 shrink-0">
+          <select 
+            value={selectedYear} 
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="h-8 px-2.5 rounded-lg border border-input bg-background text-xs font-bold text-foreground"
+          >
+            <option value="2026-2027">2026 - 2027</option>
+            <option value="2025-2026">2025 - 2026</option>
+          </select>
+
+          <Button onClick={handleExportExcelMatrix} variant="outline" size="sm" className="h-8 text-xs font-bold gap-1.5 rounded-lg">
+            <FileSpreadsheet className={cn("w-3.5 h-3.5", isSchool ? "text-amber-600" : "text-emerald-600")} /> Export XLSX
+          </Button>
         </div>
       </div>
 
-      {/* Filter Bar & Regime Tabs */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-muted/40 p-3 sm:p-4 rounded-2xl border border-border max-w-full overflow-hidden">
-        <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 sm:pb-0 w-full sm:w-auto">
+      {/* Barre de Filtres Régime & Recherche Rapide */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-muted/30 p-2 rounded-xl border border-border">
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
           <button 
             onClick={() => setSelectedRegime("ALL")}
             className={cn(
-              "px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", 
+              "px-2.5 py-1 rounded-md text-xs font-bold uppercase shrink-0 transition-all", 
               selectedRegime === "ALL" ? (isSchool ? "bg-amber-600 text-white shadow-xs" : "bg-emerald-600 text-white shadow-xs") : "text-muted-foreground hover:bg-muted"
             )}
           >
@@ -215,113 +213,149 @@ export function TuitionClient({
           </button>
           <button 
             onClick={() => setSelectedRegime("INTERNE")}
-            className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "INTERNE" ? "bg-amber-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+            className={cn("px-2.5 py-1 rounded-md text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "INTERNE" ? "bg-amber-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
           >
             Internes
           </button>
           <button 
             onClick={() => setSelectedRegime("DEMI_PENSION")}
-            className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "DEMI_PENSION" ? "bg-purple-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+            className={cn("px-2.5 py-1 rounded-md text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "DEMI_PENSION" ? "bg-purple-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
           >
             Demi-Pension
           </button>
           <button 
             onClick={() => setSelectedRegime("EXTERNE")}
-            className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "EXTERNE" ? "bg-teal-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+            className={cn("px-2.5 py-1 rounded-md text-xs font-bold uppercase shrink-0 transition-all", selectedRegime === "EXTERNE" ? "bg-teal-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
           >
             Externes
           </button>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <select 
-            value={selectedYear} 
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="h-10 px-3 rounded-xl border border-input bg-background text-xs font-bold text-foreground"
-          >
-            <option value="2026-2027">Année 2026 - 2027</option>
-            <option value="2025-2026">Année 2025 - 2026</option>
-          </select>
-
-          <Button onClick={handleExportExcelMatrix} variant="outline" className="text-xs font-bold gap-2">
-            <FileSpreadsheet className={cn("w-4 h-4", isSchool ? "text-amber-600" : "text-emerald-600")} /> Export Matrice Excel
-          </Button>
+        <div className="relative w-full sm:w-64">
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-muted-foreground" />
+          <Input 
+            placeholder={isSchool ? "Rechercher un élève..." : "Rechercher un talibé..."} 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8 h-8 text-xs bg-card border-border"
+          />
         </div>
       </div>
 
-      {/* Search Input */}
-      <div className="relative max-w-full">
-        <Search className="w-4 h-4 absolute left-3 rtl:right-3 rtl:left-auto top-3 text-muted-foreground" />
-        <Input 
-          placeholder={isSchool ? "Rechercher un élève par nom ou matricule..." : "Rechercher un Talibé par nom ou matricule..."} 
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9 rtl:pr-9 rtl:pl-3 h-10 text-sm bg-card border-border max-w-full"
-        />
-      </div>
+      {/* ========================================================================= */}
+      {/* MATRICE EXCEL DES COTISATIONS & ÉCOLAGES (BORDURES FINES, GRILLE PRO)     */}
+      {/* ========================================================================= */}
+      <div className="w-full overflow-hidden rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm print:border-none print:shadow-none">
+        
+        {/* BANDEAU SUPÉRIEUR FEUILLE EXCEL */}
+        <div className="bg-slate-100 dark:bg-slate-800/90 px-4 py-2.5 border-b border-slate-300 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5 font-bold text-slate-800 dark:text-slate-200">
+            <div className="w-5 h-5 rounded bg-[#107c41] text-white flex items-center justify-center font-black text-[10px] shrink-0">
+              X
+            </div>
+            <span className="font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
+              {isSchool ? "Feuille : Matrice Comptable des Écolages • 12 Mois" : "Feuille : Matrice Comptable des Cotisations Daara • 12 Mois"}
+            </span>
+            <span className="text-slate-400 font-normal">|</span>
+            <span className="text-slate-500 font-mono text-[11px]">Exercice : {selectedYear}</span>
+          </div>
 
-      {/* 12-Month Payment Matrix Table (DESKTOP) */}
-      <Card className="hidden md:block border border-border shadow-md overflow-hidden max-w-full">
-        <div className="overflow-x-auto touch-pan-x max-w-full">
-          <table className="w-full min-w-[1300px] text-left rtl:text-right text-xs border-collapse">
-            <thead className="bg-muted/70 text-muted-foreground uppercase tracking-wider font-bold">
-              <tr>
-                <th className="px-4 py-3 border-b sticky left-0 rtl:right-0 rtl:left-auto bg-muted z-10 min-w-[140px] sm:min-w-[180px]">
-                  {isSchool ? "Élève" : "Talibé"}
+          <div className="flex items-center gap-2 font-mono text-[11px]">
+            <span className="px-2 py-0.5 rounded bg-[#107c41]/10 text-[#107c41] dark:text-emerald-400 border border-[#107c41]/30 font-bold">
+              {filteredTalibes.length} Élèves inscrits
+            </span>
+          </div>
+        </div>
+
+        {/* GRILLE MATRICIELLE EXCEL */}
+        <div className="w-full overflow-x-auto touch-pan-x">
+          <table className="w-full min-w-[1300px] border-collapse text-left text-xs text-slate-800 dark:text-slate-200">
+            <thead>
+              <tr className="bg-[#107c41] text-white font-bold text-xs uppercase tracking-wider select-none">
+                <th className="w-12 py-2 px-2 text-center border-r border-emerald-600/50 bg-[#0d6937] text-white/90 font-mono text-[11px]">
+                  N°
                 </th>
-                <th className="px-3 py-3 border-b min-w-[100px]">Régime</th>
+                <th className="w-48 py-2 px-3 border-r border-emerald-600/50 sticky left-0 z-20 bg-[#107c41] text-white shadow-xs">
+                  {isSchool ? "Élève (Nom & Prénom)" : "Talibé (Nom & Prénom)"}
+                </th>
+                <th className="w-28 py-2 px-3 text-center border-r border-emerald-600/50">
+                  Matricule
+                </th>
+                <th className="w-24 py-2 px-2 text-center border-r border-emerald-600/50">
+                  Régime
+                </th>
                 {ACADEMIC_MONTHS.map(m => (
-                  <th key={m} className="px-3 py-3 border-b text-center min-w-[100px]">{m}</th>
+                  <th key={m} className="py-2 px-2 border-r border-emerald-600/50 text-center min-w-[85px] text-[11px]">
+                    {m}
+                  </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody>
               {filteredTalibes.length === 0 ? (
                 <tr>
-                  <td colSpan={14} className="text-center py-12 text-muted-foreground">
-                    {isSchool ? "Aucun élève trouvé." : "Aucun Talibé trouvé."}
+                  <td colSpan={16} className="text-center py-12 text-slate-400 border-b border-slate-200 dark:border-slate-800 italic">
+                    {isSchool ? "Aucun élève trouvé dans les critères." : "Aucun Talibé trouvé dans les critères."}
                   </td>
                 </tr>
               ) : (
-                filteredTalibes.map((s) => (
-                  <tr key={s.id} className="hover:bg-muted/30 transition-colors">
-                    {/* Talibé Name & Matricule */}
-                    <td className="px-4 py-3 font-bold text-foreground sticky left-0 rtl:right-0 rtl:left-auto bg-card z-10 border-r rtl:border-l rtl:border-r-0 shadow-xs">
-                      <div>{s.firstName} {s.lastName}</div>
-                      <div className="font-mono text-[10px] text-emerald-600">{s.matricule}</div>
+                filteredTalibes.map((s, idx) => (
+                  <tr 
+                    key={s.id} 
+                    className={cn(
+                      "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                      idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-800/40" : "bg-white dark:bg-slate-900"
+                    )}
+                  >
+                    {/* N° Excel */}
+                    <td className="py-2 px-2 text-center font-mono text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-[#f1f3f5] dark:bg-slate-800/70 border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                      {idx + 1}
                     </td>
 
-                    {/* Regime Badge */}
-                    <td className="px-3 py-3 font-medium">
-                      <Badge variant="outline" className={
-                        s.status === "INTERNE" ? "bg-amber-500/10 text-amber-600 border-amber-500/30 text-[9px]" :
-                        s.status === "DEMI_PENSION" ? "bg-purple-500/10 text-purple-600 border-purple-500/30 text-[9px]" :
-                        "bg-teal-500/10 text-teal-600 border-teal-500/30 text-[9px]"
-                      }>
-                        {s.status === "INTERNE" ? "Interne" : s.status === "DEMI_PENSION" ? "Demi-Pen." : "Externe"}
-                      </Badge>
+                    {/* Nom & Prénom (Colonne Figée Excel) */}
+                    <td className="py-2 px-3 font-extrabold text-slate-900 dark:text-slate-100 sticky left-0 z-10 bg-inherit border-r border-b border-slate-200 dark:border-slate-700/80 shadow-xs">
+                      <div className="truncate max-w-[180px]">{s.firstName} {s.lastName}</div>
+                      {s.parentPhone && <div className="text-[10px] text-slate-500 font-normal font-mono">{s.parentPhone}</div>}
                     </td>
 
-                    {/* 12 Months Payment Cells */}
+                    {/* Matricule */}
+                    <td className="py-2 px-3 text-center border-r border-b border-slate-200 dark:border-slate-700/80 font-mono font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">
+                      {s.matricule}
+                    </td>
+
+                    {/* Régime */}
+                    <td className="py-2 px-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                      <span className={cn(
+                        "inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase border",
+                        s.status === "INTERNE" ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300" :
+                        s.status === "DEMI_PENSION" ? "bg-purple-50 text-purple-800 border-purple-300 dark:bg-purple-950/60 dark:text-purple-300" :
+                        "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300"
+                      )}>
+                        {s.status === "INTERNE" ? "Interne" : s.status === "DEMI_PENSION" ? "Demi-P." : "Externe"}
+                      </span>
+                    </td>
+
+                    {/* 12 Cellules Mensuelles Excel */}
                     {ACADEMIC_MONTHS.map(m => {
                       const amount = paymentMap[`${s.id}_${m}`];
                       const isPaid = amount && amount > 0;
 
                       return (
-                        <td key={m} className="px-2 py-2 text-center">
+                        <td key={m} className="p-1 border-r border-b border-slate-200 dark:border-slate-700/80 text-center">
                           <button
                             onClick={() => {
                               setActiveCell({ talibe: s, month: m });
                               if (amount) setQuickAmount(amount.toString());
                             }}
+                            title={`Cliquer pour saisir/modifier : ${m}`}
                             className={cn(
-                              "w-full py-1.5 px-2 rounded-lg font-mono font-extrabold text-[11px] transition-all border",
+                              "w-full py-1 px-1 rounded font-mono font-bold text-[10px] transition-all border",
                               isPaid 
-                                ? "bg-emerald-600 text-white border-emerald-700 shadow-xs font-black hover:bg-emerald-700" 
-                                : "bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 font-bold hover:bg-rose-100"
+                                ? "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800 font-extrabold hover:bg-emerald-200" 
+                                : "bg-transparent text-slate-400 border-transparent hover:border-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                             )}
                           >
-                            {isPaid ? `${amount.toLocaleString()} F` : "Non Payé"}
+                            {isPaid ? `${amount.toLocaleString('fr-FR')} F` : "—"}
                           </button>
                         </td>
                       );
@@ -330,75 +364,26 @@ export function TuitionClient({
                 ))
               )}
             </tbody>
+
+            {/* PIED DU TABLEAU EXCEL */}
+            <tfoot>
+              <tr className="bg-[#f1f3f5] dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border-t-2 border-slate-300 dark:border-slate-600 text-xs select-none">
+                <td colSpan={4} className="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700">
+                  <span className="text-slate-500 uppercase tracking-wider text-[10px] mr-2">TOTAL MATRICE :</span>
+                  <span>{filteredTalibes.length} Inscrits</span>
+                </td>
+                {ACADEMIC_MONTHS.map(m => {
+                  const monthTotal = filteredTalibes.reduce((acc, s) => acc + (paymentMap[`${s.id}_${m}`] || 0), 0);
+                  return (
+                    <td key={m} className="py-2 px-1 text-center font-mono font-bold text-[10px] border-r border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                      {monthTotal > 0 ? `${(monthTotal / 1000).toFixed(0)}k` : "0"}
+                    </td>
+                  );
+                })}
+              </tr>
+            </tfoot>
           </table>
         </div>
-      </Card>
-
-      {/* 12-Month Payment Mobile Cards (MOBILE) */}
-      <div className="md:hidden flex flex-col gap-4">
-        {filteredTalibes.length === 0 ? (
-          <Card className="p-8 text-center text-muted-foreground text-xs">
-            Aucun Talibé trouvé.
-          </Card>
-        ) : (
-          filteredTalibes.map((s) => {
-            const paidMonthsCount = ACADEMIC_MONTHS.filter(m => paymentMap[`${s.id}_${m}`] > 0).length;
-
-            return (
-              <Card key={s.id} className="p-4 border border-border shadow-sm space-y-3 bg-card">
-                {/* Header Info */}
-                <div className="flex items-start justify-between gap-2 border-b border-border/50 pb-2.5">
-                  <div>
-                    <h3 className="font-extrabold text-sm text-foreground">{s.firstName} {s.lastName}</h3>
-                    <p className="font-mono text-[11px] text-emerald-600 font-bold">{s.matricule}</p>
-                  </div>
-                  <div className="text-right flex flex-col items-end gap-1">
-                    <Badge variant="outline" className={
-                      s.status === "INTERNE" ? "bg-amber-500/10 text-amber-600 border-amber-500/30 text-[9px]" :
-                      s.status === "DEMI_PENSION" ? "bg-purple-500/10 text-purple-600 border-purple-500/30 text-[9px]" :
-                      "bg-teal-500/10 text-teal-600 border-teal-500/30 text-[9px]"
-                    }>
-                      {s.status === "INTERNE" ? "Interne" : s.status === "DEMI_PENSION" ? "Demi-Pen." : "Externe"}
-                    </Badge>
-                    <span className="text-[10px] font-black text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                      {paidMonthsCount}/12 Mois
-                    </span>
-                  </div>
-                </div>
-
-                {/* 12 Months Grid */}
-                <div className="grid grid-cols-3 gap-2 pt-1">
-                  {ACADEMIC_MONTHS.map(m => {
-                    const amount = paymentMap[`${s.id}_${m}`];
-                    const isPaid = amount && amount > 0;
-                    const shortName = m.substring(0, 4);
-
-                    return (
-                      <button
-                        key={m}
-                        onClick={() => {
-                          setActiveCell({ talibe: s, month: m });
-                          if (amount) setQuickAmount(amount.toString());
-                        }}
-                        className={cn(
-                          "flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all active:scale-95",
-                          isPaid 
-                            ? "bg-emerald-600 border-emerald-700 text-white font-black" 
-                            : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-200"
-                        )}
-                      >
-                        <span className="text-[9px] font-black uppercase tracking-wider opacity-90">{shortName}</span>
-                        <span className={cn("text-[11px] font-mono font-extrabold mt-0.5", isPaid ? "text-white" : "text-slate-400")}>
-                          {isPaid ? `${amount >= 1000 ? Math.round(amount/1000) + 'k' : amount}` : "—"}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </Card>
-            );
-          })
-        )}
       </div>
 
       {/* Quick Payment Modal on Cell Click */}
@@ -418,6 +403,8 @@ export function TuitionClient({
                 {activeCell.talibe.parentName && <p className="text-muted-foreground">Tuteur : {activeCell.talibe.parentName} ({activeCell.talibe.parentPhone})</p>}
               </div>
 
+              <p className="text-xs text-muted-foreground">Saisissez ici un règlement reçu physiquement par l’établissement. Aucun paiement en ligne n’est effectué dans l’application.</p>
+
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Montant à Enregistrer (FCFA)</label>
                 <Input 
@@ -436,10 +423,8 @@ export function TuitionClient({
                   onChange={(e: any) => setPaymentMethod(e.target.value)}
                   className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-semibold"
                 >
-                  <option value="WAVE">Wave Mobile Money (💙)</option>
-                  <option value="ORANGE_MONEY">Orange Money (🧡)</option>
                   <option value="CASH">Espèces / Cash (💵)</option>
-                  <option value="CHEQUE">Chèque / Virement (🏦)</option>
+                  <option value="CHEQUE">Chèque</option>
                 </select>
               </div>
 
@@ -448,7 +433,7 @@ export function TuitionClient({
                   Annuler
                 </Button>
                 <Button type="submit" disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
-                  {isSubmitting ? "Enregistrement..." : "Valider le Paiement"}
+                  {isSubmitting ? "Enregistrement..." : "Enregistrer le règlement"}
                 </Button>
               </div>
             </form>

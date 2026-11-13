@@ -1,53 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import { Loader2, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { ShieldCheck, Lock, ArrowLeft } from "lucide-react";
 import { SafeImage } from "@/components/ui/safe-image";
-import { toast } from "sonner";
 
 export default function ResetPasswordPage() {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [error, setError] = useState<string | null>(null);
-
-    const handleReset = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (password !== confirmPassword) {
-            toast.error("Les mots de passe ne correspondent pas.");
-            return;
-        }
-
-        if (password.length < 6) {
-            toast.error("Le mot de passe doit contenir au moins 6 caractères.");
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-
-        try {
-            const { error: resetError } = await supabase.auth.updateUser({
-                password: password
-            });
-
-            if (resetError) throw resetError;
-
-            toast.success("Protocole de sécurité mis à jour ! ✨");
-            // Rediriger vers le dashboard car l'utilisateur est techniquement connecté après un reset réussi
-            router.push("/dashboard");
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : "Erreur inconnue";
-            setError(message);
-            toast.error(message);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     return (
         <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 font-sans selection:bg-[hsl(var(--primary))] selection:text-foreground relative overflow-hidden">
@@ -76,78 +34,29 @@ export default function ResetPasswordPage() {
                             <ShieldCheck className="w-4 h-4" />
                             <span className="text-[10px] font-black uppercase tracking-[0.3em]">Protocole de Sécurité</span>
                         </div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight mb-2">
-                            Restauration.
+                        <h1 className="text-3xl font-black text-foreground tracking-tight mb-2">
+                            Réinitialisation assistée
                         </h1>
-                        <p className="text-muted-foreground text-sm font-medium tracking-wide uppercase max-w-[280px] mx-auto">
-                            Définissez votre nouveau mot de passe de Maîtrise pour réintégrer le Sanctuaire.
+                        <p className="text-muted-foreground text-sm font-medium max-w-sm mx-auto">
+                            La réinitialisation autonome par e-mail est temporairement désactivée.
                         </p>
                     </div>
                 </div>
 
-                <div className="bg-[#1C1C1E]/50 backdrop-blur-3xl p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative">
-                    <form onSubmit={handleReset} className="space-y-6">
-                        <div className="space-y-4">
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Nouveau Mot de passe</label>
-                                <div className="relative group">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-[hsl(var(--primary))] transition-colors" />
-                                    <input
-                                        type="password"
-                                        required
-                                        placeholder="••••••••"
-                                        className="w-full bg-black/40 border border-border/50 rounded-2xl pl-12 pr-4 py-3.5 text-foreground placeholder:text-gray-700 focus:border-[hsl(var(--primary))]/50 focus:bg-black/60 outline-none transition-all"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Confirmer le Mot de passe</label>
-                                <div className="relative group">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-[hsl(var(--primary))] transition-colors" />
-                                    <input
-                                        type="password"
-                                        required
-                                        placeholder="••••••••"
-                                        className="w-full bg-black/40 border border-border/50 rounded-2xl pl-12 pr-4 py-3.5 text-foreground placeholder:text-gray-700 focus:border-[hsl(var(--primary))]/50 focus:bg-black/60 outline-none transition-all"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {error && (
-                            <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-xl text-red-500 text-[11px] text-center font-medium animate-in shake duration-300">
-                                {error}
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-[hsl(var(--primary))] hover:bg-primary text-foreground font-bold text-sm h-14 rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 shadow-xl shadow-primary/20 disabled:opacity-50"
-                        >
-                            {loading ? (
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                            ) : (
-                                <>
-                                    <span>Confirmer le nouveau code</span>
-                                    <ArrowRight className="h-4 w-4" />
-                                </>
-                            )}
-                        </button>
-                    </form>
-                </div>
-
-                <div className="text-center">
+                <div className="bg-[#1C1C1E]/50 backdrop-blur-3xl p-6 sm:p-8 rounded-[2rem] border border-border/50 shadow-[0_20px_50px_rgba(0,0,0,0.5)] space-y-5 text-center">
+                    <div className="mx-auto w-12 h-12 rounded-2xl bg-[hsl(var(--primary))]/10 flex items-center justify-center text-[hsl(var(--primary))]">
+                        <Lock className="w-5 h-5" />
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                        Pour des raisons de sécurité, veuillez contacter le Serigne Daara ou l&apos;administrateur de votre établissement afin de réinitialiser votre accès ou d&apos;utiliser la connexion Google associée.
+                    </p>
                     <button
-                        onClick={() => router.push('/login')}
-                        className="text-xs text-muted-foreground hover:text-foreground transition-colors uppercase tracking-widest font-black"
+                        type="button"
+                        onClick={() => router.push("/login")}
+                        className="w-full bg-[hsl(var(--primary))] hover:bg-primary text-foreground font-bold text-sm h-12 rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-xl shadow-primary/20"
                     >
-                        Retourner à la porte
+                        <ArrowLeft className="h-4 w-4" />
+                        <span>Retourner à la connexion</span>
                     </button>
                 </div>
             </div>

@@ -11,7 +11,8 @@ import {
   FileSpreadsheet, 
   Grid, 
   Search, 
-  UserPlus 
+  UserPlus,
+  Phone
 } from "lucide-react";
 import { createHalqa, deleteClass } from "@/lib/actions/classes";
 import { createStudent } from "@/lib/actions/students";
@@ -22,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useSpace } from "@/components/providers/space-provider";
+import { cn } from "@/lib/utils";
 
 interface TalibeItem {
   id: string;
@@ -48,104 +50,22 @@ interface ClassesClientProps {
   subjects?: any[];
 }
 
-const MOCK_SCHOOL_CLASSES: HalqaItem[] = [
-  {
-    id: "cls-ci",
-    name: "Classe CI (Cours Initiatique)",
-    level: "Primaire Initial",
-    oustazName: "Mr. Amadou Ba",
-    talibes: [
-      { id: "sch-1", firstName: "Alioune", lastName: "Badara", matricule: "EP-2026-001", status: "INTERNE", parentName: "Mamadou Badara", parentPhone: "+221 77 123 45 67" },
-      { id: "sch-2", firstName: "Fatoumata", lastName: "Sarr", matricule: "EP-2026-002", status: "EXTERNE", parentName: "Oumar Sarr", parentPhone: "+221 78 234 56 78" },
-      { id: "sch-3", firstName: "Moussa", lastName: "Kante", matricule: "EP-2026-003", status: "INTERNE", parentName: "Cheikh Kante", parentPhone: "+221 70 345 67 89" },
-      { id: "sch-4", firstName: "Coumba", lastName: "Ndiaye", matricule: "EP-2026-004", status: "EXTERNE", parentName: "Balla Ndiaye", parentPhone: "+221 76 111 22 33" },
-    ],
-    _count: { talibes: 4 }
-  },
-  {
-    id: "cls-cp",
-    name: "Classe CP (Cours Préparatoire)",
-    level: "Primaire Élémentaire 1",
-    oustazName: "Mr. Moussa Ndiaye",
-    talibes: [
-      { id: "sch-5", firstName: "Aïssatou", lastName: "Fall", matricule: "EP-2026-005", status: "EXTERNE", parentName: "Ibrahima Fall", parentPhone: "+221 77 456 78 90" },
-      { id: "sch-6", firstName: "Cheikh Tidiane", lastName: "Sy", matricule: "EP-2026-006", status: "INTERNE", parentName: "Serigne Sy", parentPhone: "+221 76 567 89 01" },
-      { id: "sch-7", firstName: "Sokhna", lastName: "Diop", matricule: "EP-2026-007", status: "INTERNE", parentName: "Abdoulaye Diop", parentPhone: "+221 70 222 33 44" }
-    ],
-    _count: { talibes: 3 }
-  },
-  {
-    id: "cls-ce1",
-    name: "Classe CE1 (Cours Élémentaire 1)",
-    level: "Primaire Élémentaire 2",
-    oustazName: "Mme Fatou Diallo",
-    talibes: [
-      { id: "sch-8", firstName: "Mariama", lastName: "Bâ", matricule: "EP-2026-008", status: "INTERNE", parentName: "Alassane Bâ", parentPhone: "+221 77 678 90 12" },
-      { id: "sch-9", firstName: "Ibrahima", lastName: "Sow", matricule: "EP-2026-009", status: "EXTERNE", parentName: "Amadou Sow", parentPhone: "+221 78 789 01 23" },
-      { id: "sch-10", firstName: "Khadidiatou", lastName: "Kane", matricule: "EP-2026-010", status: "EXTERNE", parentName: "Oumar Kane", parentPhone: "+221 77 333 44 55" }
-    ],
-    _count: { talibes: 3 }
-  },
-  {
-    id: "cls-ce2",
-    name: "Classe CE2 (Cours Élémentaire 2)",
-    level: "Niveau Moyen 1",
-    oustazName: "Mr. Ousmane Diop",
-    talibes: [
-      { id: "sch-11", firstName: "Abdoulaye", lastName: "Gueye", matricule: "EP-2026-011", status: "INTERNE", parentName: "Modou Gueye", parentPhone: "+221 77 890 12 34" },
-      { id: "sch-12", firstName: "Binetou", lastName: "Cissé", matricule: "EP-2026-012", status: "EXTERNE", parentName: "Saliou Cissé", parentPhone: "+221 78 444 55 66" }
-    ],
-    _count: { talibes: 2 }
-  },
-  {
-    id: "cls-cm1",
-    name: "Classe CM1 (Cours Moyen 1)",
-    level: "Niveau Moyen 2",
-    oustazName: "Mr. Ibrahima Sow",
-    talibes: [
-      { id: "sch-13", firstName: "Khady", lastName: "Ndiaye", matricule: "EP-2026-013", status: "EXTERNE", parentName: "Balla Ndiaye", parentPhone: "+221 76 901 23 45" },
-      { id: "sch-14", firstName: "Mouhamed", lastName: "Mbacké", matricule: "EP-2026-014", status: "INTERNE", parentName: "Serigne Mbacké", parentPhone: "+221 77 555 66 77" }
-    ],
-    _count: { talibes: 2 }
-  },
-  {
-    id: "cls-cm2",
-    name: "Classe CM2 (Cours Moyen 2 - Examen CFEE)",
-    level: "Terminal Primaire",
-    oustazName: "Mr. Cheikh Kane",
-    talibes: [
-      { id: "sch-15", firstName: "Ousmane", lastName: "Kane", matricule: "EP-2026-015", status: "INTERNE", parentName: "Saliou Kane", parentPhone: "+221 77 012 34 56" },
-      { id: "sch-16", firstName: "Rama", lastName: "Sene", matricule: "EP-2026-016", status: "EXTERNE", parentName: "Alioune Sene", parentPhone: "+221 70 666 77 88" }
-    ],
-    _count: { talibes: 2 }
-  }
-];
-
 export function ClassesClient({ daaraName, classes: initialClasses }: ClassesClientProps) {
   const { activeSpace } = useSpace();
   const isSchool = activeSpace === "school";
 
-  const [halqas, setHalqas] = useState<HalqaItem[]>(isSchool ? MOCK_SCHOOL_CLASSES : initialClasses);
+  const [halqas, setHalqas] = useState<HalqaItem[]>(initialClasses);
   const [activeTab, setActiveTab] = useState<"register" | "grid">("register");
   const [selectedHalqaId, setSelectedHalqaId] = useState<string>(
-    isSchool ? MOCK_SCHOOL_CLASSES[0].id : (initialClasses.length > 0 ? initialClasses[0].id : "")
+    initialClasses.length > 0 ? initialClasses[0].id : ""
   );
 
   const [prevInitialClasses, setPrevInitialClasses] = useState(initialClasses);
-  const [prevIsSchool, setPrevIsSchool] = useState(isSchool);
 
-  if (initialClasses !== prevInitialClasses || isSchool !== prevIsSchool) {
+  if (initialClasses !== prevInitialClasses) {
     setPrevInitialClasses(initialClasses);
-    setPrevIsSchool(isSchool);
-    if (isSchool) {
-      setHalqas(MOCK_SCHOOL_CLASSES);
-      setSelectedHalqaId(MOCK_SCHOOL_CLASSES[0].id);
-    } else {
-      setHalqas(initialClasses);
-      if (initialClasses.length > 0) {
-        setSelectedHalqaId(initialClasses[0].id);
-      }
-    }
+    setHalqas(initialClasses);
+    setSelectedHalqaId(initialClasses.length > 0 ? initialClasses[0].id : "");
   }
 
   // Filtres Registre
@@ -291,15 +211,15 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
     <div className="space-y-3 w-full max-w-full font-sans">
       
       {/* TOOLBAR SUPERIEURE ULTRA COMPACTE SUR UNE SEULE LIGNE (100% LARGEUR) */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-3 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 print:hidden w-full">
+      <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-3 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 print:hidden w-full">
         <div className="flex items-center gap-3">
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold shrink-0 ${isSchool ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"}`}>
             <BookOpen className="w-4 h-4" />
           </div>
-          <div>
-            <h1 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <span>{isSchool ? "Classes & Salles de Cours • École Pathé Pogne" : "Registre Officiel des Halqas"}</span>
-              <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${isSchool ? "text-amber-800 bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800" : "text-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800"}`}>
+          <div className="min-w-0">
+            <h1 className="text-sm font-black text-slate-900 dark:text-white flex flex-wrap items-center gap-2">
+              <span className="truncate">{isSchool ? "Classes & Salles • École Pathé Pogne" : "Registre Officiel des Halqas"}</span>
+              <span className={`text-[11px] font-bold px-2 py-0.5 rounded border shrink-0 ${isSchool ? "text-amber-800 bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-800" : "text-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800"}`}>
                 {halqas.length} {isSchool ? "Classe(s)" : "Cercle(s)"}
               </span>
             </h1>
@@ -307,7 +227,7 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
         </div>
 
         {/* Boutons d'Action Rapides (Imprimer, Inscrire, Nouvelle Halqa, Vues) */}
-        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap justify-end text-xs font-bold">
+        <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap justify-stretch sm:justify-end text-xs font-bold">
           {activeTab === "register" && currentHalqa && (
             <>
               {/* Modal Ajouter un Talibé / Élève */}
@@ -459,26 +379,26 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
             </DialogContent>
           </Dialog>
 
-          {/* Toggle Vue Registre / Fiches */}
+          {/* Toggle Vue Feuille Excel / Répertoire */}
           <div className="flex items-center border border-slate-300 dark:border-slate-700 rounded-lg p-0.5 bg-slate-100 dark:bg-slate-800 text-xs font-bold">
             <button
               onClick={() => setActiveTab("register")}
-              className={`px-3 py-1 rounded-md transition-all ${activeTab === "register" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs" : "text-slate-500"}`}
+              className={`px-3 py-1 rounded-md transition-all flex items-center gap-1.5 ${activeTab === "register" ? "bg-white dark:bg-slate-700 text-[#107c41] dark:text-emerald-400 shadow-xs font-extrabold" : "text-slate-500"}`}
             >
-              Registre Word
+              <FileSpreadsheet className="w-3.5 h-3.5" /> Tableau Excel
             </button>
             <button
               onClick={() => setActiveTab("grid")}
-              className={`px-3 py-1 rounded-md transition-all ${activeTab === "grid" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs" : "text-slate-500"}`}
+              className={`px-3 py-1 rounded-md transition-all flex items-center gap-1.5 ${activeTab === "grid" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs" : "text-slate-500"}`}
             >
-              Fiches Halqas
+              <Grid className="w-3.5 h-3.5" /> Répertoire des Classes
             </button>
           </div>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* VUE REGISTRE STYLE TABLEAU WORD (100% LARGEUR, VRAIES BORDURES DE CELLULES) */}
+      {/* VUE 1 : FEUILLE DE CALCUL EXCEL PROFESSIONNELLE (BORDURES FINES, ALIGNEMENTS NETS) */}
       {/* ========================================================================= */}
       {activeTab === "register" && (
         <div className="space-y-4 w-full">
@@ -543,8 +463,8 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
               </Dialog>
             </div>
 
-            {/* BARRE DE PILLS HORIZONTALE COMPACTE ET DYNAMIQUE (1 SEULE LIGNE DE DÉFILEMENT) */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 no-scrollbar font-arabic text-xs w-full dir-rtl">
+            {/* BARRE DE PILLS HORIZONTALE COMPACTE ET DYNAMIQUE */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 no-scrollbar text-xs w-full">
               {halqas.map((h) => {
                 const isSelected = h.id === selectedHalqaId;
                 const talibeCount = h._count?.talibes || h.talibes?.length || 0;
@@ -558,8 +478,8 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
                     }}
                     className={`px-3.5 py-1.5 rounded-lg font-bold transition-all shrink-0 flex items-center gap-2 border text-xs cursor-pointer ${
                       isSelected
-                        ? "bg-emerald-800 text-white border-emerald-900 shadow-xs ring-1 ring-emerald-500"
-                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:border-emerald-300"
+                        ? "bg-[#107c41] text-white border-[#0d6937] shadow-xs"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-700"
                     }`}
                   >
                     <span>{h.name}</span>
@@ -579,7 +499,7 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
             <div className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between print:hidden text-xs w-full">
               
               {/* Sélecteur Liste Déroulante Halqa */}
-              <div className="flex items-center gap-2 bg-emerald-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-emerald-300 dark:border-slate-700 w-full sm:w-64 font-bold font-arabic">
+              <div className="flex items-center gap-2 bg-emerald-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-emerald-300 dark:border-slate-700 w-full sm:w-64 font-bold">
                 <BookOpen className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
                 <select
                   value={selectedHalqaId}
@@ -609,22 +529,22 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
                 />
               </div>
 
-              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg font-bold">
+              <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg font-bold w-full sm:w-auto">
                 <button
                   onClick={() => setStatusFilter("ALL")}
-                  className={`px-3 py-1 rounded transition-all ${statusFilter === "ALL" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs" : "text-slate-500"}`}
+                  className={`px-2 sm:px-3 py-1.5 sm:py-1 rounded text-center transition-all ${statusFilter === "ALL" ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs" : "text-slate-500"}`}
                 >
                   Tous ({currentHalqa.talibes?.length || 0})
                 </button>
                 <button
                   onClick={() => setStatusFilter("INTERNE")}
-                  className={`px-3 py-1 rounded transition-all ${statusFilter === "INTERNE" ? "bg-emerald-700 text-white shadow-xs" : "text-slate-500"}`}
+                  className={`px-2 sm:px-3 py-1.5 sm:py-1 rounded text-center transition-all ${statusFilter === "INTERNE" ? "bg-[#107c41] text-white shadow-xs" : "text-slate-500"}`}
                 >
                   Internat ({countInternes})
                 </button>
                 <button
                   onClick={() => setStatusFilter("EXTERNE")}
-                  className={`px-3 py-1 rounded transition-all ${statusFilter === "EXTERNE" ? "bg-rose-700 text-white shadow-xs" : "text-slate-500"}`}
+                  className={`px-2 sm:px-3 py-1.5 sm:py-1 rounded text-center transition-all ${statusFilter === "EXTERNE" ? "bg-amber-600 text-white shadow-xs" : "text-slate-500"}`}
                 >
                   Externat ({countExternes})
                 </button>
@@ -632,118 +552,190 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
             </div>
           )}
 
-          {/* VRAI TABLEAU DE STYLE WORD (LARGEUR 100%, BORDURES SUR TOUTES LES CELLULES) */}
+          {/* ========================================================================= */}
+          {/* FEUILLE DE CALCUL EXCEL PROFESSIONNELLE (BORDURES FINES, ALIGNEMENTS NETS) */}
+          {/* ========================================================================= */}
           {currentHalqa ? (
-            <div className="w-full overflow-x-auto touch-pan-x bg-white dark:bg-slate-900 border-2 border-slate-400 dark:border-slate-700 shadow-sm print:border-none print:shadow-none">
+            <div className="w-full overflow-hidden rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm print:border-none print:shadow-none">
               
-              <table className="w-full min-w-[550px] border-collapse border-2 border-slate-400 dark:border-slate-700 text-right dir-rtl font-arabic">
-                
-                {/* EN-TÊTE DU TABLEAU WORD (DIRECTEMENT LES LIGNES DU TABLEAU INTEGREES) */}
-                <thead>
-                  {/* LIGNE 1 : Nom de la Halqa / Classe */}
-                  <tr>
-                    <th colSpan={4} className={isSchool ? "bg-amber-100 dark:bg-amber-950/80 text-amber-950 dark:text-amber-200 text-center py-3 px-4 border border-slate-400 dark:border-slate-700 text-base sm:text-lg font-black" : "bg-emerald-50 dark:bg-slate-800 text-emerald-800 dark:text-emerald-300 text-center py-3 px-4 border border-slate-400 dark:border-slate-700 text-base sm:text-lg font-black"}>
-                      {currentHalqa.name}
-                    </th>
-                  </tr>
+              {/* EXCEL SHEET RIBBON / BANDEAU SUPÉRIEUR DE FEUILLE */}
+              <div className="bg-slate-100 dark:bg-slate-800/90 px-4 py-2.5 border-b border-slate-300 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5 font-bold text-slate-800 dark:text-slate-200">
+                  <div className="w-5 h-5 rounded bg-[#107c41] text-white flex items-center justify-center font-black text-[10px] shrink-0">
+                    X
+                  </div>
+                  <span className="font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
+                    {isSchool ? `Feuille : Classe ${currentHalqa.name}` : `Feuille : Halqa ${currentHalqa.name}`}
+                  </span>
+                  <span className="text-slate-400 font-normal">|</span>
+                  <span className="text-slate-600 dark:text-slate-400 font-medium">
+                    {currentHalqa.oustazName ? `Enseignant : ${currentHalqa.oustazName}` : "Sans enseignant attitré"}
+                  </span>
+                  <span className="text-slate-400 font-normal hidden sm:inline">|</span>
+                  <span className="text-slate-500 font-mono text-[11px] hidden sm:inline">Année : 2025/2026</span>
+                </div>
 
-                  {/* LIGNE 2 : Oustaz / Enseignant Référent */}
-                  <tr>
-                    <th colSpan={4} className={isSchool ? "bg-amber-700 text-white text-center py-2.5 px-4 border border-slate-400 dark:border-slate-700 text-xs sm:text-sm font-bold" : "bg-sky-600 text-white text-center py-2.5 px-4 border border-slate-400 dark:border-slate-700 text-xs sm:text-sm font-bold"}>
-                      {currentHalqa.oustazName ? (isSchool ? `Enseignant Titulaire : ${currentHalqa.oustazName}` : `أستاذ : ${currentHalqa.oustazName}`) : (isSchool ? "Enseignant non spécifié" : "أستاذ غير محدد")}
-                    </th>
-                  </tr>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-[11px] font-bold">
+                    {filteredTalibes.length} {isSchool ? "Élève(s)" : "Talibé(s)"}
+                  </span>
+                  <Button 
+                    onClick={() => setShowAddTalibeModal(true)}
+                    size="sm"
+                    className="h-7 px-2.5 text-xs font-bold bg-[#107c41] hover:bg-[#0d6937] text-white gap-1 rounded"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Inscrire
+                  </Button>
+                </div>
+              </div>
 
-                  {/* LIGNE 3 : Année Scolaire (En-tête Noir/Slate) */}
-                  <tr>
-                    <th colSpan={4} className="bg-slate-900 text-white text-center py-2 px-4 border border-slate-400 dark:border-slate-700 text-xs font-black uppercase tracking-widest font-sans">
-                      ANNEE SCOLAIRE : 2025 / 2026
-                    </th>
-                  </tr>
+              {/* TABLEAU GRILLE EXCEL (DÉFILEMENT HORIZONTAL FLUIDE) */}
+              <div className="w-full overflow-x-auto touch-pan-x">
+                <table className="w-full min-w-[760px] border-collapse text-left text-xs text-slate-800 dark:text-slate-200">
+                  
+                  {/* EN-TÊTE DE COLONNES EXCEL (VERT EXCEL #107c41) */}
+                  <thead>
+                    <tr className="bg-[#107c41] text-white font-bold text-xs uppercase tracking-wider select-none">
+                      <th className="w-12 py-2.5 px-2 text-center border-r border-emerald-600/50 bg-[#0d6937] text-white/90 font-mono text-[11px]">
+                        N°
+                      </th>
+                      <th className="w-32 py-2.5 px-3 text-center border-r border-emerald-600/50">
+                        Matricule
+                      </th>
+                      <th className="py-2.5 px-3 border-r border-emerald-600/50 min-w-[150px]">
+                        Nom de Famille
+                      </th>
+                      <th className="py-2.5 px-3 border-r border-emerald-600/50 min-w-[150px]">
+                        Prénom(s)
+                      </th>
+                      <th className="w-32 py-2.5 px-3 text-center border-r border-emerald-600/50">
+                        Régime / Statut
+                      </th>
+                      <th className="py-2.5 px-3 border-r border-emerald-600/50 min-w-[150px]">
+                        Parent / Tuteur
+                      </th>
+                      <th className="w-36 py-2.5 px-3 text-center border-r border-emerald-600/50">
+                        Téléphone
+                      </th>
+                      <th className="w-20 py-2.5 px-2 text-center">
+                        WhatsApp
+                      </th>
+                    </tr>
+                  </thead>
 
-                  {/* LIGNE 4 : Colonnes du Tableau avec bordures complètes */}
-                  <tr className={isSchool ? "bg-amber-200/80 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs sm:text-sm font-black" : "bg-emerald-200/80 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs sm:text-sm font-black"}>
-                    <th className="p-3 text-center border border-slate-400 dark:border-slate-700 w-36">
-                      STATUT / Régime
-                    </th>
-                    <th className="p-3 border border-slate-400 dark:border-slate-700 text-right">
-                      Nom / الألقاب
-                    </th>
-                    <th className="p-3 border border-slate-400 dark:border-slate-700 text-right">
-                      Prénom / الأسماء
-                    </th>
-                    <th className={isSchool ? "p-3 text-center border border-slate-400 dark:border-slate-700 bg-amber-600 text-white w-20" : "p-3 text-center border border-slate-400 dark:border-slate-700 bg-blue-600 text-white w-20"}>
-                      N° / الرقم
-                    </th>
-                  </tr>
-                </thead>
+                  {/* CORPS DU TABLEAU AVEC QUADRILLAGE FIN EXCEL */}
+                  <tbody>
+                    {filteredTalibes.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="p-10 text-center text-slate-400 font-sans border-b border-slate-200 dark:border-slate-800 italic">
+                          {searchQuery 
+                            ? (isSchool ? "Aucun élève ne correspond à la recherche." : "Aucun Talibé ne correspond à la recherche.") 
+                            : (isSchool ? "Aucun élève n'est encore inscrit dans cette classe." : "Aucun Talibé n'est encore inscrit dans cette Halqa.")}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredTalibes.map((talibe, index) => {
+                        const isInternat = talibe.status === "INTERNE";
+                        const isExternat = talibe.status === "EXTERNE";
 
-                {/* CORPS DU TABLEAU AVEC BORDURES DE CELLULES STYLE WORD */}
-                <tbody className="text-xs sm:text-sm">
-                  {filteredTalibes.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="p-8 text-center text-slate-400 font-sans border border-slate-400 dark:border-slate-700">
-                        {searchQuery ? (isSchool ? "Aucun élève ne correspond à la recherche." : "Aucun Talibé ne correspond à la recherche.") : (isSchool ? "Aucun élève n'est inscrit dans cette classe." : "Aucun Talibé n'est inscrit dans cette Halqa.")}
+                        return (
+                          <tr 
+                            key={talibe.id} 
+                            className={cn(
+                              "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                              index % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-800/40" : "bg-white dark:bg-slate-900"
+                            )}
+                          >
+                            {/* Colonne Numérotation Excel (Grisée comme dans Excel) */}
+                            <td className="py-2 px-2 text-center font-mono text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-[#f1f3f5] dark:bg-slate-800/70 border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                              {index + 1}
+                            </td>
+
+                            {/* Matricule */}
+                            <td className="py-2 px-3 text-center border-r border-b border-slate-200 dark:border-slate-700/80 font-mono font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">
+                              {talibe.matricule || `TAL-${String(talibe.id).slice(-4)}`}
+                            </td>
+
+                            {/* Nom de Famille */}
+                            <td className="py-2 px-3 border-r border-b border-slate-200 dark:border-slate-700/80 font-extrabold text-slate-900 dark:text-slate-100 uppercase">
+                              {talibe.lastName}
+                            </td>
+
+                            {/* Prénom(s) */}
+                            <td className="py-2 px-3 border-r border-b border-slate-200 dark:border-slate-700/80 font-semibold text-slate-800 dark:text-slate-200">
+                              {talibe.firstName}
+                            </td>
+
+                            {/* Régime / Statut (Style Cellule Excel Pro) */}
+                            <td className="py-2 px-3 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                              <span className={cn(
+                                "inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border",
+                                isInternat 
+                                  ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800" 
+                                  : isExternat 
+                                    ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800" 
+                                    : "bg-purple-50 text-purple-800 border-purple-300 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800"
+                              )}>
+                                <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", isInternat ? "bg-emerald-600" : isExternat ? "bg-amber-600" : "bg-purple-600")} />
+                                {isInternat ? "Internat" : isExternat ? "Externat" : "Demi-Pension"}
+                              </span>
+                            </td>
+
+                            {/* Parent / Tuteur */}
+                            <td className="py-2 px-3 border-r border-b border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 font-medium truncate max-w-[160px]">
+                              {talibe.parentName || "—"}
+                            </td>
+
+                            {/* Téléphone */}
+                            <td className="py-2 px-3 text-center border-r border-b border-slate-200 dark:border-slate-700/80 font-mono text-slate-600 dark:text-slate-400 text-[11px]">
+                              {talibe.parentPhone || "—"}
+                            </td>
+
+                            {/* Actions WhatsApp */}
+                            <td className="py-2 px-2 text-center border-b border-slate-200 dark:border-slate-700/80">
+                              {talibe.parentPhone ? (
+                                <a 
+                                  href={`https://wa.me/${talibe.parentPhone.replace(/\D/g, '')}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center w-7 h-7 rounded text-emerald-700 hover:bg-emerald-100 dark:text-emerald-400 dark:hover:bg-emerald-950/60 transition-all"
+                                  title="Ouvrir conversation WhatsApp"
+                                >
+                                  <Phone className="w-3.5 h-3.5" />
+                                </a>
+                              ) : (
+                                <span className="text-slate-400 text-[10px]">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+
+                  {/* PIED DU TABLEAU EXCEL (BARRE DE STATUT & TOTAUX) */}
+                  <tfoot>
+                    <tr className="bg-[#f1f3f5] dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border-t-2 border-slate-300 dark:border-slate-600 text-xs select-none">
+                      <td colSpan={3} className="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700">
+                        <span className="text-slate-500 uppercase tracking-wider text-[10px] mr-2">LIGNES :</span>
+                        <span>{filteredTalibes.length} {isSchool ? "Élèves" : "Talibés"} inscrits</span>
+                      </td>
+                      <td colSpan={3} className="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
+                        <span className="text-emerald-700 dark:text-emerald-400 mr-3">✓ Internes : {countInternes}</span>
+                        <span className="text-amber-700 dark:text-amber-400">✓ Externes : {countExternes}</span>
+                      </td>
+                      <td colSpan={2} className="py-2.5 px-3 text-right font-mono text-[11px] text-slate-500">
+                        Feuille active • Prêt
                       </td>
                     </tr>
-                  ) : (
-                    filteredTalibes.map((talibe, index) => {
-                      const isInternat = talibe.status === "INTERNE";
-                      const isExternat = talibe.status === "EXTERNE";
+                  </tfoot>
 
-                      return (
-                        <tr key={talibe.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                          
-                          {/* Statut Badge Pill avec bordure de cellule */}
-                          <td className="p-2.5 text-center border border-slate-400 dark:border-slate-700">
-                            <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider shadow-xs ${
-                              isInternat 
-                                ? (isSchool ? "bg-amber-600 text-white border border-amber-700" : "bg-emerald-600 text-white border border-emerald-700")
-                                : isExternat 
-                                  ? "bg-rose-600 text-white border border-rose-700" 
-                                  : "bg-sky-600 text-white border border-sky-700"
-                            }`}>
-                              {isInternat ? "INTERNAT" : isExternat ? "EXTERNAT" : "DEMI-PENSION"}
-                            </span>
-                          </td>
-
-                          {/* Nom / اللقب */}
-                          <td className="p-2.5 border border-slate-400 dark:border-slate-700 font-bold text-slate-900 dark:text-white">
-                            {talibe.lastName}
-                          </td>
-
-                          {/* Prénom / الاسم */}
-                          <td className="p-2.5 border border-slate-400 dark:border-slate-700 font-bold text-slate-900 dark:text-white">
-                            {talibe.firstName}
-                          </td>
-
-                          {/* Numéro / الرقم */}
-                          <td className={`p-2.5 text-center font-black border border-slate-400 dark:border-slate-700 text-xs sm:text-sm ${isSchool ? "bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-200" : "bg-sky-100 dark:bg-sky-950/60 text-sky-900 dark:text-sky-200"}`}>
-                            {index + 1}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-
-                {/* PIED DU TABLEAU WORD */}
-                <tfoot>
-                  <tr className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-sans text-xs">
-                    <td colSpan={2} className="p-3 border border-slate-400 dark:border-slate-700 font-semibold text-left dir-ltr">
-                      Effectif total : {filteredTalibes.length} {isSchool ? "Élève(s)" : "Talibé(s)"}
-                    </td>
-                    <td colSpan={2} className="p-3 border border-slate-400 dark:border-slate-700 font-arabic font-bold text-right">
-                      {isSchool ? "مدرسة باثي بونغ الفرنكو عربية • École Pathé Pogne" : "مدرسة ابن قيم الجوزية • Daara Ibnoul Khayim Al Diawziya"}
-                    </td>
-                  </tr>
-                </tfoot>
-
-              </table>
+                </table>
+              </div>
 
             </div>
           ) : (
-            <div className="p-12 text-center border border-dashed border-slate-400 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs text-slate-400">
+            <div className="p-12 text-center border border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-xs text-slate-400">
               Veuillez sélectionner ou créer une Halqa.
             </div>
           )}
@@ -752,66 +744,112 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
       )}
 
       {/* ========================================================================= */}
-      {/* VUE 2 : FICHES HALQAS (GRID VIEW COMPACT) */}
+      {/* VUE 2 : TABLEAU RÉPERTOIRE DES CLASSES / HALQAS (STYLE EXCEL PROFESSIONNEL) */}
       {/* ========================================================================= */}
       {activeTab === "grid" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-          {halqas.length === 0 ? (
-            <div className="col-span-full text-center py-12 border border-dashed rounded-xl bg-white dark:bg-slate-900 space-y-2 text-xs">
-              <UserCheck className="w-10 h-10 text-slate-400 mx-auto opacity-40" />
-              <h3 className="font-bold text-slate-700 dark:text-slate-300">Aucune Halqa configurée.</h3>
-              <p className="text-slate-500">Cliquez sur "Nouvelle Halqa" pour ajouter la première classe coranique.</p>
+        <div className="w-full overflow-hidden rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm print:border-none print:shadow-none">
+          
+          {/* EXCEL SHEET RIBBON */}
+          <div className="bg-slate-100 dark:bg-slate-800/90 px-4 py-2.5 border-b border-slate-300 dark:border-slate-700 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
+              <div className="w-5 h-5 rounded bg-[#107c41] text-white flex items-center justify-center font-black text-[10px] shrink-0">
+                X
+              </div>
+              <span className="uppercase tracking-wider">
+                {isSchool ? "Feuille : Répertoire des Classes & Paliers Pédagogiques" : "Feuille : Répertoire Général des Halqas Coraniques"}
+              </span>
+              <span className="text-slate-400 font-mono text-[11px]">({halqas.length} classes enregistrées)</span>
             </div>
-          ) : (
-            halqas.map((h) => (
-              <Card key={h.id} className="relative group overflow-hidden border border-slate-200/80 dark:border-slate-800/80 hover:border-emerald-500/50 transition-all shadow-xs rounded-xl bg-white dark:bg-slate-900">
-                <CardHeader className="pb-2.5 flex flex-row items-start justify-between gap-2 p-4">
-                  <div>
-                    <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60 text-[10px] font-bold">
-                      {h.level || "Hifz"}
-                    </Badge>
-                    <CardTitle className="text-base font-bold text-slate-900 dark:text-white pt-1.5">
-                      {h.name}
-                    </CardTitle>
-                  </div>
+          </div>
 
-                  <Button 
-                    size="icon" 
-                    variant="ghost" 
-                    onClick={() => handleDeleteHalqa(h.id, h.name)}
-                    className="text-rose-500 hover:bg-rose-500/10 transition-opacity"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </CardHeader>
-
-                <CardContent className="space-y-3 p-4 pt-0 text-xs">
-                  <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 space-y-1.5 border border-slate-200/60 dark:border-slate-800">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-500 font-medium">Maître Référent :</span>
-                      <span className="font-bold text-slate-900 dark:text-white">{h.oustazName || "Non assigné"}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between border-t border-slate-200/60 dark:border-slate-700/60 pt-1.5">
-                      <span className="text-slate-500 font-medium">Effectif Talibés :</span>
-                      <span className="font-black text-emerald-600 dark:text-emerald-400">{h._count?.talibes || h.talibes?.length || 0} Talibé(s)</span>
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={() => {
-                      setSelectedHalqaId(h.id);
-                      setActiveTab("register");
-                    }}
-                    size="sm"
-                    className="w-full bg-slate-100 dark:bg-slate-800 hover:bg-emerald-700 hover:text-white text-slate-800 dark:text-slate-200 text-xs font-bold gap-2 rounded-lg transition-all"
-                  >
-                    <FileSpreadsheet className="w-4 h-4" /> Ouvrir le Registre Word/Excel
-                  </Button>
-                </CardContent>
-              </Card>
-            ))
-          )}
+          <div className="w-full overflow-x-auto touch-pan-x">
+            <table className="w-full min-w-[750px] border-collapse text-left text-xs text-slate-800 dark:text-slate-200">
+              <thead>
+                <tr className="bg-[#107c41] text-white font-bold text-xs uppercase tracking-wider select-none">
+                  <th className="w-12 py-2.5 px-2 text-center border-r border-emerald-600/50 bg-[#0d6937] text-white/90 font-mono text-[11px]">N°</th>
+                  <th className="py-2.5 px-3 border-r border-emerald-600/50 min-w-[180px]">{isSchool ? "Classe / Niveau" : "Nom de la Halqa / Cercle"}</th>
+                  <th className="py-2.5 px-3 border-r border-emerald-600/50 min-w-[150px]">{isSchool ? "Palier Pédagogique" : "Niveau d'Enseignement"}</th>
+                  <th className="py-2.5 px-3 border-r border-emerald-600/50 min-w-[160px]">{isSchool ? "Enseignant Titulaire" : "Maître Référent (Oustaz)"}</th>
+                  <th className="w-28 py-2.5 px-3 text-center border-r border-emerald-600/50">Effectif</th>
+                  <th className="w-40 py-2.5 px-3 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {halqas.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-8 text-center text-slate-400 border-b border-slate-200 dark:border-slate-800 italic">
+                      Aucune classe configurée. Cliquez sur "Nouvelle Halqa" ci-dessus.
+                    </td>
+                  </tr>
+                ) : (
+                  halqas.map((h, idx) => {
+                    const count = h._count?.talibes || h.talibes?.length || 0;
+                    return (
+                      <tr 
+                        key={h.id} 
+                        className={cn(
+                          "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                          idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-800/40" : "bg-white dark:bg-slate-900"
+                        )}
+                      >
+                        <td className="py-2.5 px-2 text-center font-mono text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-[#f1f3f5] dark:bg-slate-800/70 border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                          {idx + 1}
+                        </td>
+                        <td className="py-2.5 px-3 font-extrabold text-slate-900 dark:text-white border-r border-b border-slate-200 dark:border-slate-700/80">
+                          {h.name}
+                        </td>
+                        <td className="py-2.5 px-3 border-r border-b border-slate-200 dark:border-slate-700/80">
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300">
+                            {h.level || (isSchool ? "Primaire" : "Hifz")}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-700/80">
+                          {h.oustazName || <span className="text-slate-400 italic font-normal">Non assigné</span>}
+                        </td>
+                        <td className="py-2.5 px-3 text-center font-mono font-black text-emerald-700 dark:text-emerald-400 border-r border-b border-slate-200 dark:border-slate-700/80">
+                          {count} {isSchool ? "Élèves" : "Talibés"}
+                        </td>
+                        <td className="py-2.5 px-3 text-center border-b border-slate-200 dark:border-slate-700/80">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <Button
+                              onClick={() => {
+                                setSelectedHalqaId(h.id);
+                                setActiveTab("register");
+                              }}
+                              size="sm"
+                              className="h-7 px-2.5 text-[11px] font-bold bg-[#107c41] hover:bg-[#0d6937] text-white gap-1 rounded"
+                            >
+                              <FileSpreadsheet className="w-3.5 h-3.5" /> Ouvrir Feuille
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteHalqa(h.id, h.name)}
+                              className="h-7 w-7 p-0 text-rose-500 hover:bg-rose-500/10 rounded"
+                              title="Supprimer la Halqa"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+              <tfoot>
+                <tr className="bg-[#f1f3f5] dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border-t-2 border-slate-300 dark:border-slate-600 text-xs select-none">
+                  <td colSpan={4} className="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700">
+                    <span className="text-slate-500 uppercase tracking-wider text-[10px] mr-2">TOTAL :</span>
+                    <span>{halqas.length} Classes actives</span>
+                  </td>
+                  <td colSpan={2} className="py-2.5 px-3 text-right font-mono text-[11px] text-slate-500">
+                    Effectif combiné : {halqas.reduce((acc, h) => acc + (h._count?.talibes || h.talibes?.length || 0), 0)} inscrits
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         </div>
       )}
 

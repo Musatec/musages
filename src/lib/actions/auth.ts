@@ -7,94 +7,78 @@ import { registerRateLimit } from "@/lib/ratelimit";
 import { headers } from "next/headers";
 
 const RegisterSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-  name: z.string().min(2),
-  enterpriseName: z.string().min(2).optional(),
+  email: z.string().trim().email().max(254).transform((email) => email.toLowerCase()),
+  password: z.string().min(6).max(128),
+  name: z.string().trim().min(2).max(120),
+  enterpriseName: z.string().trim().min(2).max(120).optional(),
 });
 
 export async function register(data: z.infer<typeof RegisterSchema>) {
-  const start = Date.now();
-  console.log("[AUTH_TIMER] Starting registration...");
-
   // --- RATE LIMITING ---
   let ip = "local";
   try {
-    ip = (await headers()).get("x-forwarded-for") || "local";
-  } catch (e) {
+    ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+  } catch {
     // Build phase
   }
   if (ip !== "local") {
-    const { success: isAllowed } = await registerRateLimit.limit(`regs_${ip}`);
-    if (!isAllowed) {
-      return { success: false, error: "Trop de tentatives d'inscription." };
+    try {
+      const { success: isAllowed } = await registerRateLimit.limit(`regs_${ip}`);
+      if (!isAllowed) {
+        return { success: false, code: "RATE_LIMITED", error: "Trop de tentatives d'inscription. Réessayez plus tard." };
+      }
+    } catch (error) {
+      console.error("[AUTH] Registration rate limiter unavailable:", error instanceof Error ? error.name : "unknown error");
+      return { success: false, code: "RATE_LIMIT_UNAVAILABLE", error: "Le service d'inscription est temporairement indisponible. Réessayez dans quelques instants." };
     }
   }
-  console.log(`[AUTH_TIMER] Rate limit check: ${Date.now() - start}ms`);
 
   const validated = RegisterSchema.safeParse(data);
-  if (!validated.success) return { success: false, error: "Données invalides." };
+  if (!validated.success) return { success: false, code: "INVALID_DATA", error: "Vérifiez les informations saisies. Le mot de passe doit contenir entre 6 et 128 caractères." };
   
   const { email, password, name } = validated.data;
 
   try {
-    const dbStart = Date.now();
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
-    console.log(`[AUTH_TIMER] DB findUnique: ${Date.now() - dbStart}ms`);
 
     if (existingUser) {
-      return { success: false, error: "Cet email est déjà utilisé." };
+      return { success: false, code: "EMAIL_TAKEN", error: "Cet email est déjà utilisé. Connectez-vous avec cet email." };
     }
 
     // Hash password
-    const hashStart = Date.now();
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log(`[AUTH_TIMER] Bcrypt hash: ${Date.now() - hashStart}ms`);
 
-    // Create default Daara for new user
-    const daara = await prisma.daara.create({
-        data: {
-            name: email.includes("pathepogne") ? "École Franco-Arabe Pathé Pogne" : `Daara de ${name.split(' ')[0] || "Serigne"}`,
-            plan: "STARTER"
-        }
-    });
+    const daaraName = validated.data.enterpriseName ||
+      (email.includes("pathepogne") ? "École Franco-Arabe Pathé Pogne" : `Daara de ${name.split(" ")[0] || "Serigne"}`);
 
-    // Create user in database linked to Daara
-    const createStart = Date.now();
-    await prisma.user.create({
+    await prisma.$transaction(async (tx) => {
+      const daara = await tx.daara.create({ data: { name: daaraName, plan: "STARTER" } });
+      await tx.user.create({
         data: {
-            email,
-            name,
-            password: hashedPassword,
-            role: "SERIGNE_DAARA",
-            subscriptionStatus: "TRIALING",
-            trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            daaraId: daara.id
+          email,
+          name,
+          password: hashedPassword,
+          role: "SERIGNE_DAARA",
+          daaraId: daara.id,
         },
+      });
     });
-    console.log(`[AUTH_TIMER] DB create: ${Date.now() - createStart}ms`);
-    console.log(`[AUTH_TIMER] Total time: ${Date.now() - start}ms`);
 
-    console.log("[AUTH_ACTION] User created successfully:", email);
     return { success: true };
   } catch (error: any) {
-    console.error("[AUTH_ACTION] Registration error:", error);
-    
-    // Detailed error for debugging (only in development)
-    const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
-    
     if (error.code === 'P2002') {
-        return { success: false, error: "Cet email est déjà utilisé (Contrainte DB)." };
+        return { success: false, code: "EMAIL_TAKEN", error: "Cet email est déjà utilisé. Connectez-vous avec cet email." };
     }
     
-    if (error.code === 'ETIMEDOUT' || errorMessage.includes('timeout')) {
-        return { success: false, error: "Délai de connexion à la base de données dépassé. Votre internet ou le pooler Supabase bloque." };
+    if (error.code === 'ETIMEDOUT' || (error instanceof Error && error.message.toLowerCase().includes('timeout'))) {
+        return { success: false, code: "DATABASE_TIMEOUT", error: "La base de données ne répond pas. Réessayez dans quelques instants." };
     }
     
-    return { success: false, error: `Erreur: ${errorMessage}` };
+    console.error("[AUTH] Registration failed:", error?.code || "unknown error");
+    return { success: false, code: "REGISTRATION_FAILED", error: "La création du compte a échoué. Vérifiez la configuration de la base de données." };
   }
 }
 

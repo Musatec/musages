@@ -10,12 +10,12 @@ import { cn } from "@/lib/utils";
 
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { EliteHeader } from "@/components/layout/elite-header";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const locale = useLocale();
     const { collapsed } = useSidebar();
-    const isAr = locale === "ar";
     
     // Check if the current route is a public standalone page (landing, login, sos, directories)
     const isPublicPage = 
@@ -39,11 +39,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         );
     }
 
-    // Marge fixe à DROITE pour la Sidebar positionnée à droite (RTL Daara)
-    const sidebarPaddingClass = collapsed ? "md:pr-20 md:pl-0" : "md:pr-64 md:pl-0";
+    const sidebarPaddingClass = locale === "ar"
+        ? (collapsed ? "md:pr-[84px] md:pl-0" : "md:pr-[264px] md:pl-0")
+        : (collapsed ? "md:pl-[84px] md:pr-0" : "md:pl-[264px] md:pr-0");
 
     return (
-        <div className="flex flex-col md:flex-row min-h-screen relative overflow-x-hidden bg-[#FAFAF7] selection:bg-[#0C5A34] selection:text-white">
+        <div className="flex min-h-screen flex-col overflow-x-clip bg-background text-foreground selection:bg-primary selection:text-primary-foreground md:flex-row">
             <Suspense fallback={null}>
                 <TopLoader />
             </Suspense>
@@ -59,10 +60,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             {/* Zone de contenu principal — Ajustement dynamique du rembourrage LTR / RTL */}
             <main className={cn(
-                "flex-1 relative flex flex-col pt-16 md:pt-6 pb-24 md:pb-10 w-full max-w-full min-w-0 overflow-x-hidden min-h-screen transition-all duration-300",
+                "relative flex min-h-screen min-w-0 max-w-full flex-1 flex-col overflow-x-clip pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] pt-16 transition-all duration-300 md:pb-10 md:pt-0",
                 sidebarPaddingClass
             )}>
-                <div className="flex-1 px-3 sm:px-6 md:px-8 pb-10 flex flex-col max-w-7xl w-full min-w-0 mx-auto">
+                <EliteHeader />
+                <div className="app-content mx-auto flex w-full min-w-0 max-w-[1600px] flex-1 flex-col px-4 pb-8 sm:px-6 md:px-8 md:pb-10">
                     {children}
                 </div>
             </main>

@@ -1,19 +1,19 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
 export async function getSystemSettings() {
     try {
-        const user = await prisma.user.findFirst({
-            where: { role: "SUPER_ADMIN" },
-            select: { id: true }
-        });
+        const session = await auth();
+        if (!session?.user?.id || session.user.role !== "SUPER_ADMIN") {
+            return { maintenanceMode: false, broadcastMessage: "" };
+        }
 
         return {
             maintenanceMode: false,
             broadcastMessage: ""
         };
-    } catch (error) {
+    } catch {
         return {
             maintenanceMode: false,
             broadcastMessage: ""

@@ -1,5 +1,5 @@
-import { Role, DaaraPlan, DaaraType } from "@prisma/client";
-import NextAuth, { type DefaultSession } from "next-auth";
+import { Role, DaaraType } from "@prisma/client";
+import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface Session {
@@ -8,7 +8,6 @@ declare module "next-auth" {
       role: Role;
       daaraId: string | null;
       daaraType?: DaaraType | null;
-      plan: DaaraPlan;
       hasSeenOnboarding: boolean;
     } & DefaultSession["user"];
   }
@@ -17,7 +16,6 @@ declare module "next-auth" {
     role: Role;
     daaraId: string | null;
     daaraType?: DaaraType | null;
-    plan: DaaraPlan;
     hasSeenOnboarding: boolean;
   }
 }
@@ -27,7 +25,6 @@ declare module "next-auth/jwt" {
     role: Role;
     daaraId: string | null;
     daaraType?: DaaraType | null;
-    plan: DaaraPlan;
     hasSeenOnboarding: boolean;
   }
 }

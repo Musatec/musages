@@ -35,6 +35,7 @@ interface Invoice {
 export default function InvoicesPage() {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<{ invoices: Invoice[], metrics: any } | null>(null);
+    const [unavailable, setUnavailable] = useState<string | null>(null);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
 
@@ -42,7 +43,16 @@ export default function InvoicesPage() {
         setLoading(true);
         try {
             const res = await getInvoices({ search, status: statusFilter as any });
+            if (!res.success) {
+                setData(null);
+                setUnavailable(res.error || "Le registre des factures n'est pas disponible.");
+                return;
+            }
             setData(res as any);
+            setUnavailable(null);
+        } catch {
+            setData(null);
+            setUnavailable("Impossible de charger le registre des factures.");
         } finally {
             setLoading(false);
         }
@@ -51,6 +61,27 @@ export default function InvoicesPage() {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    if (loading && !data && !unavailable) {
+        return <div className="p-8"><TopLoader /><p className="text-sm text-muted-foreground">Chargement du registre…</p></div>;
+    }
+
+    if (unavailable) {
+        return (
+            <div className="space-y-6 pb-20">
+                <div className="max-w-[1500px] mx-auto space-y-6">
+                    <ElitePageHeader
+                        title="Facturation & Trésorerie."
+                        subtitle="Gestion des flux"
+                        description="Registre des factures indisponible."
+                    />
+                    <div role="status" className="rounded-2xl border border-amber-500/30 bg-amber-500/5 p-6 text-sm text-muted-foreground">
+                        {unavailable}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 pb-20">
@@ -132,121 +163,120 @@ export default function InvoicesPage() {
                      </div>
                 </div>
 
-                     {/* Desktop View Table */}
-                     <div className="hidden md:block overflow-x-auto no-scrollbar">
-                        <table className="w-full text-left border-separate border-spacing-0">
-                            <thead>
-                                <tr className="sticky top-0 z-20 bg-muted/30 backdrop-blur-md text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 border-b border-border">
-                                    <th className="px-10 py-6 border-b border-border/50">ID / Protocole</th>
-                                    <th className="px-10 py-6 border-b border-border/50">Entité Client</th>
-                                    <th className="px-10 py-6 border-b border-border/50 text-primary italic">Net à Payer</th>
-                                    <th className="px-10 py-6 border-b border-border/50 text-primary italic">Balance Restante</th>
-                                    <th className="px-10 py-6 border-b border-border/50 text-center">Protocol Sync</th>
-                                    <th className="px-10 py-6 border-b border-border/50 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border/10">
-                                {data?.invoices.map((inv) => (
-                                    <tr key={inv.id} className="group hover:bg-muted/5 transition-all">
-                                        <td className="px-10 py-6">
-                                             <div className="flex flex-col">
-                                                <span className="text-xs font-black italic">#{inv.id.slice(-6).toUpperCase()}</span>
-                                                <span className="text-[9px] font-bold opacity-20 uppercase tracking-widest mt-1 italic">Record {new Date(inv.createdAt).toLocaleDateString()}</span>
-                                             </div>
-                                        </td>
-                                        <td className="px-10 py-6">
-                                            <div className="flex flex-col">
-                                                <span className="text-xs font-black uppercase tracking-tighter text-foreground italic">{inv.customerName || "CLIENT PASSANT"}</span>
-                                                <span className="text-[9px] font-black text-muted-foreground/20 uppercase tracking-widest mt-1">Secteur Market</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-10 py-6">
-                                            <span className="text-sm font-black italic text-foreground tracking-tighter">{formatMoney(inv.totalAmount)} F</span>
-                                        </td>
-                                        <td className="px-10 py-6">
-                                            <div className="flex flex-col gap-1.5 min-w-[150px]">
-                                                <span className={cn(
-                                                    "text-sm font-black italic tracking-tighter",
-                                                    (inv.totalAmount - inv.amountPaid) > 0 ? "text-primary" : "text-emerald-500 opacity-20"
-                                                )}>
-                                                    {formatMoney(inv.totalAmount - inv.amountPaid)} F
-                                                </span>
-                                                <div className="h-0.5 w-full bg-muted/20 rounded-full overflow-hidden">
-                                                     <div className={cn("h-full transition-all duration-1000", (inv.totalAmount - inv.amountPaid) > 0 ? "bg-primary" : "bg-emerald-500")} style={{ width: `${(inv.amountPaid / inv.totalAmount) * 100}%` }} />
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-10 py-6">
-                                            <div className="flex justify-center">
-                                                <div className={cn(
-                                                    "px-4 py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest min-w-[120px] text-center italic shadow-inner",
-                                                    inv.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : 
-                                                    inv.status === 'PARTIAL' ? "bg-primary/10 text-primary border-primary/20" : 
-                                                    "bg-red-500/10 text-red-500 border-red-500/20"
-                                                )}>
-                                                    {inv.status === 'COMPLETED' ? "SECURED ✅" : inv.status === 'PARTIAL' ? "PARTIAL ⏳" : "UNPAID ⚠️"}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-10 py-6 text-right">
-                                            <div className="flex items-center justify-end gap-2 translate-x-3 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                                <button className="p-3 bg-background border border-border/50 hover:bg-primary hover:text-black rounded-xl transition-all shadow-sm">
-                                                    <Printer className="w-4 h-4" />
-                                                </button>
-                                                <button className="p-3 bg-background border border-border/50 hover:bg-zinc-800 hover:text-foreground rounded-xl transition-all shadow-sm">
-                                                    <Mail className="w-4 h-4" />
-                                                </button>
-                                                <button className="p-3 bg-background border border-border/50 hover:bg-red-500 hover:text-foreground rounded-xl transition-all shadow-sm">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
+                     {/* --- REGISTRE EXCEL PRO DE FACTURATION --- */}
+                     <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
+                        {/* Barre de Titre Feuille Excel */}
+                        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+                            <div className="flex items-center gap-2">
+                                <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+                                    <span>XLSX</span>
+                                </span>
+                                <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+                                    Feuille : Grand Livre de Facturation & Créances
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                    {data?.invoices?.length || 0} factures
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Grille Excel */}
+                        <div className="w-full overflow-x-auto touch-pan-x">
+                            <table className="w-full min-w-[750px] border-collapse text-left text-xs">
+                                <thead>
+                                    <tr className="bg-[#107c41] text-white select-none">
+                                        <th className="w-12 text-center px-2 py-2 text-[10px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">N°</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[100px] text-center">Réf Facture</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[100px] text-center">Date</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[180px]">Client / Destinataire</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-right min-w-[120px]">Total Facturé</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-right min-w-[120px]">Reste Dû</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-center min-w-[110px]">Statut</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-b border-emerald-600/50 text-center w-24">Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {!data?.invoices || data.invoices.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={8} className="py-10 text-center text-muted-foreground border-b border-slate-200 dark:border-slate-700/80 italic bg-white dark:bg-slate-900">
+                                                Aucune facture enregistrée.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        data.invoices.map((inv, idx) => {
+                                            const remaining = inv.totalAmount - inv.amountPaid;
+                                            return (
+                                                <tr 
+                                                    key={inv.id} 
+                                                    className={cn(
+                                                        "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                                                        idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                                                    )}
+                                                >
+                                                    <td className="w-12 text-center bg-[#f1f3f5] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                                                        {idx + 1}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-center font-mono font-bold text-emerald-700 dark:text-emerald-400 text-xs border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                        #{inv.id.slice(-6).toUpperCase()}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-center font-mono text-xs text-slate-600 dark:text-slate-400 border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                        {new Date(inv.createdAt).toLocaleDateString('fr-FR')}
+                                                    </td>
+                                                    <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                        {inv.customerName || "CLIENT PASSANT"}
+                                                    </td>
+                                                    <td className="px-3 py-2 text-right font-mono font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                        {formatMoney(inv.totalAmount)} F
+                                                    </td>
+                                                    <td className="px-3 py-2 text-right font-mono font-bold border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                        <span className={remaining > 0 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}>
+                                                            {formatMoney(remaining)} F
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                        <span className={cn(
+                                                            "inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase border",
+                                                            inv.status === 'COMPLETED' ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300" : 
+                                                            inv.status === 'PARTIAL' ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300" : 
+                                                            "bg-red-50 text-red-800 border-red-200 dark:bg-red-950 dark:text-red-300"
+                                                        )}>
+                                                            {inv.status === 'COMPLETED' ? "Payé" : inv.status === 'PARTIAL' ? "Acompte" : "Impayé"}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-3 py-2 text-center border-b border-slate-200 dark:border-slate-700/80">
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-all" title="Imprimer">
+                                                                <Printer className="w-3.5 h-3.5 text-slate-500" />
+                                                            </button>
+                                                            <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-all" title="Email">
+                                                                <Mail className="w-3.5 h-3.5 text-slate-500" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Barre d'état Excel */}
+                        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium select-none">
+                            <div className="flex items-center gap-3">
+                                <span className="font-bold text-emerald-800 dark:text-emerald-400">PRÊT</span>
+                                <span>•</span>
+                                <span>Affichage : {data?.invoices?.length || 0} factures</span>
+                            </div>
+                            <div className="flex items-center gap-4 font-mono">
+                                <span>Total facturé : <strong>{formatMoney(data?.invoices?.reduce((acc, i) => acc + (i.totalAmount || 0), 0) || 0)} F</strong></span>
+                                <span>Total restant dû : <strong className="text-amber-600 dark:text-amber-400">{formatMoney(data?.invoices?.reduce((acc, i) => acc + (i.totalAmount - i.amountPaid), 0) || 0)} F</strong></span>
+                            </div>
+                        </div>
                      </div>
 
-                     {/* Mobile Card View */}
-                     <div className="md:hidden divide-y divide-border/10">
-                        {data?.invoices.map((inv) => (
-                            <div key={inv.id} className="p-6 space-y-4">
-                                <div className="flex justify-between items-start">
-                                    <div>
-                                        <span className="text-[10px] font-black italic text-primary">#{inv.id.slice(-6).toUpperCase()}</span>
-                                        <h4 className="text-sm font-black uppercase tracking-tighter text-foreground italic mt-1">{inv.customerName || "CLIENT PASSANT"}</h4>
-                                    </div>
-                                    <div className={cn(
-                                        "px-3 py-1 rounded-lg border text-[8px] font-black uppercase tracking-widest italic shadow-inner",
-                                        inv.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : 
-                                        inv.status === 'PARTIAL' ? "bg-primary/10 text-primary border-primary/20" : 
-                                        "bg-red-500/10 text-red-500 border-red-500/20"
-                                    )}>
-                                        {inv.status === 'COMPLETED' ? "SECURED" : inv.status === 'PARTIAL' ? "PARTIAL" : "UNPAID"}
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 py-3 border-y border-border/10">
-                                    <div className="space-y-0.5">
-                                        <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-widest">Total</p>
-                                        <p className="text-sm font-black italic">{formatMoney(inv.totalAmount)} F</p>
-                                    </div>
-                                    <div className="space-y-0.5 text-right">
-                                        <p className="text-[8px] font-black text-muted-foreground/30 uppercase tracking-widest">Reste</p>
-                                        <p className={cn("text-sm font-black italic", (inv.totalAmount - inv.amountPaid) > 0 ? "text-primary" : "text-emerald-500")}>
-                                            {formatMoney(inv.totalAmount - inv.amountPaid)} F
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between pt-1">
-                                    <span className="text-[9px] font-bold text-muted-foreground/40 uppercase font-mono">{new Date(inv.createdAt).toLocaleDateString()}</span>
-                                    <div className="flex items-center gap-2">
-                                        <button className="p-2.5 bg-muted/20 border border-border/10 rounded-lg active:scale-90 transition-all"><Printer className="w-3.5 h-3.5" /></button>
-                                        <button className="p-2.5 bg-muted/20 border border-border/10 rounded-lg active:scale-90 transition-all"><Mail className="w-3.5 h-3.5" /></button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </div>
         </div>

@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import { cn } from "@/lib/utils";
 
 interface HalqaItem {
   id: string;
@@ -223,115 +224,101 @@ export function OustazsClient({ daaraName, halqas, oustazUsers = [] }: OustazsCl
         </div>
       </div>
 
-      {/* REGISTRE OFFICIEL DES OUSTAZS (STYLE TABLEAU WORD PLEINE LARGEUR - EXACT MATCH SCREENSHOT EXCEL) */}
-      <div className="md:hidden flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-300 px-3 py-1.5 rounded-lg border border-amber-300/60 dark:border-amber-800">
-        <span>👈 Glissez horizontalement avec votre doigt pour voir toutes les colonnes du registre 👉</span>
-      </div>
-      <div className="w-full overflow-x-auto touch-pan-x bg-white dark:bg-slate-900 border-2 border-slate-400 dark:border-slate-700 shadow-sm print:border-none print:shadow-none">
-        
-        <table className="w-full min-w-[700px] border-collapse border-2 border-slate-400 dark:border-slate-700 text-left font-sans">
-          
-          {/* EN-TÊTE DU REGISTRE DES OUSTAZS (REPRODUCTION FIDÈLE DU REGISTRE EXCEL) */}
-          <thead>
-            {/* LIGNE 1 : Titre Arabe & Année Scolaire */}
-            <tr className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-b-2 border-slate-400 dark:border-slate-700">
-              <th colSpan={4} className="p-3 text-center border-r border-slate-400 dark:border-slate-700">
-                <h2 className="text-xl font-black font-arabic">الأساتذة</h2>
-              </th>
-              <th colSpan={2} className="p-3 text-center text-lg font-black font-sans">
-                2025/2026
-              </th>
-            </tr>
+      {/* --- REGISTRE EXCEL PRO DES OUSTAZS --- */}
+      <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
+        {/* Barre de Titre Feuille Excel */}
+        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+          <div className="flex items-center gap-2">
+            <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+              <span>XLSX</span>
+            </span>
+            <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+              Feuille : Les Oustaz du Daara Ibnoul Khayim Al Diawziya • 2025/2026
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              {filteredOustazs.length} enseignants
+            </span>
+          </div>
+        </div>
 
-            {/* LIGNE 2 : Subheader Rouge/Bordeaux Identique au Document */}
-            <tr>
-              <th colSpan={6} className="bg-white dark:bg-slate-900 text-rose-800 dark:text-rose-400 text-center py-2.5 px-4 border-b-2 border-slate-400 dark:border-slate-700 text-sm font-black uppercase tracking-wider">
-                LES OUSTAZ DU DAARA IBNOUL KHAYIM AL DIAWZIYA
-              </th>
-            </tr>
-
-            {/* LIGNE 3 : Entêtes de Colonnes en Vert Foncé avec Texte Blanc */}
-            <tr className="bg-emerald-800 text-white text-xs font-black uppercase tracking-wider border-b-2 border-slate-400 dark:border-slate-700">
-              <th className="p-3 text-center border-r border-emerald-900 w-16">N°</th>
-              <th className="p-3 border-r border-emerald-900">Prénom</th>
-              <th className="p-3 border-r border-emerald-900">Nom</th>
-              <th className="p-3 border-r border-emerald-900 font-mono">Téléphone</th>
-              <th className="p-3 text-center border-r border-emerald-900 w-36">STATUT</th>
-              <th className="p-3 text-center font-arabic w-32">OPTION</th>
-            </tr>
-          </thead>
-
-          {/* CORPS DU TABLEAU AVEC BORDURES COMPLETES SUR CHAQUE CELLULE */}
-          <tbody className="divide-y divide-slate-300 dark:divide-slate-800 text-xs sm:text-sm font-semibold">
-            {filteredOustazs.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="p-8 text-center text-slate-400 font-medium">
-                  Aucun Oustaz ne correspond à votre recherche.
-                </td>
+        {/* Grille Excel */}
+        <div className="w-full overflow-x-auto touch-pan-x">
+          <table className="w-full min-w-[700px] border-collapse text-left text-xs">
+            <thead>
+              <tr className="bg-[#107c41] text-white select-none">
+                <th className="w-12 text-center px-2 py-2 text-[10px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">N°</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[140px]">Prénom</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[140px]">Nom</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[130px] font-mono">Téléphone</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-center w-36">Statut</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-b border-emerald-600/50 text-center font-arabic w-32">Option (التخصص)</th>
               </tr>
-            ) : (
-              filteredOustazs.map((o, index) => {
-                const isInternat = o.status === "INTERNAT";
-                return (
-                  <tr key={o.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                    
-                    {/* N° */}
-                    <td className="p-3 text-center font-black bg-slate-100 dark:bg-slate-800 border-r border-slate-400 dark:border-slate-700 text-slate-900 dark:text-white">
-                      {index + 1}
-                    </td>
+            </thead>
+            <tbody>
+              {filteredOustazs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-10 text-center text-muted-foreground border-b border-slate-200 dark:border-slate-700/80 italic bg-white dark:bg-slate-900">
+                    Aucun Oustaz ne correspond à votre recherche.
+                  </td>
+                </tr>
+              ) : (
+                filteredOustazs.map((o, index) => {
+                  const isInternat = o.status === "INTERNAT";
+                  return (
+                    <tr 
+                      key={o.id} 
+                      className={cn(
+                        "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                        index % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                      )}
+                    >
+                      <td className="w-12 text-center bg-[#f1f3f5] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                        {index + 1}
+                      </td>
+                      <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                        {o.firstName}
+                      </td>
+                      <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                        {o.lastName}
+                      </td>
+                      <td className="px-3 py-2 font-mono font-medium text-slate-700 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-700/80">
+                        {o.phone || "—"}
+                      </td>
+                      <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                        <span className={cn(
+                          "inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase border",
+                          isInternat 
+                            ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300" 
+                            : "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950 dark:text-blue-300"
+                        )}>
+                          {o.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-center font-arabic font-bold text-sm text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700/80">
+                        {o.option}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
 
-                    {/* Prénom */}
-                    <td className="p-3 font-bold border-r border-slate-400 dark:border-slate-700 text-slate-900 dark:text-white">
-                      {o.firstName}
-                    </td>
-
-                    {/* Nom */}
-                    <td className="p-3 font-bold border-r border-slate-400 dark:border-slate-700 text-slate-900 dark:text-white">
-                      {o.lastName}
-                    </td>
-
-                    {/* Téléphone */}
-                    <td className="p-3 font-mono font-bold border-r border-slate-400 dark:border-slate-700 text-emerald-700 dark:text-emerald-400">
-                      {o.phone}
-                    </td>
-
-                    {/* STATUT (Badge vert INTERNAT / rouge EXTERNAT) */}
-                    <td className="p-2.5 text-center border-r border-slate-400 dark:border-slate-700">
-                      <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider shadow-xs ${
-                        isInternat 
-                          ? "bg-emerald-600 text-white border border-emerald-700" 
-                          : "bg-rose-600 text-white border border-rose-700"
-                      }`}>
-                        {o.status}
-                      </span>
-                    </td>
-
-                    {/* OPTION (القرآن / التهجي) */}
-                    <td className="p-2.5 text-center font-arabic font-bold text-sm bg-slate-50 dark:bg-slate-800/40 text-slate-900 dark:text-white border-l border-slate-400 dark:border-slate-700">
-                      {o.option}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-
-          {/* PIED DE REGISTRE DES OUSTAZS */}
-          <tfoot>
-            <tr className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border-t-2 border-slate-400 dark:border-slate-700">
-              <td colSpan={3} className="p-3 border-r border-slate-400 dark:border-slate-700">
-                Total Enseignants Référents : {filteredOustazs.length} Oustazs & Seydas
-              </td>
-              <td colSpan={3} className="p-3 text-right font-arabic">
-                مدرسة ابن قيم الجوزية • Daara Ibnoul Khayim Al Diawziya
-              </td>
-            </tr>
-          </tfoot>
-
-        </table>
-
+        {/* Barre d'état Excel */}
+        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium select-none">
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-emerald-800 dark:text-emerald-400">PRÊT</span>
+            <span>•</span>
+            <span>Affichage : {filteredOustazs.length} Oustazs & Seydas</span>
+          </div>
+          <div className="flex items-center gap-3 font-arabic">
+            <span>مدرسة ابن قيم الجوزية • Daara Ibnoul Khayim Al Diawziya</span>
+          </div>
+        </div>
       </div>
-
     </div>
   );
 }

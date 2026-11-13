@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface ExpensesClientProps {
   transactions: any[];
@@ -84,200 +85,208 @@ export function ExpensesClient({ transactions: initialTransactions }: ExpensesCl
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 p-6 md:p-8 text-white border border-emerald-500/20 shadow-2xl">
-        <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
-          <Wallet className="w-96 h-96 text-emerald-400" />
-        </div>
-        <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-extrabold uppercase tracking-widest">
-            <Sparkles className="w-4 h-4 text-emerald-400" /> Gestion de la Trésorerie & Caisse Daara
+    <div className="space-y-3">
+      {/* TOOLBAR COMPACTE PRO - SANS GRANDES CARTES */}
+      <div className="bg-card border border-border rounded-xl p-3 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center font-bold shrink-0 bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+            <Wallet className="w-5 h-5" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
-            إدارة الخزينة والمصروفات التشغيليّة
-          </h1>
-          <p className="text-emerald-100/80 text-sm md:text-base leading-relaxed">
-            Suivez en temps réel les entrées (Sadaqa, scolariés, parrainages) et décaissements (nourriture des pensionnaires, salaires Oustazs, santé).
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm md:text-base font-black text-foreground">
+                Gestion de la Trésorerie & Caisse Daara
+              </h1>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-arabic">
+                إدارة الخزينة
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              Suivi chronologique des encaissements et des décaissements opérationnels
+            </p>
+          </div>
+        </div>
+
+        {/* Action + Nouvelle Dépense */}
+        <div className="flex items-center gap-2">
+          <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 rounded-lg shadow-xs">
+                <Plus className="w-4 h-4" /> Nouvelle Dépense
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+                  <TrendingDown className="w-5 h-5 text-red-500" /> Saisie d'une Dépense Daara
+                </DialogTitle>
+              </DialogHeader>
+
+              <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Catégorie de Dépense</label>
+                  <select 
+                    value={formData.category} 
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-semibold"
+                  >
+                    <option value="RAVITAILLEMENT_NOURRITURE">Ravitaillement Repas Interne (Riz, Huile, Viande)</option>
+                    <option value="SALAIRE_OUSTAZ">Traitement / Salaire Oustaz (المشايخ)</option>
+                    <option value="ELECTRICITE_EAU">Facture Électricité & Eau (Senelec / Sen'Eau)</option>
+                    <option value="SANTE_MEDICAMENTS">Santé & Médicaments Talibés</option>
+                    <option value="ENTRETIEN_NATTES">Fournitures & Nattes d'Étude (Allwas / لوح)</option>
+                    <option value="ENTRETIEN_BATIMENT">Maintenance & Réparations Bâtiment</option>
+                    <option value="DIVERS">Dépenses Diverses</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Montant (FCFA)</label>
+                  <Input 
+                    type="number"
+                    placeholder="Ex: 50000"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                    className="font-mono font-bold text-base"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Motif / Description</label>
+                  <Input 
+                    placeholder="Ex: Achat de 2 sacs de riz 50kg pour le réfectoire des internes" 
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
+                    Annuler
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                    {isSubmitting ? "Enregistrement..." : "Enregistrer la Dépense"}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {/* Solde Net */}
-        <Card className="border border-emerald-500/20 shadow-sm relative overflow-hidden">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground">Solde Net Disponible</span>
-              <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center justify-center">
-                <Wallet className="w-5 h-5" />
-              </div>
-            </div>
-            <h3 className="text-3xl font-black text-foreground font-mono">
-              {balance.toLocaleString('fr-FR')} <span className="text-sm font-sans text-muted-foreground">FCFA</span>
-            </h3>
-          </CardContent>
-        </Card>
-
-        {/* Total Entrées */}
-        <Card className="border border-emerald-500/20 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-600">Total Entrées (Recettes)</span>
-              <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-5 h-5" />
-              </div>
-            </div>
-            <h3 className="text-3xl font-black text-emerald-600 font-mono">
-              +{totalIncome.toLocaleString('fr-FR')} <span className="text-sm font-sans opacity-70">FCFA</span>
-            </h3>
-          </CardContent>
-        </Card>
-
-        {/* Total Sorties */}
-        <Card className="border border-red-500/20 shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-red-600">Total Sorties (Dépenses)</span>
-              <div className="w-10 h-10 bg-red-500/10 text-red-600 rounded-xl flex items-center justify-center">
-                <TrendingDown className="w-5 h-5" />
-              </div>
-            </div>
-            <h3 className="text-3xl font-black text-red-600 font-mono">
-              -{totalExpense.toLocaleString('fr-FR')} <span className="text-sm font-sans opacity-70">FCFA</span>
-            </h3>
-          </CardContent>
-        </Card>
+      {/* Mini-Barre de Métriques Compacte (1 seule ligne) */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="bg-card border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-muted-foreground">Solde Net</p>
+            <p className="text-sm font-black font-mono text-foreground">{balance.toLocaleString('fr-FR')} <span className="text-[10px] font-sans font-normal text-muted-foreground">FCFA</span></p>
+          </div>
+          <Wallet className="w-4 h-4 text-emerald-500 shrink-0" />
+        </div>
+        <div className="bg-card border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-emerald-600">Total Recettes</p>
+            <p className="text-sm font-black font-mono text-emerald-600">+{totalIncome.toLocaleString('fr-FR')} <span className="text-[10px] font-sans font-normal opacity-70">FCFA</span></p>
+          </div>
+          <TrendingUp className="w-4 h-4 text-emerald-500 shrink-0" />
+        </div>
+        <div className="bg-card border border-border rounded-lg px-3 py-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-red-500">Total Dépenses</p>
+            <p className="text-sm font-black font-mono text-red-500">-{totalExpense.toLocaleString('fr-FR')} <span className="text-[10px] font-sans font-normal opacity-70">FCFA</span></p>
+          </div>
+          <TrendingDown className="w-4 h-4 text-red-500 shrink-0" />
+        </div>
       </div>
 
-      {/* Main Actions Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/40 p-4 rounded-2xl border border-border">
-        <div>
-          <h3 className="text-base font-extrabold flex items-center gap-2">
-            <Activity className="w-5 h-5 text-emerald-600" /> Journal Général des Opérations ({transactions.length})
-          </h3>
-          <p className="text-xs text-muted-foreground">Historique chronologique des encaissements et des dépenses de la caisse.</p>
+      {/* --- REGISTRE EXCEL PRO DES TRANSACTIONS --- */}
+      <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
+        {/* Barre de Titre Feuille Excel */}
+        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+          <div className="flex items-center gap-2">
+            <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+              <span>XLSX</span>
+            </span>
+            <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+              Feuille : Journal Général des Recettes & Décaissements
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              {transactions.length} {transactions.length > 1 ? "écritures" : "écriture"}
+            </span>
+          </div>
         </div>
 
-        <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2 shadow-lg shadow-emerald-600/20">
-              <Plus className="w-4 h-4" /> Nouvelle Dépense
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-                <TrendingDown className="w-5 h-5 text-red-500" /> Saisie d'une Dépense Daara
-              </DialogTitle>
-            </DialogHeader>
-
-            <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Catégorie de Dépense</label>
-                <select 
-                  value={formData.category} 
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm font-semibold"
-                >
-                  <option value="RAVITAILLEMENT_NOURRITURE">Ravitaillement Repas Interne (Riz, Huile, Viande)</option>
-                  <option value="SALAIRE_OUSTAZ">Traitement / Salaire Oustaz (المشايخ)</option>
-                  <option value="ELECTRICITE_EAU">Facture Électricité & Eau (Senelec / Sen'Eau)</option>
-                  <option value="SANTE_MEDICAMENTS">Santé & Médicaments Talibés</option>
-                  <option value="ENTRETIEN_NATTES">Fournitures & Nattes d'Étude (Allwas / لوح)</option>
-                  <option value="ENTRETIEN_BATIMENT">Maintenance & Réparations Bâtiment</option>
-                  <option value="DIVERS">Dépenses Diverses</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Montant (FCFA)</label>
-                <Input 
-                  type="number"
-                  placeholder="Ex: 50000"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="font-mono font-bold text-base"
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Motif / Description</label>
-                <Input 
-                  placeholder="Ex: Achat de 2 sacs de riz 50kg pour le réfectoire des internes" 
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setShowAddModal(false)}>
-                  Annuler
-                </Button>
-                <Button type="submit" disabled={isSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
-                  {isSubmitting ? "Enregistrement..." : "Enregistrer la Dépense"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Transactions Table */}
-      <Card className="border border-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto touch-pan-x">
-          <table className="w-full min-w-[650px] text-left text-sm">
-            <thead className="bg-muted/60 text-muted-foreground text-xs uppercase tracking-wider">
-              <tr>
-                <th className="px-6 py-3.5 font-bold">Date</th>
-                <th className="px-6 py-3.5 font-bold">Type</th>
-                <th className="px-6 py-3.5 font-bold">Description</th>
-                <th className="px-6 py-3.5 font-bold">Catégorie</th>
-                <th className="px-6 py-3.5 font-bold text-right">Montant</th>
-                <th className="px-6 py-3.5 font-bold text-right">Actions</th>
+        {/* Grille Excel */}
+        <div className="w-full overflow-x-auto touch-pan-x">
+          <table className="w-full min-w-[650px] border-collapse text-left text-xs">
+            <thead>
+              <tr className="bg-[#107c41] text-white select-none">
+                <th className="w-12 text-center px-2 py-2 text-[10px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">N°</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[130px]">Date & Heure</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[90px] text-center">Type Flux</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">Libellé / Description</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[130px]">Catégorie</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-right min-w-[130px]">Montant</th>
+                <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-b border-emerald-600/50 text-center w-20">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody>
               {transactions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <td colSpan={7} className="text-center py-10 text-muted-foreground border-b border-slate-200 dark:border-slate-700/80 italic bg-white dark:bg-slate-900">
                     Aucune transaction enregistrée.
                   </td>
                 </tr>
               ) : (
-                transactions.map((t) => {
+                transactions.map((t, idx) => {
                   const isIncome = t.type === 'INCOME';
                   return (
-                    <tr key={t.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 font-mono text-xs text-muted-foreground whitespace-nowrap">
+                    <tr 
+                      key={t.id} 
+                      className={cn(
+                        "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                        idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                      )}
+                    >
+                      <td className="w-12 text-center bg-[#f1f3f5] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                        {idx + 1}
+                      </td>
+                      <td className="px-3 py-2 font-mono text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap border-r border-b border-slate-200 dark:border-slate-700/80">
                         {format(new Date(t.createdAt), "dd/MM/yyyy HH:mm", { locale: fr })}
                       </td>
-                      <td className="px-6 py-4">
-                        <Badge variant="outline" className={isIncome ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" : "bg-red-500/10 text-red-600 border-red-500/30"}>
-                          {isIncome ? <ArrowUpRight className="w-3.5 h-3.5 mr-1" /> : <ArrowDownRight className="w-3.5 h-3.5 mr-1" />}
-                          {isIncome ? "ENTRÉE" : "DÉPENSE"}
-                        </Badge>
+                      <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                        <span className={cn(
+                          "inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase border",
+                          isIncome ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300" : "bg-red-50 text-red-800 border-red-200 dark:bg-red-950 dark:text-red-300"
+                        )}>
+                          {isIncome ? "Entrée" : "Dépense"}
+                        </span>
                       </td>
-                      <td className="px-6 py-4 font-bold text-foreground max-w-xs truncate">
+                      <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
                         {t.description}
                       </td>
-                      <td className="px-6 py-4 text-xs font-mono text-muted-foreground uppercase">
+                      <td className="px-3 py-2 text-xs font-medium uppercase text-slate-600 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-700/80">
                         {t.category}
                       </td>
-                      <td className={`px-6 py-4 text-right font-mono font-extrabold text-base ${isIncome ? 'text-emerald-600' : 'text-red-600'}`}>
+                      <td className={cn(
+                        "px-3 py-2 text-right font-mono font-bold text-sm border-r border-b border-slate-200 dark:border-slate-700/80",
+                        isIncome ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
+                      )}>
                         {isIncome ? '+' : '-'}{(t.amount || 0).toLocaleString('fr-FR')} FCFA
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-3 py-2 text-center border-b border-slate-200 dark:border-slate-700/80">
                         <Button 
                           size="icon" 
                           variant="ghost" 
                           onClick={() => handleDelete(t.id)}
-                          className="text-red-500 hover:bg-red-500/10"
+                          className="text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 h-7 w-7"
+                          title="Supprimer la transaction"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </td>
                     </tr>
@@ -287,7 +296,21 @@ export function ExpensesClient({ transactions: initialTransactions }: ExpensesCl
             </tbody>
           </table>
         </div>
-      </Card>
+
+        {/* Barre d'état Excel */}
+        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium select-none">
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-emerald-800 dark:text-emerald-400">PRÊT</span>
+            <span>•</span>
+            <span>Affichage : {transactions.length} écritures</span>
+          </div>
+          <div className="flex items-center gap-4 font-mono">
+            <span>Entrées : <strong className="text-emerald-700 dark:text-emerald-400">+{totalIncome.toLocaleString('fr-FR')} F</strong></span>
+            <span>Sorties : <strong className="text-red-600 dark:text-red-400">-{totalExpense.toLocaleString('fr-FR')} F</strong></span>
+            <span>Solde : <strong className={balance >= 0 ? "text-emerald-800 dark:text-emerald-300 font-black" : "text-red-600"}>{balance.toLocaleString('fr-FR')} F</strong></span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

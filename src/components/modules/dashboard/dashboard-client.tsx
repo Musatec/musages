@@ -12,7 +12,6 @@ import {
     ArrowUpRight, ArrowDownRight, Activity
 } from "lucide-react";
 import { DashboardMetrics } from "@/types/dashboard";
-import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
@@ -20,29 +19,17 @@ export function DashboardClient({
     metrics, 
     recentSales, 
     metadata,
-    userRole,
-    userSubscription
+    userRole
 }: { 
     metrics: DashboardMetrics, 
     recentSales: any[], 
     metadata?: { userName: string, enterpriseName: string, topProducts?: any[] },
-    userRole: string,
-    userSubscription?: { status: string, daysRemaining: number, isTrialOver: boolean }
+    userRole: string
 }) {
     const isManager = userRole === "MANAGER";
     const topProducts = metadata?.topProducts || [];
-    const searchParams = useSearchParams();
 
     useEffect(() => {
-        if (searchParams.get("payment") === "success") {
-            toast.success("Abonnement activé ! Bienvenue dans l'Empire Musages. 🚀", {
-                description: "Toutes vos fonctionnalités premium sont maintenant débloquées.",
-                duration: 5000,
-            });
-            // Nettoyer l'URL
-            window.history.replaceState({}, '', window.location.pathname);
-        }
-
         // Toast de bienvenue pour les nouveaux Empires (Cas Google Auto-create)
         const isNewEmpire = metrics.activeInventory === 0 && metrics.totalSales === 0;
         if (isNewEmpire) {
@@ -55,47 +42,10 @@ export function DashboardClient({
                 sessionStorage.setItem("new_empire_toast_shown", "true");
             }
         }
-    }, [searchParams, metrics, metadata]);
+    }, [metrics, metadata]);
     
     return (
         <div className="flex-1 flex flex-col transition-all duration-300 p-4 md:p-8 pt-6 md:pt-10 pb-40 text-foreground">
-            
-            {userSubscription && !isManager && (userSubscription.isTrialOver || userSubscription.daysRemaining <= 3) && (
-                <div className={cn(
-                    "p-4 rounded-xl border flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2",
-                    userSubscription.isTrialOver ? "bg-red-500/10 border-red-500/20" : "bg-primary/5 border-primary/20"
-                )}>
-                    <div className="flex items-center gap-4">
-                        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", userSubscription.isTrialOver ? "bg-red-500 text-white" : "bg-primary text-black")}>
-                            <Zap className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold uppercase tracking-tight">
-                                {userSubscription.isTrialOver 
-                                    ? "Votre période d'essai a expiré." 
-                                    : `Il vous reste ${userSubscription.daysRemaining} jour(s) d'essai gratuit.`
-                                }
-                            </p>
-                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest leading-none mt-1">
-                                {userSubscription.isTrialOver 
-                                    ? "Activez votre licence pour débloquer toutes les fonctionnalités." 
-                                    : "MINDOS Alpha : Transition vers le plan de production d'ici peu."
-                                }
-                            </p>
-                        </div>
-                    </div>
-                    <Link 
-                        href="/settings"
-                        className={cn(
-                            "px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all italic",
-                            userSubscription.isTrialOver ? "bg-red-600 text-white hover:bg-red-700" : "bg-primary text-black hover:bg-primary/90"
-                        )}
-                    >
-                        {userSubscription.isTrialOver ? "Activer l'Empire" : "Gérer mon abonnement"}
-                    </Link>
-                </div>
-            )}
-
             <OnboardingWizard metrics={metrics} />
 
             <ElitePageHeader 
@@ -174,73 +124,73 @@ export function DashboardClient({
                             </div>
                         </div>
                     </div>
-                    {/* Desktop View */}
-                    <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-muted/10 text-muted-foreground text-xs font-medium border-b border-border/50">
-                                <tr>
-                                    <th className="px-5 py-4 font-medium uppercase tracking-wider text-[11px]">Référence</th>
-                                    <th className="px-5 py-4 font-medium uppercase tracking-wider text-[11px]">Client</th>
-                                    <th className="px-5 py-4 font-medium uppercase tracking-wider text-[11px]">Montant</th>
-                                    <th className="px-5 py-4 font-medium uppercase tracking-wider text-[11px] text-center">Statut</th>
-                                    <th className="px-5 py-4 font-medium uppercase tracking-wider text-[11px] text-right">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border/50">
-                                {recentSales.length === 0 ? (
-                                    <tr><td colSpan={5} className="py-12 text-center text-muted-foreground">Aucune vente enregistrée.</td></tr>
-                                ) : recentSales.map(sale => (
-                                    <tr key={sale.id} className="hover:bg-muted/30 transition-colors">
-                                        <td className="px-5 py-4 font-medium text-foreground font-mono text-xs">#{sale.id.slice(-6).toUpperCase()}</td>
-                                        <td className="px-5 py-4 text-foreground text-sm">{sale.customerName || "Client Comptoir"}</td>
-                                        <td className="px-5 py-4 font-semibold text-foreground">{new Intl.NumberFormat('fr-FR').format(sale.totalAmount)} <span className="text-xs text-muted-foreground font-normal">FCFA</span></td>
-                                        <td className="px-5 py-4 text-center">
-                                            <span className={cn(
-                                                "px-2.5 py-1 rounded-md text-[11px] font-medium border",
-                                                sale.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-orange-500/10 text-orange-600 border-orange-500/20"
-                                            )}>
-                                                {sale.status === 'COMPLETED' ? 'Payé' : 'Attente'}
-                                            </span>
-                                        </td>
-                                        <td className="px-5 py-4 text-right text-muted-foreground text-xs">
-                                            {new Date(sale.createdAt).toLocaleDateString()}
-                                            <span className="block text-[10px] opacity-70">{new Date(sale.createdAt).toLocaleTimeString()}</span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Mobile View */}
-                    <div className="md:hidden divide-y divide-border/50">
-                        {recentSales.length === 0 ? (
-                            <div className="py-12 text-center text-muted-foreground">Aucune vente enregistrée.</div>
-                        ) : recentSales.map(sale => (
-                            <div key={sale.id} className="p-5 space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-1">
-                                        <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest font-mono">#{sale.id.slice(-6).toUpperCase()}</span>
-                                        <h4 className="text-sm font-bold text-foreground">{sale.customerName || "Client Comptoir"}</h4>
-                                    </div>
-                                    <span className={cn(
-                                        "px-2 py-0.5 rounded text-[8px] font-black uppercase border",
-                                        sale.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-orange-500/10 text-orange-600 border-orange-500/20"
-                                    )}>
-                                        {sale.status === 'COMPLETED' ? 'Payé' : 'Attente'}
-                                    </span>
-                                </div>
-                                <div className="flex items-end justify-between">
-                                    <div className="flex flex-col">
-                                        <span className="text-[9px] font-bold text-muted-foreground/40 uppercase">Montant Total</span>
-                                        <span className="text-lg font-black text-foreground italic">{new Intl.NumberFormat('fr-FR').format(sale.totalAmount)} F</span>
-                                    </div>
-                                    <span className="text-[10px] text-muted-foreground tabular-nums opacity-60">
-                                        {new Date(sale.createdAt).toLocaleDateString()} · {new Date(sale.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                </div>
+                    {/* --- REGISTRE EXCEL PRO DES VENTES RÉCENTES --- */}
+                    <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
+                        {/* Barre de Titre Feuille Excel */}
+                        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+                            <div className="flex items-center gap-2">
+                                <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+                                    <span>XLSX</span>
+                                </span>
+                                <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+                                    Feuille : Ventes & Encaissements Récents
+                                </span>
                             </div>
-                        ))}
+                            <span className="bg-white dark:bg-slate-900 px-2 py-0.5 rounded text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                {recentSales.length} opérations
+                            </span>
+                        </div>
+
+                        {/* Grille Excel */}
+                        <div className="w-full overflow-x-auto touch-pan-x">
+                            <table className="w-full min-w-[500px] border-collapse text-left text-xs">
+                                <thead>
+                                    <tr className="bg-[#107c41] text-white select-none">
+                                        <th className="w-10 text-center px-2 py-2 text-[10px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">N°</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[90px] text-center">Réf</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[140px]">Client</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-right min-w-[110px]">Montant</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 text-center min-w-[80px]">Statut</th>
+                                        <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-b border-emerald-600/50 text-center min-w-[100px]">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {recentSales.length === 0 ? (
+                                        <tr><td colSpan={6} className="py-8 text-center text-muted-foreground border-b border-slate-200 dark:border-slate-700/80 italic bg-white dark:bg-slate-900">Aucune vente enregistrée.</td></tr>
+                                    ) : recentSales.map((sale, idx) => (
+                                        <tr 
+                                            key={sale.id} 
+                                            className={cn(
+                                                "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                                                idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                                            )}
+                                        >
+                                            <td className="w-10 text-center bg-[#f1f3f5] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold border-r border-b border-slate-200 dark:border-slate-700/80 select-none">{idx + 1}</td>
+                                            <td className="px-3 py-2 text-center font-mono font-bold text-emerald-700 dark:text-emerald-400 text-[11px] border-r border-b border-slate-200 dark:border-slate-700/80">#{sale.id.slice(-6).toUpperCase()}</td>
+                                            <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">{sale.customerName || "Client Comptoir"}</td>
+                                            <td className="px-3 py-2 text-right font-mono font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">{new Intl.NumberFormat('fr-FR').format(sale.totalAmount)} F</td>
+                                            <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                                                <span className={cn(
+                                                    "inline-block px-1.5 py-0.5 rounded text-[9px] font-black uppercase border",
+                                                    sale.status === 'COMPLETED' ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300" : "bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-950 dark:text-orange-300"
+                                                )}>
+                                                    {sale.status === 'COMPLETED' ? 'Payé' : 'Attente'}
+                                                </span>
+                                            </td>
+                                            <td className="px-3 py-2 text-center font-mono text-[10px] text-muted-foreground border-b border-slate-200 dark:border-slate-700/80">
+                                                {new Date(sale.createdAt).toLocaleDateString('fr-FR')}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Barre d'état Excel */}
+                        <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-1.5 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium select-none">
+                            <span className="font-bold text-emerald-800 dark:text-emerald-400">PRÊT • {recentSales.length} lignes</span>
+                            <span className="font-mono font-bold">Total Ventes : {new Intl.NumberFormat('fr-FR').format(recentSales.reduce((acc, s) => acc + (s.totalAmount || 0), 0))} FCFA</span>
+                        </div>
                     </div>
                 </div>
 

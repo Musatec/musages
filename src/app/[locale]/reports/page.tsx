@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getFinancialReport, FinancialReport } from "@/lib/actions/reports";
 import { ReportsClient } from "@/components/modules/reports/reports-client";
+import { DAARA_MANAGER_ROLES, hasAnyRole } from "@/lib/action-context";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
     if (!session?.user?.id) {
         redirect(`/${locale}/login`);
     }
+    if (!hasAnyRole(session.user.role, DAARA_MANAGER_ROLES)) redirect(`/${locale}/home`);
 
     const reportData = await getFinancialReport();
 

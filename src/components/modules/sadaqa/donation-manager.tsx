@@ -1,88 +1,113 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { 
-  Gift, 
-  Plus, 
-  Search, 
-  DollarSign, 
-  Package, 
-  Calendar, 
-  CheckCircle2, 
+  Gift,
+  Plus,
+  Search,
+  DollarSign,
+  Package,
   Heart,
-  TrendingUp,
-  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { getDonations, recordDonation } from "@/lib/actions/donations";
 
 interface Donation {
   id: string;
   donorName: string;
-  donorPhone: string;
+  donorPhone?: string | null;
   type: "FINANCIER" | "DON_NATURE";
-  amount?: number;
-  natureDetails?: string;
-  paymentMethod?: string; // Wave, Orange Money, Cash
+  amount?: number | null;
+  natureDetails?: string | null;
+  paymentMethod?: string | null;
   date: string;
-  notes?: string;
+  notes?: string | null;
 }
 
-const MOCK_DONATIONS: Donation[] = [
-  { id: "1", donorName: "Moustapha Sall (Anonyme)", donorPhone: "+221 77 999 88 77", type: "DON_NATURE", natureDetails: "10 Sacs de Riz 50kg, 2 Bidons d'huile 20L", date: "Aujourd'hui, 11h30", notes: "Donation pour la restauration des pensionnaires" },
-  { id: "2", donorName: "Sokhna Aida Mbacké", donorPhone: "+221 78 444 33 22", type: "FINANCIER", amount: 100000, paymentMethod: "Wave", date: "Hier, 16h45", notes: "Zakat Al-Mal" },
-  { id: "3", donorName: "Dahirou Touba Dakar", donorPhone: "+221 33 123 99 00", type: "DON_NATURE", natureDetails: "50 Nattes de Prières, Kits d'hygiène et Savons", date: "22/08/2026", notes: "Sadaqa Gamou" },
-];
-
 export function DonationManager() {
-  const [donations, setDonations] = useState<Donation[]>(MOCK_DONATIONS);
+  const [donations, setDonations] = useState<Donation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [totalFinancial, setTotalFinancial] = useState(0);
+  const [natureCount, setNatureCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
   // States pour nouveau don
   const [donorName, setDonorName] = useState("");
   const [donorPhone, setDonorPhone] = useState("");
   const [donationType, setDonationType] = useState<"FINANCIER" | "DON_NATURE">("DON_NATURE");
-  const [amount, setAmount] = useState("50000");
+  const [amount, setAmount] = useState("");
   const [natureDetails, setNatureDetails] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("Wave");
+  const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CHEQUE" | "VIREMENT">("CASH");
+
+  const loadDonations = useCallback(async () => {
+    try {
+      const result = await getDonations();
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      setDonations(result.donations.map((donation) => ({ ...donation, date: donation.date.toISOString() })));
+      setTotalFinancial(result.totalFinancial);
+      setNatureCount(result.natureCount);
+    } catch {
+      toast.error("Impossible de charger le registre des dons.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { void loadDonations(); }, [loadDonations]);
 
   const filtered = donations.filter(d => 
     d.donorName.toLowerCase().includes(searchTerm.toLowerCase()) || 
     (d.natureDetails && d.natureDetails.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const totalCashSadaqa = donations
-    .filter(d => d.type === "FINANCIER" && d.amount)
-    .reduce((acc, curr) => acc + (curr.amount || 0), 0);
-
-  const totalNatureDonations = donations.filter(d => d.type === "DON_NATURE").length;
-
-  const handleAddDonation = () => {
+  const handleAddDonation = async () => {
     if (!donorName) {
       toast.error("Veuillez renseigner le nom du donateur !");
       return;
     }
+    const amountValue = Number(amount);
+    if (donationType === "FINANCIER" && (!Number.isFinite(amountValue) || amountValue <= 0)) {
+      toast.error("Saisissez un montant valide pour le don reçu.");
+      return;
+    }
+    if (donationType === "DON_NATURE" && !natureDetails.trim()) {
+      toast.error("Décrivez le don en nature reçu.");
+      return;
+    }
 
-    const created: Donation = {
-      id: Date.now().toString(),
-      donorName,
-      donorPhone: donorPhone || "+221 77 000 00 00",
-      type: donationType,
-      amount: donationType === "FINANCIER" ? Number(amount) : undefined,
-      natureDetails: donationType === "DON_NATURE" ? natureDetails : undefined,
-      paymentMethod: donationType === "FINANCIER" ? paymentMethod : undefined,
-      date: "À l'instant",
-      notes: "Sadaqa enregistrée dans la caisse du Daara"
-    };
-
-    setDonations([created, ...donations]);
-    toast.success(`Don de Sadaqa enregistré avec succès ! Qu'Allah bénisse le donateur.`);
-    setDonorName("");
-    setNatureDetails("");
+    setSaving(true);
+    try {
+      const result = await recordDonation({
+        donorName,
+        donorPhone,
+        type: donationType,
+        amount: donationType === "FINANCIER" ? amountValue : undefined,
+        natureDetails: donationType === "DON_NATURE" ? natureDetails : undefined,
+        paymentMethod: donationType === "FINANCIER" ? paymentMethod : undefined,
+      });
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Don reçu et inscrit dans le registre.");
+      setDonorName("");
+      setDonorPhone("");
+      setNatureDetails("");
+      await loadDonations();
+    } catch {
+      toast.error("Impossible d'enregistrer le don. Réessayez.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -97,7 +122,7 @@ export function DonationManager() {
             سجل الصدقات والتبرعات العينية والمالية
           </h1>
           <p className="text-emerald-100/80 text-sm md:text-base leading-relaxed">
-            Enregistrez les dons financiers (Wave, Orange Money, Cash) et les dons en nature (sacs de riz, huile, matériel) pour les Talibés du Daara.
+            Consignez les dons reçus par le Daara. La saisie est faite manuellement par le bureau ; aucun paiement n'est effectué dans l'application.
           </p>
         </div>
       </div>
@@ -108,8 +133,8 @@ export function DonationManager() {
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Sadaqa Financière</p>
-              <h3 className="text-2xl font-black text-emerald-400 mt-1">{totalCashSadaqa.toLocaleString()} FCFA</h3>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Collectés via Wave, OM & Cash</p>
+              <h3 className="text-2xl font-black text-emerald-400 mt-1">{totalFinancial.toLocaleString()} FCFA</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Dons financiers consignés par le bureau</p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
               <DollarSign className="w-6 h-6" />
@@ -121,7 +146,7 @@ export function DonationManager() {
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dons en Nature Réceptionnés</p>
-              <h3 className="text-2xl font-black text-amber-400 mt-1">{totalNatureDonations} Livraisons</h3>
+              <h3 className="text-2xl font-black text-amber-400 mt-1">{natureCount} Livraisons</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5">Sacs de riz, huile, vêtements, nattes</p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
@@ -200,16 +225,15 @@ export function DonationManager() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Moyen de Paiement</label>
+                    <label className="text-xs font-bold text-muted-foreground uppercase">Mode de réception enregistré au bureau</label>
                     <select 
                       value={paymentMethod}
                       onChange={(e: any) => setPaymentMethod(e.target.value)}
                       className="w-full mt-1 p-2 bg-background border rounded-lg text-sm"
                     >
-                      <option value="Wave">Wave Direct</option>
-                      <option value="Orange Money">Orange Money</option>
-                      <option value="Espèces">Espèces (Guichet Daara)</option>
-                      <option value="Virement">Virement BTP / Banque</option>
+                      <option value="CASH">Espèces</option>
+                      <option value="CHEQUE">Chèque</option>
+                      <option value="VIREMENT">Virement déjà reçu</option>
                     </select>
                   </div>
                 </>
@@ -225,8 +249,8 @@ export function DonationManager() {
                 </div>
               )}
 
-              <Button onClick={handleAddDonation} className="w-full bg-emerald-500 text-black font-bold">
-                Enregistrer la Sadaqa
+              <Button onClick={handleAddDonation} disabled={saving} className="w-full bg-emerald-500 text-black font-bold">
+                {saving ? "Enregistrement…" : "Confirmer la réception du don"}
               </Button>
             </div>
           </DialogContent>
@@ -239,6 +263,9 @@ export function DonationManager() {
           <CardTitle className="text-base font-bold">Registre des Dons du Daara</CardTitle>
         </CardHeader>
         <CardContent className="p-0 divide-y">
+          {!loading && filtered.length === 0 && (
+            <p className="p-6 text-sm text-muted-foreground">Aucun don enregistré pour le moment.</p>
+          )}
           {filtered.map((item) => (
             <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-accent/20 transition-all">
               <div className="flex items-center gap-3">
@@ -253,7 +280,7 @@ export function DonationManager() {
                     <Badge variant="outline" className={`text-[10px] ${
                       item.type === "FINANCIER" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30" : "bg-amber-500/10 text-amber-400 border-amber-500/30"
                     }`}>
-                      {item.type === "FINANCIER" ? `Donation Cash (${item.paymentMethod})` : "Don en Nature"}
+                      {item.type === "FINANCIER" ? `Don reçu · ${item.paymentMethod || "mode non précisé"}` : "Don en Nature"}
                     </Badge>
                   </h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -266,7 +293,7 @@ export function DonationManager() {
               </div>
 
               <div className="text-right">
-                <span className="text-xs font-mono text-muted-foreground">{item.date}</span>
+                <span className="text-xs font-mono text-muted-foreground">{new Date(item.date).toLocaleString("fr-FR")}</span>
               </div>
             </div>
           ))}

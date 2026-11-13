@@ -1,4 +1,4 @@
-import { getPendingOfflineActions, removePendingAction, OfflineAction } from "./db";
+import { getPendingOfflineActions, removePendingAction } from "./db";
 import { saveAttendance } from "@/lib/actions/attendance";
 import { addHifzRecord } from "@/lib/actions/hifz";
 

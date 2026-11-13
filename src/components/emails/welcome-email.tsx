@@ -46,7 +46,7 @@ import {
             <Section style={features}>
                 <Text style={featureItem}>🛡️ <strong>Sécurité Alpha</strong> : Vos données sont isolées et chiffrées.</Text>
                 <Text style={featureItem}>📊 <strong>Intelligence Réseau</strong> : Surveillez vos boutiques en temps réel.</Text>
-                <Text style={featureItem}>💸 <strong>Trésorerie Maîtrisée</strong> : Ne perdez plus jamais la trace d'un paiement.</Text>
+                <Text style={featureItem}>💸 <strong>Trésorerie Maîtrisée</strong> : Gardez une trace claire des recettes et depenses de votre etablissement.</Text>
             </Section>
             <Hr style={hr} />
             <Text style={footer}>

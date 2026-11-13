@@ -319,39 +319,81 @@ export function GradesClient({
             </button>
           </div>
 
-          <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden">
-            {/* Vue Desktop: Table */}
-            <div className="hidden md:block overflow-x-auto touch-pan-x">
-              <table className="w-full min-w-[600px] text-left text-sm">
-                <thead className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wider">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Élève</th>
-                    <th className="px-6 py-4 font-semibold">Matière</th>
-                    <th className="px-6 py-4 font-semibold">Évaluation</th>
-                    <th className="px-6 py-4 font-semibold">Trimestre</th>
-                    <th className="px-6 py-4 font-semibold text-right">Note</th>
+          {/* --- REGISTRE EXCEL PRO DES NOTES --- */}
+          <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:border-none print:shadow-none">
+            {/* Barre de Titre Feuille Excel */}
+            <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+              <div className="flex items-center gap-2">
+                <span className="bg-[#107c41] text-white px-2 py-0.5 rounded font-black text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-sm">
+                  <span>XLSX</span>
+                </span>
+                <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
+                  Feuille : Dernières Évaluations & Notes Saisies
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  {recentGrades.length} {recentGrades.length > 1 ? "notes" : "note"}
+                </span>
+              </div>
+            </div>
+
+            {/* Grille Excel */}
+            <div className="w-full overflow-x-auto touch-pan-x">
+              <table className="w-full min-w-[700px] border-collapse text-left text-xs">
+                <thead>
+                  <tr className="bg-[#107c41] text-white select-none">
+                    <th className="w-12 text-center px-2 py-2 text-[10px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50">N°</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[180px]">Élève (Nom & Prénom)</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[100px] text-center">Classe</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[140px]">Matière</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[160px]">Évaluation</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-r border-b border-emerald-600/50 min-w-[110px] text-center">Trimestre</th>
+                    <th className="px-3 py-2 text-[11px] font-black uppercase tracking-wider border-b border-emerald-600/50 text-right min-w-[110px]">Note / Barème</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/50">
+                <tbody>
                   {recentGrades.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
-                        Aucune note récente. Cliquez sur Nouvelle Note pour commencer.
+                      <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground border-b border-slate-200 dark:border-slate-700/80 italic bg-white dark:bg-slate-900">
+                        Aucune note récente. Cliquez sur "Nouvelle Note" pour commencer.
                       </td>
                     </tr>
                   ) : (
-                    recentGrades.map((g) => (
-                      <tr key={g.id} className="hover:bg-muted/20 transition-all">
-                        <td className="px-6 py-4 font-medium">{g.student.firstName} {g.student.lastName} <span className="text-[10px] text-muted-foreground ml-2">({g.student.class.name})</span></td>
-                        <td className="px-6 py-4 text-muted-foreground">{g.subject.name}</td>
-                        <td className="px-6 py-4">{g.title}</td>
-                        <td className="px-6 py-4 text-[10px] uppercase tracking-wider">{g.term.replace('_', ' ')}</td>
-                        <td className="px-6 py-4 text-right">
+                    recentGrades.map((g, idx) => (
+                      <tr 
+                        key={g.id} 
+                        className={cn(
+                          "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                          idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-900/60" : "bg-white dark:bg-slate-900"
+                        )}
+                      >
+                        <td className="w-12 text-center bg-[#f1f3f5] dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-mono text-[11px] font-bold border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                          {idx + 1}
+                        </td>
+                        <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                          {g.student.firstName} {g.student.lastName}
+                        </td>
+                        <td className="px-3 py-2 text-center font-medium text-slate-700 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-700/80">
+                          {g.student.class?.name || "—"}
+                        </td>
+                        <td className="px-3 py-2 text-slate-700 dark:text-slate-300 font-medium border-r border-b border-slate-200 dark:border-slate-700/80">
+                          {g.subject?.name || "—"}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                          {g.title}
+                        </td>
+                        <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                            {g.term.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-right border-b border-slate-200 dark:border-slate-700/80">
                           <span className={cn(
-                            "font-black text-lg",
-                            g.gradeValue < 10 ? "text-red-500" : "text-emerald-500"
+                            "font-mono font-bold text-sm",
+                            g.gradeValue < 10 ? "text-red-600 dark:text-red-400" : "text-emerald-700 dark:text-emerald-400"
                           )}>
-                            {g.gradeValue.toLocaleString('fr-FR')} <span className="text-xs text-muted-foreground font-normal">/ {g.maxGrade}</span>
+                            {g.gradeValue.toLocaleString('fr-FR')} <span className="text-[10px] text-muted-foreground font-normal">/ {g.maxGrade}</span>
                           </span>
                         </td>
                       </tr>
@@ -361,44 +403,16 @@ export function GradesClient({
               </table>
             </div>
 
-            {/* Vue Mobile: Cartes */}
-            <div className="md:hidden flex flex-col p-4 gap-3">
-              {recentGrades.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  Aucune note récente. Cliquez sur Nouvelle Note pour commencer.
-                </div>
-              ) : (
-                recentGrades.map((g) => (
-                  <div key={g.id} className="bg-background border border-border/50 rounded-xl p-4 flex flex-col gap-2 relative overflow-hidden">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-sm leading-tight">{g.student.firstName} {g.student.lastName}</h3>
-                        <p className="text-xs text-muted-foreground mt-0.5">{g.student.class.name}</p>
-                      </div>
-                      <div className="text-right">
-                        <span className={cn(
-                          "font-black text-xl",
-                          g.gradeValue < 10 ? "text-red-500" : "text-emerald-500"
-                        )}>
-                          {g.gradeValue}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground font-bold"> / {g.maxGrade}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center bg-muted/30 p-2 rounded-lg border border-border/50 mt-1">
-                      <div className="flex flex-col">
-                        <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Matière</span>
-                        <span className="font-bold text-xs">{g.subject.name}</span>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Éval & Trim</span>
-                        <span className="font-bold text-xs text-right">{g.title} • {g.term.replace('_', ' ')}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
+            {/* Barre d'état Excel */}
+            <div className="bg-[#f1f3f5] dark:bg-slate-800 px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-medium select-none">
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-emerald-800 dark:text-emerald-400">PRÊT</span>
+                <span>•</span>
+                <span>Affichage : {recentGrades.length} notes</span>
+              </div>
+              <div className="flex items-center gap-3 font-mono">
+                <span>Moyenne de l'échantillon : <strong>{recentGrades.length > 0 ? (recentGrades.reduce((acc, g) => acc + (g.gradeValue || 0), 0) / recentGrades.length).toFixed(2) : "—"} / 20</strong></span>
+              </div>
             </div>
           </div>
         </div>

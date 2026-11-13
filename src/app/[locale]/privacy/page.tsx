@@ -65,7 +65,6 @@ export default async function PrivacyPage() {
                             <h2 className="text-xl font-black uppercase italic tracking-tighter text-blue-500">4. Partage des Données</h2>
                             <p className="text-gray-400 leading-relaxed italic">
                                 Nous ne vendons jamais vos données. Cependant, nous partageons les informations minimales requises avec :
-                                <br />• **PayTech** : Pour le traitement de vos abonnements.
                                 <br />• **Sentry** : Pour l'analyse de crashs techniques.
                                 <br />• **Resend** : Pour l'envoi de vos reçus et alertes.
                             </p>

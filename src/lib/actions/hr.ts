@@ -1,78 +1,52 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
-import { revalidatePath } from "next/cache";
+import { DAARA_MANAGER_ROLES, getActionContext } from "@/lib/action-context";
 
 export async function getEmployees() {
-  try {
-    const session = await auth();
-    const daaraId = session?.user?.daaraId;
-    if (!daaraId) return { employees: [], metrics: { totalPayroll: 0, totalAdvances: 0, netToPay: 0, count: 0 } };
-
-    const users = await prisma.user.findMany({
-      where: { daaraId, deletedAt: null }
-    });
-
-    return {
-      employees: users,
-      metrics: {
-        totalPayroll: 0,
-        totalAdvances: 0,
-        netToPay: 0,
-        count: users.length
-      }
-    };
-  } catch (error) {
-    return { employees: [], metrics: { totalPayroll: 0, totalAdvances: 0, netToPay: 0, count: 0 } };
-  }
+  const context = await getActionContext(DAARA_MANAGER_ROLES);
+  if (!context) return { success: false, employees: [], error: "Non autorisé." };
+  return {
+    success: false,
+    employees: [],
+    error: "Le registre RH et de paie n'est pas configuré. Les salaires et acomptes ne sont pas enregistrés.",
+  };
 }
 
-export async function createEmployee(data: any) {
-  try {
-    const session = await auth();
-    const daaraId = session?.user?.daaraId;
-    if (!daaraId) return { error: "Session non valide." };
-
-    const user = await prisma.user.create({
-      data: {
-        daaraId,
-        name: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email,
-        email: data.email || null,
-        phone: data.phone || null,
-        role: "OUSTAZ"
-      }
-    });
-
-    revalidatePath("/hr");
-    return { success: true, employee: user };
-  } catch (error: any) {
-    return { error: error.message || "Erreur lors de l'enregistrement." };
-  }
+export async function createEmployee(_data: unknown) {
+  const context = await getActionContext(DAARA_MANAGER_ROLES);
+  if (!context) return { success: false, error: "Non autorisé." };
+  return { success: false, error: "Le registre RH n'est pas configuré. Utilisez le module Oustazs pour gérer les enseignants." };
 }
 
-export async function giveAdvance(id?: string, amount?: number) {
-  try {
-    revalidatePath("/hr");
-    return { success: true };
-  } catch (error: any) {
-    return { error: "Erreur lors de l'enregistrement de l'acompte." };
-  }
+export async function giveAdvance(id?: string, amount?: number): Promise<{ success: boolean; error?: string }> {
+  const context = await getActionContext(DAARA_MANAGER_ROLES);
+  if (!context) return { success: false, error: "Non autorise." };
+  if (!id || !Number.isFinite(amount) || (amount ?? 0) <= 0) return { success: false, error: "Acompte invalide." };
+  const employee = await prisma.user.findFirst({
+    where: { id, daaraId: context.daaraId, role: "OUSTAZ", deletedAt: null },
+    select: { id: true },
+  });
+  if (!employee) return { success: false, error: "Employe introuvable." };
+  return { success: false, error: "L'enregistrement des acomptes sera disponible apres la mise en place du registre de paie." };
 }
 
-export async function payRestSalary(id?: string) {
-  try {
-    revalidatePath("/hr");
-    return { success: true };
-  } catch (error: any) {
-    return { error: "Erreur lors du règlement." };
-  }
+export async function payRestSalary(id?: string): Promise<{ success: boolean; error?: string }> {
+  const context = await getActionContext(DAARA_MANAGER_ROLES);
+  if (!context) return { success: false, error: "Non autorise." };
+  if (!id) return { success: false, error: "Employe introuvable." };
+  const employee = await prisma.user.findFirst({
+    where: { id, daaraId: context.daaraId, role: "OUSTAZ", deletedAt: null },
+    select: { id: true },
+  });
+  if (!employee) return { success: false, error: "Employe introuvable." };
+  return { success: false, error: "Le registre de paie n'est pas encore configure." };
 }
 
-export async function addEmployeeAdvance(id?: string, amount?: number) {
+export async function addEmployeeAdvance(id?: string, amount?: number): Promise<{ success: boolean; error?: string }> {
   return giveAdvance(id, amount);
 }
 
-export async function resetEmployeeAdvances(id?: string) {
+export async function resetEmployeeAdvances(id?: string): Promise<{ success: boolean; error?: string }> {
   return payRestSalary(id);
 }

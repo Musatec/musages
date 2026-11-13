@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ImportExcelModal } from "@/components/modules/common/import-excel-modal";
 import { useSpace } from "@/components/providers/space-provider";
 import { useLocale, useTranslations } from "next-intl";
 
@@ -24,15 +25,6 @@ interface StudentsClientProps {
   classes: any[];
   students: any[];
 }
-
-const MOCK_SCHOOL_STUDENTS = [
-  { id: "sch_s1", matricule: "EPP-2026-0001", firstName: "Mouhamed", lastName: "Faye", gender: "M", status: "EXTERNE", class: { name: "Classe CM2 Bilingue" }, parentName: "Moussa Faye", parentPhone: "+221 77 111 22 33" },
-  { id: "sch_s2", matricule: "EPP-2026-0002", firstName: "Awa", lastName: "Diouf", gender: "F", status: "DEMI_PENSION", class: { name: "Classe CM1" }, parentName: "Ousmane Diouf", parentPhone: "+221 77 222 33 44" },
-  { id: "sch_s3", matricule: "EPP-2026-0003", firstName: "Ibrahima", lastName: "Ba", gender: "M", status: "EXTERNE", class: { name: "Classe CE2" }, parentName: "Amadou Ba", parentPhone: "+221 77 333 44 55" },
-  { id: "sch_s4", matricule: "EPP-2026-0004", firstName: "Mariama", lastName: "Kante", gender: "F", status: "EXTERNE", class: { name: "Classe CE1" }, parentName: "Saliou Kante", parentPhone: "+221 77 444 55 66" },
-  { id: "sch_s5", matricule: "EPP-2026-0005", firstName: "Babacar", lastName: "Seck", gender: "M", status: "DEMI_PENSION", class: { name: "Classe CP" }, parentName: "Modou Seck", parentPhone: "+221 77 555 66 77" },
-  { id: "sch_s6", matricule: "EPP-2026-0006", firstName: "Khadija", lastName: "Cissé", gender: "F", status: "EXTERNE", class: { name: "Classe CI (Initiation)" }, parentName: "Abdoulaye Cissé", parentPhone: "+221 77 666 77 88" },
-];
 
 export function StudentsClient({ classes, students: initialStudents }: StudentsClientProps) {
   const locale = useLocale();
@@ -42,14 +34,12 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
   const { activeSpace } = useSpace();
   const isSchool = activeSpace === "school";
 
-  const [students, setStudents] = useState<any[]>(isSchool ? MOCK_SCHOOL_STUDENTS : initialStudents);
+  const [students, setStudents] = useState<any[]>(initialStudents);
   const [prevInitialStudents, setPrevInitialStudents] = useState(initialStudents);
-  const [prevIsSchool, setPrevIsSchool] = useState(isSchool);
 
-  if (initialStudents !== prevInitialStudents || isSchool !== prevIsSchool) {
+  if (initialStudents !== prevInitialStudents) {
     setPrevInitialStudents(initialStudents);
-    setPrevIsSchool(isSchool);
-    setStudents(isSchool ? MOCK_SCHOOL_STUDENTS : initialStudents);
+    setStudents(initialStudents);
   }
 
   const [search, setSearch] = useState("");
@@ -155,122 +145,74 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className={cn(
-        "relative overflow-hidden rounded-3xl p-6 md:p-8 text-white shadow-xl border",
-        isSchool 
-          ? "bg-gradient-to-r from-amber-950 via-amber-900 to-yellow-900 border-amber-500/30" 
-          : "bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 border-emerald-500/20"
-      )}>
-        <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
-          <Users className={cn("w-96 h-96", isSchool ? "text-amber-400" : "text-emerald-400")} />
-        </div>
-        <div className="relative z-10 max-w-3xl space-y-3">
+    <div className="space-y-3">
+      {/* TOOLBAR COMPACTE PRO - SANS GRANDES CARTES */}
+      <div className="bg-card border border-border rounded-xl p-3 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
           <div className={cn(
-            "inline-flex max-w-full flex-wrap items-center gap-2 px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider border",
-            isSchool 
-              ? "bg-amber-500/20 border-amber-500/30 text-amber-200" 
-              : "bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
+            "w-9 h-9 rounded-lg flex items-center justify-center font-bold shrink-0 border",
+            isSchool ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
           )}>
-            <Sparkles className={cn("w-4 h-4", isSchool ? "text-amber-400" : "text-emerald-400")} /> 
-            {isSchool 
-              ? (isAr ? "سجل التلاميذ • مدرسة باثي بوني" : "Effectif Général • École Pathé Pogne (CI - CM2)")
-              : (isAr ? "سجل الطلاب العام" : "Effectif Général & Registre des Talibés")}
+            <Users className="w-5 h-5" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
-            {isSchool ? (isAr ? "سجل التلاميذ والإمكانيات" : "Effectif Général des Élèves") : t("title")}
-          </h1>
-          <p className={cn("text-sm md:text-base leading-relaxed", isSchool ? "text-amber-100/90" : "text-emerald-100/90")}>
-            {isSchool 
-              ? "Registre général des élèves de l'École Franco-Arabe Pathé Pogne, gestion des classes et suivi des informations de contact des parents."
-              : t("subtitle")}
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm md:text-base font-black text-foreground">
+                {isSchool ? (isAr ? "سجل التلاميذ • مدرسة باثي بوني" : "Effectif Général des Élèves") : t("title")}
+              </h1>
+              <span className={cn(
+                "text-[10px] font-bold px-2 py-0.5 rounded border",
+                isSchool ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+              )}>
+                {totalStudents} {isSchool ? "Élèves" : "Talibés"}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              {isSchool 
+                ? "Registre officiel des élèves, répartition par classe et contact des parents" 
+                : t("subtitle")}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Stats Cards - Headcount per Category (100% Translated) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <Card className="border border-emerald-500/20 shadow-xs">
-          <CardContent className="p-4 text-center">
-            <p className="text-[10px] font-extrabold uppercase text-muted-foreground">{t("total_effectif")}</p>
-            <h3 className="text-2xl font-black text-emerald-600 mt-1">{totalStudents}</h3>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-blue-500/20 shadow-xs">
-          <CardContent className="p-4 text-center">
-            <p className="text-[10px] font-extrabold uppercase text-muted-foreground">{t("boys")}</p>
-            <h3 className="text-2xl font-black text-blue-600 mt-1">{countBoys}</h3>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-pink-500/20 shadow-xs">
-          <CardContent className="p-4 text-center">
-            <p className="text-[10px] font-extrabold uppercase text-muted-foreground">{t("girls")}</p>
-            <h3 className="text-2xl font-black text-pink-600 mt-1">{countGirls}</h3>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-amber-500/20 shadow-xs">
-          <CardContent className="p-4 text-center">
-            <p className="text-[10px] font-extrabold uppercase text-muted-foreground">{t("interne")}</p>
-            <h3 className="text-2xl font-black text-amber-600 mt-1">{countInternes}</h3>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-purple-500/20 shadow-xs">
-          <CardContent className="p-4 text-center">
-            <p className="text-[10px] font-extrabold uppercase text-muted-foreground">{t("demi_pension")}</p>
-            <h3 className="text-2xl font-black text-purple-600 mt-1">{countDemiPension}</h3>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-teal-500/20 shadow-xs">
-          <CardContent className="p-4 text-center">
-            <p className="text-[10px] font-extrabold uppercase text-muted-foreground">{t("externe")}</p>
-            <h3 className="text-2xl font-black text-teal-600 mt-1">{countExternes}</h3>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filter Tabs & Search Bar */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-muted/40 p-3 sm:p-4 rounded-2xl border border-border">
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 w-full sm:w-auto">
+      {/* Barre de Filtres de Catégories & Recherche */}
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 bg-muted/30 p-2 rounded-xl border border-border">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
             <button 
               onClick={() => setSelectedTab("ALL")}
-              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "ALL" ? "bg-emerald-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-2.5 py-1 rounded-md text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "ALL" ? (isSchool ? "bg-amber-600 text-white shadow-xs" : "bg-emerald-600 text-white shadow-xs") : "text-muted-foreground hover:bg-muted")}
             >
               {t("all")} ({totalStudents})
             </button>
             <button 
               onClick={() => setSelectedTab("GARCON")}
-              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "GARCON" ? "bg-blue-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-2.5 py-1 rounded-md text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "GARCON" ? "bg-blue-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
             >
               {t("boys")} ({countBoys})
             </button>
             <button 
               onClick={() => setSelectedTab("FILLE")}
-              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "FILLE" ? "bg-pink-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-2.5 py-1 rounded-md text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "FILLE" ? "bg-pink-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
             >
               {t("girls")} ({countGirls})
             </button>
             <button 
               onClick={() => setSelectedTab("INTERNE")}
-              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "INTERNE" ? "bg-amber-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-2.5 py-1 rounded-md text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "INTERNE" ? "bg-amber-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
             >
               {t("interne")} ({countInternes})
             </button>
             <button 
               onClick={() => setSelectedTab("DEMI_PENSION")}
-              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "DEMI_PENSION" ? "bg-purple-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-2.5 py-1 rounded-md text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "DEMI_PENSION" ? "bg-purple-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
             >
               {t("demi_pension")} ({countDemiPension})
             </button>
             <button 
               onClick={() => setSelectedTab("EXTERNE")}
-              className={cn("px-3 py-1.5 rounded-xl text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "EXTERNE" ? "bg-teal-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
+              className={cn("px-2.5 py-1 rounded-md text-xs font-bold uppercase shrink-0 transition-all", selectedTab === "EXTERNE" ? "bg-teal-600 text-white shadow-xs" : "text-muted-foreground hover:bg-muted")}
             >
               {t("externe")} ({countExternes})
             </button>
@@ -291,6 +233,8 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
             <Button onClick={handleExportExcel} variant="outline" className="text-xs font-bold gap-1.5 h-9 px-3 shrink-0">
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" /> <span className="hidden sm:inline">{t("export_excel")}</span>
             </Button>
+
+            <ImportExcelModal type="students" onSuccess={() => window.location.reload()} />
 
             <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
               <DialogTrigger asChild>
@@ -414,117 +358,65 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
         </div>
       </div>
 
-      {/* Talibes / Eleves Table with Space-Specific Design */}
-      <Card className={cn(
-        "border shadow-sm overflow-hidden transition-colors duration-300",
-        isSchool ? "border-amber-500/30 bg-card" : "border-emerald-500/20 bg-card"
-      )}>
-        {/* VUE MOBILE (< 768px) : Cartes Tactiles Ultra-Rapides */}
-        <div className="md:hidden divide-y divide-border/60">
-          {filteredStudents.length === 0 ? (
-            <div className="text-center py-10 px-4 text-muted-foreground">
-              <Users className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              <p className="text-xs font-bold">
-                {isSchool 
-                  ? (isAr ? "لا يوجد تلميذ يطابق معايير البحث." : "Aucun élève ne correspond aux critères sélectionnés.")
-                  : (isAr ? "لا يوجد طالب يطابق معايير البحث." : "Aucun Talibé ne correspond aux critères sélectionnés.")}
-              </p>
+      {/* ========================================================================= */}
+      {/* FEUILLE DE CALCUL EXCEL PROFESSIONNELLE (BORDURES FINES, ALIGNEMENTS NETS) */}
+      {/* ========================================================================= */}
+      <div className="w-full overflow-hidden rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm print:border-none print:shadow-none">
+        
+        {/* BANDEAU SUPÉRIEUR FEUILLE EXCEL */}
+        <div className="bg-slate-100 dark:bg-slate-800/90 px-4 py-2.5 border-b border-slate-300 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5 font-bold text-slate-800 dark:text-slate-200">
+            <div className="w-5 h-5 rounded bg-[#107c41] text-white flex items-center justify-center font-black text-[10px] shrink-0">
+              X
             </div>
-          ) : (
-            filteredStudents.map((s) => (
-              <div 
-                key={s.id} 
-                className="p-3.5 space-y-2.5 transition-colors active:bg-muted/40"
-                style={{ contentVisibility: "auto", containIntrinsicSize: "1px 110px" }}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-black text-sm text-foreground truncate">
-                        {s.firstName} {s.lastName}
-                      </span>
-                      <span className="text-[11px] font-bold">
-                        {s.gender === "M" ? (
-                          <span className="text-blue-600">({isAr ? "ذكر" : "M"})</span>
-                        ) : (
-                          <span className="text-pink-600">({isAr ? "أنثى" : "F"})</span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={cn(
-                        "px-2 py-0.5 rounded font-mono text-[10px] font-bold border",
-                        isSchool 
-                          ? "bg-amber-100 dark:bg-amber-950/50 text-amber-950 dark:text-amber-200 border-amber-300 dark:border-amber-700" 
-                          : "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700"
-                      )}>
-                        {s.matricule || `EPP-2026-${String(s.id).slice(-4)}`}
-                      </span>
-                      <span className={cn(
-                        "px-2 py-0.5 rounded text-[10px] font-bold border truncate max-w-[140px]",
-                        isSchool ? "bg-amber-950/30 text-amber-300 border-amber-500/20" : "bg-emerald-950/30 text-emerald-300 border-emerald-500/20"
-                      )}>
-                        {s.class?.name || s.halqa?.name || (isSchool ? "Classe Primaire" : "Halqa Général")}
-                      </span>
-                    </div>
-                  </div>
+            <span className="font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
+              {isSchool ? "Feuille : Registre Général des Élèves • École Pathé Pogne" : "Feuille : Registre Matriculaire des Talibés • Daara Ibnoul Khayim"}
+            </span>
+            <span className="text-slate-400 font-normal">|</span>
+            <span className="text-slate-500 font-mono text-[11px]">Année Scolaire 2025/2026</span>
+          </div>
 
-                  <Badge variant="outline" className={cn(
-                    "text-[10px] shrink-0 font-bold",
-                    s.status === "INTERNE" ? "bg-amber-500/10 text-amber-600 border-amber-500/30" :
-                    s.status === "DEMI_PENSION" ? "bg-purple-500/10 text-purple-600 border-purple-500/30" :
-                    "bg-teal-500/10 text-teal-600 border-teal-500/30"
-                  )}>
-                    {s.status === "INTERNE" ? (isSchool ? "Pensionnaire" : t("interne")) : s.status === "DEMI_PENSION" ? t("demi_pension") : t("externe")}
-                  </Badge>
-                </div>
-
-                {/* Parent Contact & WhatsApp 1-Click */}
-                <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-2 text-xs">
-                  <div className="truncate text-muted-foreground text-[11px]">
-                    <span className="font-semibold text-foreground">{s.parentName || "Parent"}</span>
-                  </div>
-                  {s.parentPhone && (
-                    <a
-                      href={`https://wa.me/${s.parentPhone.replace(/[^0-9]/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600/10 hover:bg-emerald-600 text-emerald-600 hover:text-white font-mono text-[11px] font-bold border border-emerald-500/30 transition-all cursor-pointer shrink-0"
-                    >
-                      <Phone className="w-3 h-3 text-emerald-500" />
-                      <span>{s.parentPhone}</span>
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
+          <div className="flex items-center gap-2 font-mono text-[11px]">
+            <span className="px-2 py-0.5 rounded bg-[#107c41]/10 text-[#107c41] dark:text-emerald-400 border border-[#107c41]/30 font-bold">
+              {filteredStudents.length} Lignes affichées
+            </span>
+          </div>
         </div>
 
-        {/* VUE TABLETTE & DESKTOP (>= 768px) : Tableau Détaillé */}
-        <div className="hidden md:block overflow-x-auto touch-pan-x">
-          <table className="w-full min-w-[700px] text-left text-sm">
-            <thead className={cn(
-              "text-xs uppercase tracking-wider font-extrabold border-b",
-              isSchool 
-                ? "bg-amber-100 dark:bg-amber-950/60 text-amber-950 dark:text-amber-200 border-amber-300 dark:border-amber-800 border-t-4 border-t-amber-600" 
-                : "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-950 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800 border-t-4 border-t-emerald-600"
-            )}>
-              <tr>
-                <th className="px-6 py-3.5 font-bold">{isSchool ? "Matricule Écolier" : t("matricule")}</th>
-                <th className="px-6 py-3.5 font-bold">{isSchool ? "Nom & Prénom Élève" : t("fullname")}</th>
-                <th className="px-6 py-3.5 font-bold">{t("gender")}</th>
-                <th className="px-6 py-3.5 font-bold">{isSchool ? "Régime d'Écolage" : t("regime")}</th>
-                <th className="px-6 py-3.5 font-bold">{isSchool ? "Classe Bilingue (CI-CM2)" : t("halqa")}</th>
-                <th className="px-6 py-3.5 font-bold">{isSchool ? "Parent & Contact WhatsApp" : t("parent_contact")}</th>
+        {/* TABLEAU GRILLE EXCEL (DÉFILEMENT HORIZONTAL FLUIDE) */}
+        <div className="w-full overflow-x-auto touch-pan-x">
+          <table className="w-full min-w-[850px] border-collapse text-left text-xs text-slate-800 dark:text-slate-200">
+            <thead>
+              <tr className="bg-[#107c41] text-white font-bold text-xs uppercase tracking-wider select-none">
+                <th className="w-12 py-2.5 px-2 text-center border-r border-emerald-600/50 bg-[#0d6937] text-white/90 font-mono text-[11px]">
+                  N°
+                </th>
+                <th className="w-32 py-2.5 px-3 text-center border-r border-emerald-600/50">
+                  {isSchool ? "Matricule" : t("matricule")}
+                </th>
+                <th className="py-2.5 px-3 border-r border-emerald-600/50 min-w-[180px]">
+                  {isSchool ? "Nom & Prénom" : t("fullname")}
+                </th>
+                <th className="w-20 py-2.5 px-2 text-center border-r border-emerald-600/50">
+                  {t("gender")}
+                </th>
+                <th className="w-32 py-2.5 px-3 text-center border-r border-emerald-600/50">
+                  {isSchool ? "Régime d'Écolage" : t("regime")}
+                </th>
+                <th className="py-2.5 px-3 border-r border-emerald-600/50 min-w-[140px]">
+                  {isSchool ? "Classe" : t("halqa")}
+                </th>
+                <th className="py-2.5 px-3 min-w-[200px]">
+                  {isSchool ? "Parent & Contact" : t("parent_contact")}
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/60">
+            <tbody>
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-muted-foreground">
-                    <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p className="text-sm font-bold">
+                  <td colSpan={7} className="text-center py-12 text-slate-400 border-b border-slate-200 dark:border-slate-800 italic">
+                    <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                    <p className="text-xs">
                       {isSchool 
                         ? (isAr ? "لا يوجد تلميذ يطابق معايير البحث." : "Aucun élève ne correspond aux critères sélectionnés.")
                         : (isAr ? "لا يوجد طالب يطابق معايير البحث." : "Aucun Talibé ne correspond aux critères sélectionnés.")}
@@ -532,63 +424,104 @@ export function StudentsClient({ classes, students: initialStudents }: StudentsC
                   </td>
                 </tr>
               ) : (
-                filteredStudents.map((s) => (
-                  <tr key={s.id} className={cn("transition-colors", isSchool ? "hover:bg-amber-500/5" : "hover:bg-emerald-500/5")}>
-                    <td className="px-6 py-4">
-                      <span className={cn(
-                        "px-2.5 py-1 rounded-md font-mono text-xs font-bold border",
-                        isSchool 
-                          ? "bg-amber-100 dark:bg-amber-950/50 text-amber-950 dark:text-amber-200 border-amber-300 dark:border-amber-700" 
-                          : "bg-emerald-100 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700"
-                      )}>
+                filteredStudents.map((s, index) => {
+                  const isInternat = s.status === "INTERNE";
+                  const isDemi = s.status === "DEMI_PENSION";
+
+                  return (
+                    <tr 
+                      key={s.id} 
+                      className={cn(
+                        "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                        index % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-800/40" : "bg-white dark:bg-slate-900"
+                      )}
+                    >
+                      {/* N° Excel */}
+                      <td className="py-2 px-2 text-center font-mono text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-[#f1f3f5] dark:bg-slate-800/70 border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                        {index + 1}
+                      </td>
+
+                      {/* Matricule */}
+                      <td className="py-2 px-3 text-center border-r border-b border-slate-200 dark:border-slate-700/80 font-mono font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">
                         {s.matricule || `EPP-2026-${String(s.id).slice(-4)}`}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-bold text-foreground">
-                      {s.firstName} {s.lastName}
-                    </td>
-                    <td className="px-6 py-4 text-xs font-semibold">
-                      {s.gender === "M" ? (
-                        <span className="text-blue-600 font-bold">{isAr ? "ذكر" : "Garçon"}</span>
-                      ) : (
-                        <span className="text-pink-600 font-bold">{isAr ? "أنثى" : "Fille"}</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant="outline" className={
-                        s.status === "INTERNE" ? "bg-amber-500/10 text-amber-600 border-amber-500/30 font-bold" :
-                        s.status === "DEMI_PENSION" ? "bg-purple-500/10 text-purple-600 border-purple-500/30 font-bold" :
-                        "bg-teal-500/10 text-teal-600 border-teal-500/30 font-bold"
-                      }>
-                        {s.status === "INTERNE" ? (isSchool ? "Pensionnaire" : t("interne")) : s.status === "DEMI_PENSION" ? t("demi_pension") : t("externe")}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-xs font-bold text-muted-foreground">
-                      <span className={cn(
-                        "px-2 py-0.5 rounded-md text-[11px] font-bold border",
-                        isSchool ? "bg-amber-950/30 text-amber-300 border-amber-500/20" : "bg-emerald-950/30 text-emerald-300 border-emerald-500/20"
-                      )}>
-                        {s.class?.name || s.halqa?.name || (isSchool ? "Classe Primaire" : "Halqa Général")}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-xs">
-                      <p className="font-bold text-foreground">{s.parentName || "Non renseigné"}</p>
-                      {s.parentPhone && (
+                      </td>
+
+                      {/* Nom & Prénom */}
+                      <td className="py-2 px-3 font-extrabold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
+                        {s.lastName} {s.firstName}
+                      </td>
+
+                      {/* Genre */}
+                      <td className="py-2 px-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                        {s.gender === "M" ? (
+                          <span className="text-blue-700 dark:text-blue-400 font-bold font-mono text-[11px]">{isAr ? "ذكر" : "M"}</span>
+                        ) : (
+                          <span className="text-pink-700 dark:text-pink-400 font-bold font-mono text-[11px]">{isAr ? "أنثى" : "F"}</span>
+                        )}
+                      </td>
+
+                      {/* Régime (Cellule Pro) */}
+                      <td className="py-2 px-3 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
                         <span className={cn(
-                          "font-mono flex items-center gap-1 mt-0.5 font-semibold",
-                          isSchool ? "text-amber-500" : "text-emerald-600"
+                          "inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border",
+                          isInternat 
+                            ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800" 
+                            : isDemi 
+                              ? "bg-purple-50 text-purple-800 border-purple-300 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800" 
+                              : "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800"
                         )}>
-                          <Phone className="w-3 h-3" /> {s.parentPhone}
+                          <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", isInternat ? "bg-emerald-600" : isDemi ? "bg-purple-600" : "bg-amber-600")} />
+                          {isInternat ? (isSchool ? "Pensionnaire" : "Interne") : isDemi ? "Demi-Pen." : "Externe"}
                         </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                      </td>
+
+                      {/* Classe / Halqa */}
+                      <td className="py-2 px-3 border-r border-b border-slate-200 dark:border-slate-700/80 font-semibold text-slate-700 dark:text-slate-300">
+                        {s.class?.name || s.halqa?.name || (isSchool ? "Classe Primaire" : "Halqa Général")}
+                      </td>
+
+                      {/* Parent & Contact */}
+                      <td className="py-2 px-3 border-b border-slate-200 dark:border-slate-700/80">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">{s.parentName || "—"}</span>
+                          {s.parentPhone && (
+                            <a
+                              href={`https://wa.me/${s.parentPhone.replace(/[^0-9]/g, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 font-mono text-[11px] font-bold border border-emerald-300 dark:border-emerald-800 hover:bg-emerald-600 hover:text-white transition-all shrink-0"
+                            >
+                              <Phone className="w-3 h-3" />
+                              <span>{s.parentPhone}</span>
+                            </a>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
+
+            {/* PIED DU TABLEAU EXCEL (BARRE DE STATUT & TOTAUX) */}
+            <tfoot>
+              <tr className="bg-[#f1f3f5] dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border-t-2 border-slate-300 dark:border-slate-600 text-xs select-none">
+                <td colSpan={3} className="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700">
+                  <span className="text-slate-500 uppercase tracking-wider text-[10px] mr-2">TOTAL :</span>
+                  <span>{filteredStudents.length} Inscrits au registre</span>
+                </td>
+                <td colSpan={2} className="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
+                  <span className="mr-3">Garçons : {countBoys}</span>
+                  <span>Filles : {countGirls}</span>
+                </td>
+                <td colSpan={2} className="py-2.5 px-3 text-right font-mono text-[11px] text-slate-500">
+                  Internes : {countInternes} | Externes : {countExternes}
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

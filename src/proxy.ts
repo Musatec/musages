@@ -10,8 +10,8 @@ const intlMiddleware = createMiddleware(routing);
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
-  // 1. Ignorer les routes API et assets statiques pour renvoyer du JSON et non du HTML
-  if (pathname.startsWith('/api') || pathname.startsWith('/_next')) {
+  // 1. Ignorer les routes API, monitoring Sentry et assets statiques
+  if (pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.startsWith('/monitoring')) {
     return NextResponse.next();
   }
 
@@ -24,18 +24,27 @@ export default auth((req) => {
   const response = intlMiddleware(req);
 
   // 4. Gérer la protection des routes (Auth)
-  const isLoggedIn = !!req.auth;
-  const publicPathnames = ['/', '/login', '/auth/signup', '/auth/reset-password'];
-  
-  const isPublicPage = publicPathnames.some(path => 
-    pathname === path || 
-    pathname.startsWith('/fr' + path) || 
-    pathname.startsWith('/ar' + path) || 
-    pathname.startsWith('/en' + path)
+  const isLoggedIn = !!req.auth?.user;
+  const normalizedPathname = pathname.replace(/^\/(fr|ar|en)(?=\/|$)/, "") || "/";
+  const publicPathnames = [
+    '/',
+    '/login',
+    '/auth/signup',
+    '/auth/reset-password',
+    '/privacy',
+    '/terms',
+    '/daaras',
+    '/sos-disparus',
+  ];
+
+  const isPublicPage = publicPathnames.some(
+    (path) => normalizedPathname === path || (path !== '/' && normalizedPathname.startsWith(`${path}/`))
   );
 
   if (!isLoggedIn && !isPublicPage) {
-    return NextResponse.redirect(new URL('/fr/login', req.nextUrl.origin));
+    const localeMatch = pathname.match(/^\/(fr|ar)(?=\/|$)/);
+    const targetLocale = localeMatch ? localeMatch[1] : 'fr';
+    return NextResponse.redirect(new URL(`/${targetLocale}/login`, req.nextUrl.origin));
   }
 
   return response;

@@ -247,42 +247,42 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
           <div className="md:hidden flex items-center gap-1.5 text-[11px] font-bold text-amber-700 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-300 px-3 py-1.5 rounded-lg border border-amber-300/60 dark:border-amber-800">
             <span>👈 Glissez horizontalement avec votre doigt pour parcourir l'intégralité du registre de Hifz 👉</span>
           </div>
-          <div className="w-full overflow-x-auto touch-pan-x bg-white dark:bg-slate-900 border-2 border-slate-400 dark:border-slate-700 shadow-sm p-4 print:p-0 print:border-none print:shadow-none">
+          <div className="w-full overflow-x-auto touch-pan-x bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-sm overflow-hidden print:p-0 print:border-none print:shadow-none">
             
-            <table className="w-full min-w-[850px] border-collapse border-2 border-slate-400 dark:border-slate-700 text-right dir-rtl font-arabic">
+            <table className="w-full min-w-[850px] border-collapse text-right dir-rtl font-arabic text-xs">
               
               {/* EN-TÊTE SUPÉRIEUR EXACT DE LA FICHE WORD (REPRODUCTION DE LA PHOTO) */}
               <thead>
                 {/* LIGNE 1 : EN-TÊTE PRINCIPAL (N° FICHE | NOM DAARA | HALQA) */}
                 <tr>
-                  <th colSpan={3} className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5 border border-slate-400 dark:border-slate-700 text-center font-bold text-xs sm:text-sm">
+                  <th colSpan={3} className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5 border-r border-b border-slate-200 dark:border-slate-700/80 text-center font-bold text-xs sm:text-sm">
                     <div className="flex items-center justify-center gap-2 font-sans">
                       <span>رقم</span>
                       <input 
                         type="text" 
                         value={ficheNo} 
                         onChange={(e) => setFicheNo(e.target.value)}
-                        className="w-12 text-center bg-white dark:bg-slate-900 border border-slate-400 rounded font-black py-0.5 outline-none text-emerald-700"
+                        className="w-12 text-center bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded font-black py-0.5 outline-none text-emerald-700"
                       />
                     </div>
                   </th>
-                  <th colSpan={5} className="bg-emerald-50 dark:bg-slate-800 text-emerald-900 dark:text-emerald-300 p-3 border border-slate-400 dark:border-slate-700 text-center text-lg sm:text-2xl font-black tracking-wide">
+                  <th colSpan={5} className="bg-emerald-50 dark:bg-slate-800 text-emerald-900 dark:text-emerald-300 p-3 border-r border-b border-slate-200 dark:border-slate-700/80 text-center text-lg sm:text-2xl font-black tracking-wide">
                     {daaraName || "مدرسة ابن القيم الجوزية"}
                   </th>
-                  <th colSpan={3} className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5 border border-slate-400 dark:border-slate-700 text-center font-black text-xs sm:text-sm">
+                  <th colSpan={3} className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5 border-r border-b border-slate-200 dark:border-slate-700/80 text-center font-black text-xs sm:text-sm">
                     <span className="text-emerald-800 dark:text-emerald-300">{currentHalqa.name}</span>
                   </th>
                 </tr>
 
                 {/* LIGNE 2 : BARRE DES DATES HIJRI & GRÉGORIENNE */}
                 <tr>
-                  <th colSpan={11} className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 py-2 px-4 border border-slate-400 dark:border-slate-700 text-xs sm:text-sm font-bold text-center">
+                  <th colSpan={11} className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 py-2 px-4 border-r border-b border-slate-200 dark:border-slate-700/80 text-xs sm:text-sm font-bold text-center">
                     <div className="flex flex-wrap items-center justify-center gap-6 font-arabic dir-rtl">
                       <span>
-                        التاريخ : <input type="text" value={hijriDate} onChange={(e) => setHijriDate(e.target.value)} className="w-16 text-center bg-transparent border-b border-dashed border-slate-400 font-bold outline-none" /> هجري
+                        التاريخ : <input type="text" value={hijriDate} onChange={(e) => setHijriDate(e.target.value)} className="w-16 text-center bg-transparent border-b border-dashed border-slate-300 dark:border-slate-600 font-bold outline-none" /> هجري
                       </span>
                       <span>
-                        الموافق : <input type="text" value={gregorianDate} onChange={(e) => setGregorianDate(e.target.value)} className="w-28 text-center bg-transparent border-b border-dashed border-slate-400 font-bold outline-none font-sans" /> م
+                        الموافق : <input type="text" value={gregorianDate} onChange={(e) => setGregorianDate(e.target.value)} className="w-28 text-center bg-transparent border-b border-dashed border-slate-300 dark:border-slate-600 font-bold outline-none font-sans" /> م
                       </span>
                     </div>
                   </th>
@@ -290,41 +290,41 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
 
                 {/* LIGNE 3 & 4 : INTITULÉS DES COLONNES DU TABLEAU DE SUIVI DU HIFZ (STRUCTURE MULTI-LIGNES PHOTO) */}
                 <tr className="bg-emerald-100/90 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs sm:text-sm font-black">
-                  <th rowSpan={2} className="p-2 text-center border border-slate-400 dark:border-slate-700 bg-emerald-200 dark:bg-slate-700 w-12 sticky right-0 z-20 shadow-xs">
+                  <th rowSpan={2} className="p-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80 bg-emerald-200 dark:bg-slate-700 w-12 sticky right-0 z-20 shadow-xs">
                     الرقم
                   </th>
-                  <th rowSpan={2} className="p-2.5 border border-slate-400 dark:border-slate-700 text-right min-w-[150px] bg-emerald-200 dark:bg-slate-700 sticky right-12 z-20 shadow-xs">
+                  <th rowSpan={2} className="p-2.5 border-r border-b border-slate-200 dark:border-slate-700/80 text-right min-w-[150px] bg-emerald-200 dark:bg-slate-700 sticky right-12 z-20 shadow-xs">
                     الأسماء والألقاب
                   </th>
-                  <th colSpan={4} className="p-2 text-center border border-slate-400 dark:border-slate-700 bg-emerald-200/70 dark:bg-slate-700">
+                  <th colSpan={4} className="p-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80 bg-emerald-200/70 dark:bg-slate-700">
                     الدرس الجديد (Sabi)
                   </th>
-                  <th rowSpan={2} className="p-2 text-center border border-slate-400 dark:border-slate-700 w-16">
+                  <th rowSpan={2} className="p-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80 w-16">
                     الحفظ
                   </th>
-                  <th rowSpan={2} className="p-2 text-center border border-slate-400 dark:border-slate-700 min-w-[100px]">
+                  <th rowSpan={2} className="p-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80 min-w-[100px]">
                     جنب اللوح (Allwa)
                   </th>
-                  <th rowSpan={2} className="p-2 text-center border border-slate-400 dark:border-slate-700 w-16">
+                  <th rowSpan={2} className="p-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80 w-16">
                     الحفظ
                   </th>
-                  <th rowSpan={2} className="p-2 text-center border border-slate-400 dark:border-slate-700 min-w-[100px]">
+                  <th rowSpan={2} className="p-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80 min-w-[100px]">
                     المراجعات
                   </th>
-                  <th rowSpan={2} className="p-2 text-center border border-slate-400 dark:border-slate-700 w-24">
+                  <th rowSpan={2} className="p-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80 w-24">
                     عدد الأحزاب
                   </th>
-                  <th rowSpan={2} className="p-2 text-center border border-slate-400 dark:border-slate-700 w-16">
+                  <th rowSpan={2} className="p-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80 w-16">
                     الحفظ
                   </th>
                 </tr>
 
                 {/* SOUS-COLONNES DU DARS JADID (الدرس الجديد) */}
                 <tr className="bg-emerald-200/80 dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-xs font-bold text-center">
-                  <th className="p-1.5 border border-slate-400 dark:border-slate-700 min-w-[90px]">السورة</th>
-                  <th className="p-1.5 border border-slate-400 dark:border-slate-700 w-14">من آية</th>
-                  <th className="p-1.5 border border-slate-400 dark:border-slate-700 w-14">إلى آية</th>
-                  <th className="p-1.5 border border-slate-400 dark:border-slate-700 min-w-[90px]">مقدار الدرس</th>
+                  <th className="p-1.5 border-r border-b border-slate-200 dark:border-slate-700/80 min-w-[90px]">السورة</th>
+                  <th className="p-1.5 border-r border-b border-slate-200 dark:border-slate-700/80 w-14">من آية</th>
+                  <th className="p-1.5 border-r border-b border-slate-200 dark:border-slate-700/80 w-14">إلى آية</th>
+                  <th className="p-1.5 border-r border-b border-slate-200 dark:border-slate-700/80 min-w-[90px]">مقدار الدرس</th>
                 </tr>
               </thead>
 
@@ -334,12 +334,12 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                   <tr key={row.id} className="hover:bg-emerald-50/50 dark:hover:bg-slate-800/60 transition-colors">
                     
                     {/* الرقم (N°) */}
-                    <td className="p-2 text-center font-black bg-slate-100 dark:bg-slate-800 border border-slate-400 dark:border-slate-700 font-sans text-xs sticky right-0 z-10 shadow-xs">
+                    <td className="p-2 text-center font-black bg-slate-100 dark:bg-slate-800 border-r border-b border-slate-200 dark:border-slate-700/80 font-sans text-xs sticky right-0 z-10 shadow-xs">
                       {row.num}
                     </td>
 
                     {/* الأسماء والألقاب (Nom & Prénom) */}
-                    <td className="p-2 border border-slate-400 dark:border-slate-700 font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 sticky right-12 z-10 shadow-xs">
+                    <td className="p-2 border-r border-b border-slate-200 dark:border-slate-700/80 font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 sticky right-12 z-10 shadow-xs">
                       <div className="flex items-center justify-between gap-1">
                         <span>{row.nameAr}</span>
                         <span className="text-[10px] text-slate-400 font-sans font-normal print:hidden">
@@ -349,7 +349,7 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                     </td>
 
                     {/* الدرس الجديد : السورة */}
-                    <td className="p-1 border border-slate-400 dark:border-slate-700 text-center">
+                    <td className="p-1 border-r border-b border-slate-200 dark:border-slate-700/80 text-center">
                       <input 
                         type="text" 
                         value={row.surah} 
@@ -359,7 +359,7 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                     </td>
 
                     {/* الدرس الجديد : من آية */}
-                    <td className="p-1 border border-slate-400 dark:border-slate-700 text-center font-sans">
+                    <td className="p-1 border-r border-b border-slate-200 dark:border-slate-700/80 text-center font-sans">
                       <input 
                         type="number" 
                         value={row.fromAyah} 
@@ -369,7 +369,7 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                     </td>
 
                     {/* الدرس الجديد : إلى آية */}
-                    <td className="p-1 border border-slate-400 dark:border-slate-700 text-center font-sans">
+                    <td className="p-1 border-r border-b border-slate-200 dark:border-slate-700/80 text-center font-sans">
                       <input 
                         type="number" 
                         value={row.toAyah} 
@@ -379,7 +379,7 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                     </td>
 
                     {/* الدرس الجديد : مقدار الدرس */}
-                    <td className="p-1 border border-slate-400 dark:border-slate-700 text-center text-xs">
+                    <td className="p-1 border-r border-b border-slate-200 dark:border-slate-700/80 text-center text-xs">
                       <input 
                         type="text" 
                         value={row.qty} 
@@ -389,7 +389,7 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                     </td>
 
                     {/* الدرس الجديد : الحفظ (Évaluation Sabi) */}
-                    <td className="p-1 border border-slate-400 dark:border-slate-700 text-center font-bold">
+                    <td className="p-1 border-r border-b border-slate-200 dark:border-slate-700/80 text-center font-bold">
                       <select 
                         value={row.evalSabi} 
                         onChange={(e) => handleCellChange(row.id, "evalSabi", e.target.value)}
@@ -403,7 +403,7 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                     </td>
 
                     {/* جنب اللوح (Allwa) */}
-                    <td className="p-1 border border-slate-400 dark:border-slate-700 text-center text-xs">
+                    <td className="p-1 border-r border-b border-slate-200 dark:border-slate-700/80 text-center text-xs">
                       <input 
                         type="text" 
                         value={row.allwa} 
@@ -413,7 +413,7 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                     </td>
 
                     {/* جنب اللوح : الحفظ (Évaluation Allwa) */}
-                    <td className="p-1 border border-slate-400 dark:border-slate-700 text-center font-bold">
+                    <td className="p-1 border-r border-b border-slate-200 dark:border-slate-700/80 text-center font-bold">
                       <select 
                         value={row.evalAllwa} 
                         onChange={(e) => handleCellChange(row.id, "evalAllwa", e.target.value)}
@@ -427,7 +427,7 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                     </td>
 
                     {/* المراجعات (Murajaa) */}
-                    <td className="p-1 border border-slate-400 dark:border-slate-700 text-center text-xs">
+                    <td className="p-1 border-r border-b border-slate-200 dark:border-slate-700/80 text-center text-xs">
                       <input 
                         type="text" 
                         value={row.murajaa} 
@@ -437,7 +437,7 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                     </td>
 
                     {/* عدد الأحزاب (Total Hizb) */}
-                    <td className="p-1 border border-slate-400 dark:border-slate-700 text-center font-black font-sans bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-300">
+                    <td className="p-1 border-r border-b border-slate-200 dark:border-slate-700/80 text-center font-black font-sans bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-300">
                       <input 
                         type="number" 
                         value={row.totalHizb} 
@@ -447,7 +447,7 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
                     </td>
 
                     {/* المراجعة : الحفظ (Évaluation Murajaa) */}
-                    <td className="p-1 border border-slate-400 dark:border-slate-700 text-center font-bold">
+                    <td className="p-1 border-r border-b border-slate-200 dark:border-slate-700/80 text-center font-bold">
                       <select 
                         value={row.evalMurajaa} 
                         onChange={(e) => handleCellChange(row.id, "evalMurajaa", e.target.value)}
@@ -467,10 +467,10 @@ export function HifzTracker({ daaraName, halqas: initialHalqas, initialTalibes }
               {/* PIED DE LA FICHE WORD DE SUIVI */}
               <tfoot>
                 <tr className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-sans text-xs">
-                  <td colSpan={6} className="p-3 border border-slate-400 dark:border-slate-700 font-bold text-left dir-ltr">
+                  <td colSpan={6} className="p-3 border-r border-b border-slate-200 dark:border-slate-700/80 font-bold text-left dir-ltr">
                     Effectif enregistré : {tableRows.length} Apprenants • {currentHalqa.name}
                   </td>
-                  <td colSpan={5} className="p-3 border border-slate-400 dark:border-slate-700 font-arabic font-bold text-right">
+                  <td colSpan={5} className="p-3 border-r border-b border-slate-200 dark:border-slate-700/80 font-arabic font-bold text-right">
                     توقيع الأستاذ المشرف : .................................. • Daara Ibnoul Khayim Al Diawziya
                   </td>
                 </tr>

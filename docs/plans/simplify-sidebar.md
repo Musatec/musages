@@ -21,7 +21,6 @@ Split the `NAV_ITEMS` into logical sections to improve scanability:
 
 ### 4. Optimize Footer
 - Move the Language Switcher or compact it.
-- Make the "Go Pro" (Pricing) link less of a "block" if possible, or integrate it better.
 - Compact Settings and Logout into a single row or smaller buttons.
 
 ## Verification

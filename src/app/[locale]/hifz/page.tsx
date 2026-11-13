@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { HifzTracker, TalibeHifzItem } from "@/components/modules/hifz/hifz-tracker";
+import { DAARA_STAFF_ROLES, hasAnyRole } from "@/lib/action-context";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +17,10 @@ export default async function HifzPage({
   if (!session?.user?.id) {
     redirect(`/${locale}/login`);
   }
+  if (!hasAnyRole(session.user.role, DAARA_STAFF_ROLES)) redirect(`/${locale}/home`);
 
-  const daaraId = session.user.daaraId || session.user.id || "daara_demo_123";
+  const daaraId = session.user.daaraId;
+  if (!daaraId) redirect(`/${locale}/setup`);
 
   // Fetch Daara info
   const daara = await prisma.daara.findUnique({

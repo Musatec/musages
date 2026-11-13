@@ -1,12 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import Database from "better-sqlite3";
 import path from "path";
 import "dotenv/config";
 
-const dbPath = path.join(process.cwd(), "prisma", "dev.db");
-const db = new Database(dbPath);
-const adapter = new (PrismaBetterSqlite3 as any)({ db, url: `file:${dbPath}` });
+// Set SQLITE_DB_PATH to a persistent volume when deploying the SQLite app.
+const dbPath = path.resolve(
+  process.env.SQLITE_DB_PATH || path.join(/*turbopackIgnore: true*/ process.cwd(), "prisma", "dev.db"),
+);
+const adapter = new PrismaBetterSqlite3({ url: dbPath });
 
 const globalForPrisma = global as unknown as { 
   prisma: PrismaClient | undefined

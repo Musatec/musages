@@ -4,10 +4,19 @@ La protection et la pérennité des données pédagogiques, financières et admi
 
 ---
 
-## 1. Sauvegardes Automatisées (Supabase Postgres Cloud)
-Le Daara Ibnoul Khayim Al Diawziya s'appuie sur l'infrastructure managée Supabase PostgreSQL :
-- **Sauvegardes quotidiennes (Daily Backups) :** Snapshots automatiques réguliers des données du cluster.
-- **Point-in-Time Recovery (PITR) :** Restauration granulaire à la seconde près (recommandé avec le plan Supabase Pro pour prévenir toute erreur de suppression accidentelle).
+## 1. Architecture des Données & Sauvegardes
+
+### A. Déploiement Monolithique / Local (SQLite Persistant)
+L'application utilise nativement l'adaptateur haute performance `@prisma/adapter-better-sqlite3` :
+- **Fichier de base de données :** `prisma/dev.db` (par défaut) ou chemin défini par la variable d'environnement `SQLITE_DB_PATH`.
+- **Persistance en production :** Sur VPS ou conteneur Docker, monter un volume persistant sur le répertoire contenant le fichier SQLite (ex: `/var/data/daradji.db`).
+- **Sauvegarde à chaud :** Copie atomique ou snapshot régulier du fichier `.db` vers un stockage distant chiffré.
+
+### B. Déploiement Cloud Multi-Instances (Supabase Postgres)
+Pour un hébergement distribué sans disque persistant (ex: Vercel / AWS ECS) :
+- Le schéma Prisma et les migrations `supabase/migrations` sont prêts pour PostgreSQL.
+- **Sauvegardes quotidiennes (Daily Backups) :** Snapshots automatiques réguliers du cluster PostgreSQL.
+- **Point-in-Time Recovery (PITR) :** Restauration granulaire à la seconde près.
 
 ---
 

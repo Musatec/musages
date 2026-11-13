@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import fs from "fs";
-import path from "path";
+import { cn } from "@/lib/utils";
 
-// Hack pour forcer la suppression de l'ancien favicon s'il existe toujours (contourne les ACL Windows locaux)
-try {
-  fs.unlinkSync(path.join(process.cwd(), 'public', 'favicon.ico'));
-} catch (e) {}
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-plus-jakarta",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700", "800"],
+});
 
 import AppLayout from "@/components/layout/app-layout";
-import AuthProvider from "@/components/providers/auth-provider";
-import { SystemGuardian } from "@/components/providers/system-guardian";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "sonner";
 import { NextIntlClientProvider } from 'next-intl';
@@ -21,16 +21,18 @@ import { PwaRegistrar } from "@/components/providers/pwa-registrar";
 import { CSPostHogProvider } from "@/components/providers/posthog-provider";
 import PostHogPageView from "@/components/providers/posthog-pageview";
 import { CrispProvider } from "@/components/providers/crisp-provider";
-import { SpaceProvider } from "@/components/providers/space-provider";
+import { SpaceProvider, ActiveSpace } from "@/components/providers/space-provider";
 import { OfflineBanner } from "@/components/ui/offline-banner";
 import { Suspense } from "react";
+import { cookies } from "next/headers";
 
 export const viewport: Viewport = {
   themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -58,10 +60,13 @@ export default async function RootLayout({
   const locale = await getLocale();
   const dir = locale === "ar" ? "rtl" : "ltr";
   const messages = await getMessages();
+  const cookieStore = await cookies();
+  const spaceCookie = cookieStore.get("musages_active_space")?.value;
+  const initialSpace: ActiveSpace = spaceCookie === "school" ? "school" : "daara";
 
   return (
-    <html lang={locale} dir={dir} suppressHydrationWarning>
-      <body className="bg-background text-foreground antialiased selection:bg-emerald-500/30 selection:text-emerald-500 font-sans">
+    <html lang={locale} dir={dir} className={plusJakartaSans.variable} suppressHydrationWarning>
+      <body className={cn(plusJakartaSans.className, "bg-background text-foreground antialiased selection:bg-emerald-500/30 selection:text-emerald-500 font-sans")}>
         <SessionProvider>
           <ThemeProvider
             attribute="class"
@@ -74,22 +79,18 @@ export default async function RootLayout({
                 <PostHogPageView />
               </Suspense>
               <NextIntlClientProvider messages={messages}>
-              <AuthProvider>
-                <SystemGuardian>
-                  <SpaceProvider>
-                    <SidebarProvider>
-                      <PwaRegistrar />
-                      <CrispProvider />
-                      <OfflineBanner />
-                      <AppLayout>
-                        {children}
-                      </AppLayout>
-                    </SidebarProvider>
-                  </SpaceProvider>
-                </SystemGuardian>
+                <SpaceProvider initialSpace={initialSpace}>
+                  <SidebarProvider>
+                    <PwaRegistrar />
+                    <CrispProvider />
+                    <OfflineBanner />
+                    <AppLayout>
+                      {children}
+                    </AppLayout>
+                  </SidebarProvider>
+                </SpaceProvider>
                 <Toaster richColors position="bottom-right" />
-              </AuthProvider>
-            </NextIntlClientProvider>
+              </NextIntlClientProvider>
             </CSPostHogProvider>
           </ThemeProvider>
         </SessionProvider>

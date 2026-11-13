@@ -30,7 +30,6 @@ async function main() {
         password: hashedPassword,
         name: "El Hadji Mouhamadou Fall",
         role: "SERIGNE_DAARA",
-        plan: "STARTER",
         daaraId: daara.id,
       }
     });
@@ -57,7 +56,6 @@ async function main() {
         password: hashedPassword,
         name: "Oustaz Cheikh Diallo",
         role: "SERIGNE_DAARA",
-        plan: "STARTER",
         daaraId: daara.id,
       }
     });

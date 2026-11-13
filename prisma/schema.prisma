@@ -62,13 +62,6 @@ enum AttendanceStatus {
   EXCUSED
 }
 
-enum SubscriptionStatus {
-  TRIALING
-  ACTIVE
-  EXPIRED
-  CANCELED
-}
-
 enum DonationType {
   FINANCIER   // Don d'argent (Wave, OM, Cash)
   DON_NATURE  // Sacs de riz, huile, vêtements, nattes, savon
@@ -122,10 +115,7 @@ model User {
   image              String?
   password           String?
   role               Role               @default(SERIGNE_DAARA)
-  plan               DaaraPlan          @default(STARTER)
-  subscriptionStatus SubscriptionStatus @default(TRIALING)
-  trialEndsAt        DateTime?
-  subscriptionEndsAt DateTime?
+  space              String             @default("daara") // "daara" | "school"
   hasSeenOnboarding  Boolean            @default(false)
   daaraId            String?
   daara              Daara?             @relation(fields: [daaraId], references: [id])
@@ -135,27 +125,12 @@ model User {
 
   accounts           Account[]
   sessions           Session[]
-  payments           Payment[]
   ownedDaaras        Daara[]            @relation("DaaraOwner")
   sponsorships       Sponsorship[]      @relation("NdeyiDaaraSponsorships")
   givenDonations     Donation[]         @relation("UserDonations")
   hifzTaught         HifzProgress[]     @relation("OustazHifz")
   auditLogs          AuditLog[]
   notifications      Notification[]     @relation("UserNotifications")
-}
-
-// Model de paiement d'abonnement SaaS (PayTech / PayDunya / Wave)
-model Payment {
-  id          String     @id @default(cuid())
-  userId      String
-  user        User       @relation(fields: [userId], references: [id])
-  amount      Float
-  plan        DaaraPlan
-  status      String     // SUCCESS, PENDING, FAILED
-  provider    String     // PayTech, Wave, Orange Money
-  providerRef String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
 }
 
 // NextAuth Models (Auth.js v5)
@@ -199,6 +174,7 @@ model Halqa {
   id          String   @id @default(cuid())
   daaraId     String
   daara       Daara    @relation(fields: [daaraId], references: [id])
+  space       String   @default("daara") // "daara" | "school"
   name        String   // Ex: "Halqa Juz Amma", "Halqa Al-Baqara", "Halqa Warsh"
   level       String?  // Ex: "DÉBUTANT (Mouqadima)", "MÉMORISATION (Hifz)", "PERFECTIONNEMENT (Tajwid)"
   oustazName  String?  // Nom du maître coranique référent
@@ -207,7 +183,7 @@ model Halqa {
 
   talibes Talibe[]
 
-  @@index([daaraId])
+  @@index([daaraId, space])
 }
 
 // --- TALIBÉS (APPRENANTS CORANIQUES) ---
@@ -215,6 +191,7 @@ model Talibe {
   id          String       @id @default(cuid())
   daaraId     String
   daara       Daara        @relation(fields: [daaraId], references: [id])
+  space       String       @default("daara") // "daara" | "school"
   halqaId     String?
   halqa       Halqa?       @relation(fields: [halqaId], references: [id])
   matricule   String       // Numéro matricule unique (Ex: DAA-2026-0042)
@@ -243,7 +220,7 @@ model Talibe {
   attendances  Attendance[]
 
   @@unique([daaraId, matricule])
-  @@index([daaraId, halqaId])
+  @@index([daaraId, space, halqaId])
 }
 
 // --- SUIVI DE MÉMORISATION DU SAINT CORAN (HIFZ, MURAJAA & ALLWA) ---
@@ -312,7 +289,7 @@ model Donation {
   type          DonationType @default(FINANCIER)
   amount        Float?       // Montant si financier (FCFA, EUR, USD)
   natureDetails String?      // Ex: "10 sacs de riz de 50kg, 2 bidons d'huile 20L"
-  paymentMethod String?      // Wave, Orange Money, Cash, Virement
+  paymentMethod String?      // Mode de r?ception saisi manuellement par le bureau
   receiptNumber String?      // Numéro de reçu généré (REC-SADAQA-001)
   notes         String?      // Zakat Al-Mal, Tabaski, Korité, Magal
   date          DateTime     @default(now())
@@ -347,6 +324,7 @@ model Attendance {
   id             String            @id @default(cuid())
   daaraId        String
   daara          Daara             @relation(fields: [daaraId], references: [id])
+  space          String            @default("daara") // "daara" | "school"
   talibeId       String
   talibe         Talibe            @relation(fields: [talibeId], references: [id])
   date           DateTime          @default(now())
@@ -356,7 +334,7 @@ model Attendance {
   parentNotified Boolean           @default(false)
   createdAt      DateTime          @default(now())
 
-  @@index([daaraId, date])
+  @@index([daaraId, space, date])
 }
 
 // --- COMPTABILITÉ & TRÉSORERIE DAARA ---
@@ -364,6 +342,7 @@ model Transaction {
   id          String          @id @default(cuid())
   daaraId     String
   daara       Daara           @relation(fields: [daaraId], references: [id])
+  space       String          @default("daara") // "daara" | "school"
   amount      Float
   type        TransactionType
   category    String          // Ex: "SADAQA", "PARRAINAGE", "NOURRITURE", "SANTE", "REPARATION"
@@ -371,7 +350,7 @@ model Transaction {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  @@index([daaraId, createdAt])
+  @@index([daaraId, space, createdAt])
 }
 
 // --- AUDIT LOGS & NOTIFICATIONS ---

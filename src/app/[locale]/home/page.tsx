@@ -36,8 +36,8 @@ const ITEM_META: Record<string, { tagFr: string; tagAr: string; gradient: string
         bgSoft: "bg-emerald-500/10"
     },
     "/tuition": {
-        tagFr: "Recouvrement Wave, OM & Reçus PDF",
-        tagAr: "تحصيل واف، أورانج موني والإيصالات",
+        tagFr: "Saisie manuelle des règlements & reçus PDF",
+        tagAr: "تسجيل الرسوم المدرسية والإيصالات",
         gradient: "from-emerald-500/10 to-green-500/5",
         iconColor: "text-emerald-600 dark:text-emerald-400",
         bgSoft: "bg-emerald-500/10"
@@ -99,8 +99,8 @@ const ITEM_META: Record<string, { tagFr: string; tagAr: string; gradient: string
         bgSoft: "bg-emerald-500/10"
     },
     "/admin/stores": {
-        tagFr: "Écoles partenaires & abonnements",
-        tagAr: "المدارس الشريكة والاشتراكات",
+        tagFr: "Écoles partenaires & gestion des accès",
+        tagAr: "المدارس الشريكة وإدارة الصلاحيات",
         gradient: "from-blue-500/10 to-indigo-500/5",
         iconColor: "text-blue-600 dark:text-blue-400",
         bgSoft: "bg-blue-500/10"
@@ -179,22 +179,21 @@ export default async function HomePage() {
             )}
             dir={isAr ? "rtl" : "ltr"}
         >
-            {/* 1. HERO HEADER: Welcome Banner with High-End Glassmorphism */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-6 sm:p-10 shadow-[0_20px_50px_rgba(16,185,129,0.2)]">
+            {/* 1. HERO HEADER: Compact Pro Welcome Banner */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-4 sm:p-6 shadow-md">
                 {/* Visual ambient glow behind banner */}
-                <div className="absolute top-0 right-0 -mt-8 -mr-8 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute bottom-0 left-1/3 -mb-12 w-64 h-64 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none" />
+                <div className="absolute top-0 right-0 -mt-8 -mr-8 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     {/* Left: Greeting & Title */}
-                    <div className="space-y-3">
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-white text-xs font-bold tracking-wide">
-                            <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-                            <span>{isAr ? "مدرسة ابن القيم الجوزية & المدرسة العربية الفرنسية PATHÉ POGNE" : "Daara Ibnoul Khayim Al Diawziya — École Franco-Arabe Pathé Pogne"}</span>
+                    <div className="space-y-1.5">
+                        <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold tracking-wide">
+                            <Sparkles className="w-3 h-3 text-emerald-200" />
+                            <span>{isAr ? "مدرسة ابن القيم الجوزية & مدرسة PATHÉ POGNE" : "Daara Ibnoul Khayim • École Pathé Pogne"}</span>
                         </div>
 
-                        <div className="space-y-1">
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+                        <div>
+                            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight leading-tight">
                                 {isAr ? (
                                     <>
                                         أهلاً بك، <span className="underline decoration-emerald-300 decoration-wavy decoration-2 underline-offset-4">{userName}</span>
@@ -205,29 +204,24 @@ export default async function HomePage() {
                                     </>
                                 )}
                             </h1>
-                            <p className="text-emerald-100 text-sm sm:text-base font-medium max-w-xl italic font-serif">
+                            <p className="text-emerald-100 text-xs sm:text-sm font-medium italic mt-0.5">
                                 {isAr 
-                                    ? "مرحباً بكم في لوحة القيادة المركزية. « Pathé Pogne، تعليم يجمع بين المعرفة والقيم والنجاح. »" 
-                                    : "« Pathé Pogne, c’est une éducation qui réunit savoir, valeurs et réussite. »"}
+                                    ? "لوحة القيادة المركزية • « Pathé Pogne، تعليم يجمع بين المعرفة والقيم والنجاح »" 
+                                    : "« Pathé Pogne, une éducation qui réunit savoir, valeurs et réussite »"}
                             </p>
                         </div>
                     </div>
 
                     {/* Right: Info Badge */}
-                    <div className={cn("flex flex-col sm:flex-row md:flex-col justify-center gap-2 shrink-0", isAr ? "items-start md:items-start" : "items-start md:items-end")}>
-                        <div className={cn("bg-black/20 backdrop-blur-md border border-white/15 rounded-2xl px-5 py-3", isAr ? "text-right" : "text-right")}>
-                            <div className="flex items-center gap-2 text-xs font-black text-emerald-200 uppercase tracking-wider">
-                                <BadgeCheck className="w-4 h-4 text-emerald-300" />
-                                <span>{isAr ? "العام الدراسي ٢٠٢٥ - ٢٠٢٦" : "Année Scolaire 2025 - 2026"}</span>
+                    <div className={cn("flex items-center gap-2 shrink-0", isAr ? "justify-start" : "justify-start md:justify-end")}>
+                        <div className="bg-black/20 backdrop-blur-md border border-white/15 rounded-xl px-3.5 py-2">
+                            <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-200 uppercase tracking-wider">
+                                <BadgeCheck className="w-3.5 h-3.5 text-emerald-300" />
+                                <span>{isAr ? "٢٠٢٥ - ٢٠٢٦" : "Année 2025 - 2026"}</span>
                             </div>
-                            <div className="text-sm font-bold text-white/90 mt-0.5">
-                                {isAr ? "النظام السحابي النشط" : "Session Active & Certifiée"}
+                            <div className="text-xs font-bold text-white/90 mt-0.5">
+                                {isAr ? "النظام متصل" : "Session Active & En Ligne"}
                             </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-xs text-emerald-100 font-semibold px-3">
-                            <span className="w-2 h-2 rounded-full bg-emerald-300 animate-ping" />
-                            <span>{isAr ? "النظام متصل ويعمل بشكل ممتاز" : "Serveur Synchronisé & En Ligne"}</span>
                         </div>
                     </div>
                 </div>
@@ -250,13 +244,13 @@ export default async function HomePage() {
                         <section 
                             key={section.title} 
                             className={cn(
-                                "p-6 sm:p-8 rounded-[2.5rem] border transition-all duration-300 shadow-sm",
+                                "p-4 sm:p-5 rounded-2xl border transition-all duration-300 shadow-xs",
                                 style.bg,
                                 style.border
                             )}
                         >
                             {/* Section Header */}
-                            <div className="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200/60 dark:border-slate-800/60">
+                            <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200/60 dark:border-slate-800/60">
                                 <div className="flex items-center gap-3">
                                     <span className={cn("w-3 h-3 rounded-full shadow-sm", style.dot)} />
                                     <h2 className={cn("text-base sm:text-lg font-black uppercase tracking-wider", style.title)}>

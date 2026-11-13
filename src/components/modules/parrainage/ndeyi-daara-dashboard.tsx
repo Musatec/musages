@@ -1,81 +1,101 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { 
   HeartHandshake, 
   UserCheck, 
-  Sparkles, 
   Search, 
   Plus, 
   Phone, 
   DollarSign, 
-  ShieldCheck,
-  Calendar,
-  CheckCircle,
-  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { createSponsorship, getSponsorshipTalibes, getSponsorships } from "@/lib/actions/sponsorships";
 
 interface Sponsorship {
   id: string;
   sponsorName: string;
   sponsorPhone: string;
-  talibeName: string;
+  talibe: { id: string; firstName: string; lastName: string; matricule: string };
   monthlyAmount: number; // in FCFA
-  status: "ACTIVE" | "PAUSED";
-  lastPaymentDate: string;
-  type: "NDEYI_DAARA" | "PARRAIN";
+  status: string;
+  startDate: string;
+  notes?: string | null;
 }
-
-const MOCK_SPONSORSHIPS: Sponsorship[] = [
-  { id: "1", sponsorName: "Sokhna Mariama Niang (Ndeyi Daara)", sponsorPhone: "+221 77 654 32 10", talibeName: "Moustapha Ndiaye", monthlyAmount: 15000, status: "ACTIVE", lastPaymentDate: "15/08/2026", type: "NDEYI_DAARA" },
-  { id: "2", sponsorName: "El-Hadj Serigne Mbaye", sponsorPhone: "+221 78 123 45 67", talibeName: "Ibrahima Diallo", monthlyAmount: 25000, status: "ACTIVE", lastPaymentDate: "01/08/2026", type: "PARRAIN" },
-  { id: "3", sponsorName: "Association Ndeyi Daara Touba", sponsorPhone: "+221 33 890 00 11", talibeName: "Amath Fall", monthlyAmount: 20000, status: "ACTIVE", lastPaymentDate: "10/08/2026", type: "NDEYI_DAARA" },
-];
 
 export function NdeyiDaaraDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sponsorships, setSponsorships] = useState<Sponsorship[]>(MOCK_SPONSORSHIPS);
+  const [sponsorships, setSponsorships] = useState<Sponsorship[]>([]);
+  const [talibes, setTalibes] = useState<{ id: string; firstName: string; lastName: string; matricule: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [activeCount, setActiveCount] = useState(0);
+  const [totalMonthlyCommitment, setTotalMonthlyCommitment] = useState(0);
+  const [activeSponsorCount, setActiveSponsorCount] = useState(0);
 
   // States pour nouveau parrainage
   const [newSponsorName, setNewSponsorName] = useState("");
   const [newSponsorPhone, setNewSponsorPhone] = useState("");
-  const [newTalibeName, setNewTalibeName] = useState("");
-  const [newAmount, setNewAmount] = useState("15000");
+  const [newTalibeId, setNewTalibeId] = useState("");
+  const [newAmount, setNewAmount] = useState("");
+
+  const loadData = useCallback(async () => {
+    try {
+      const [sponsorResult, talibeResult] = await Promise.all([getSponsorships(), getSponsorshipTalibes()]);
+      if (!sponsorResult.success) toast.error(sponsorResult.error);
+      else {
+        setSponsorships(sponsorResult.sponsorships.map((item) => ({ ...item, startDate: item.startDate.toISOString() })));
+        setActiveCount(sponsorResult.activeCount);
+        setTotalMonthlyCommitment(sponsorResult.totalMonthlyCommitment);
+        setActiveSponsorCount(sponsorResult.activeSponsorCount);
+      }
+      if (!talibeResult.success) toast.error(talibeResult.error);
+      else setTalibes(talibeResult.talibes);
+    } catch {
+      toast.error("Impossible de charger les données de parrainage.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { void loadData(); }, [loadData]);
 
   const filtered = sponsorships.filter(s => 
     s.sponsorName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.talibeName.toLowerCase().includes(searchTerm.toLowerCase())
+    `${s.talibe.firstName} ${s.talibe.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalMonthlyTakaful = sponsorships.reduce((acc, curr) => acc + curr.monthlyAmount, 0);
-
-  const handleAddSponsorship = () => {
-    if (!newSponsorName || !newTalibeName) {
-      toast.error("Veuillez remplir les champs requis !");
+  const handleAddSponsorship = async () => {
+    if (!newSponsorName.trim() || !newSponsorPhone.trim() || !newTalibeId || !Number.isFinite(Number(newAmount)) || Number(newAmount) <= 0) {
+      toast.error("Renseignez le parrain, le Talibé et un montant mensuel valide.");
       return;
     }
-
-    const created: Sponsorship = {
-      id: Date.now().toString(),
-      sponsorName: newSponsorName,
-      sponsorPhone: newSponsorPhone || "+221 77 000 00 00",
-      talibeName: newTalibeName,
-      monthlyAmount: Number(newAmount) || 15000,
-      status: "ACTIVE",
-      lastPaymentDate: "Aujourd'hui",
-      type: newSponsorName.toLowerCase().includes("sokhna") ? "NDEYI_DAARA" : "PARRAIN"
-    };
-
-    setSponsorships([created, ...sponsorships]);
-    toast.success(`Parrainage enregistré avec succès pour ${newTalibeName} !`);
-    setNewSponsorName("");
-    setNewTalibeName("");
+    setSaving(true);
+    try {
+      const result = await createSponsorship({
+        sponsorName: newSponsorName,
+        sponsorPhone: newSponsorPhone,
+        talibeId: newTalibeId,
+        monthlyAmount: Number(newAmount),
+      });
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Engagement de parrainage enregistré.");
+      setNewSponsorName("");
+      setNewSponsorPhone("");
+      setNewTalibeId("");
+      setNewAmount("");
+      await loadData();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -100,9 +120,9 @@ export function NdeyiDaaraDashboard() {
         <Card className="border-border/50 shadow-sm bg-gradient-to-br from-emerald-500/5 to-transparent">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Collecte Mensuelle</p>
-              <h3 className="text-2xl font-black text-emerald-400 mt-1">{totalMonthlyTakaful.toLocaleString()} FCFA</h3>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Versés directement aux repas & soins</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Engagement mensuel actif</p>
+              <h3 className="text-2xl font-black text-emerald-400 mt-1">{totalMonthlyCommitment.toLocaleString()} FCFA</h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Montant engagé, non reçu ni encaissé</p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
               <DollarSign className="w-6 h-6" />
@@ -113,9 +133,9 @@ export function NdeyiDaaraDashboard() {
         <Card className="border-border/50 shadow-sm">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Talibés Parrainés</p>
-              <h3 className="text-2xl font-black text-foreground mt-1">{sponsorships.length} Talibés</h3>
-              <p className="text-[11px] text-emerald-400 font-bold mt-0.5">100% Prise en charge</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Parrainages actifs</p>
+              <h3 className="text-2xl font-black text-foreground mt-1">{activeCount} Parrainages</h3>
+              <p className="text-[11px] text-emerald-400 font-bold mt-0.5">Engagements actifs enregistrés</p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center">
               <UserCheck className="w-6 h-6" />
@@ -126,9 +146,9 @@ export function NdeyiDaaraDashboard() {
         <Card className="border-border/50 shadow-sm">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Ndeyi Daara Actives</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Parrains actifs</p>
               <h3 className="text-2xl font-black text-amber-400 mt-1">
-                {sponsorships.filter(s => s.type === "NDEYI_DAARA").length} Marraines
+                {activeSponsorCount} Parrains
               </h3>
               <p className="text-[11px] text-muted-foreground mt-0.5">Réseau de solidarité locale</p>
             </div>
@@ -185,13 +205,20 @@ export function NdeyiDaaraDashboard() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-muted-foreground uppercase">Nom du Talibé Parrainé</label>
-                <Input 
-                  placeholder="Ex: Modou Diop" 
-                  value={newTalibeName}
-                  onChange={(e: any) => setNewTalibeName(e.target.value)}
-                  className="mt-1 text-xs"
-                />
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Talibé concerné</label>
+                <select
+                  value={newTalibeId}
+                  onChange={(e) => setNewTalibeId(e.target.value)}
+                  className="w-full mt-1 p-2 bg-background border rounded-lg text-sm"
+                  required
+                >
+                  <option value="">Choisir un Talibé</option>
+                  {talibes.map((talibe) => (
+                    <option key={talibe.id} value={talibe.id}>
+                      {talibe.firstName} {talibe.lastName} — {talibe.matricule}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -204,8 +231,8 @@ export function NdeyiDaaraDashboard() {
                 />
               </div>
 
-              <Button onClick={handleAddSponsorship} className="w-full bg-emerald-500 text-black font-bold">
-                Valider la Prise en Charge
+              <Button onClick={handleAddSponsorship} disabled={saving || !talibes.length} className="w-full bg-emerald-500 text-black font-bold">
+                {saving ? "Enregistrement…" : "Enregistrer l'engagement"}
               </Button>
             </div>
           </DialogContent>
@@ -218,6 +245,7 @@ export function NdeyiDaaraDashboard() {
           <CardTitle className="text-base font-bold">Liste des Engagement Takaful</CardTitle>
         </CardHeader>
         <CardContent className="p-0 divide-y">
+          {!loading && filtered.length === 0 && <p className="p-6 text-sm text-muted-foreground">Aucun parrainage enregistré.</p>}
           {filtered.map((item) => (
             <div key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-accent/20 transition-all">
               <div className="flex items-center gap-3">
@@ -228,11 +256,11 @@ export function NdeyiDaaraDashboard() {
                   <h4 className="text-sm font-bold flex items-center gap-2">
                     {item.sponsorName}
                     <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/30">
-                      {item.type === "NDEYI_DAARA" ? "Ndeyi Daara" : "Parrain"}
+                      {item.status === "ACTIVE" ? "Actif" : item.status === "PAUSED" ? "En pause" : "Terminé"}
                     </Badge>
                   </h4>
                   <p className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
-                    <Phone className="w-3 h-3 text-muted-foreground" /> {item.sponsorPhone} • Talibé: <span className="font-bold text-foreground">{item.talibeName}</span>
+                    <Phone className="w-3 h-3 text-muted-foreground" /> {item.sponsorPhone} • Talibé: <span className="font-bold text-foreground">{item.talibe.firstName} {item.talibe.lastName}</span>
                   </p>
                 </div>
               </div>

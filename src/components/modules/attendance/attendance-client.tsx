@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  CalendarCheck, 
-  Search, 
-  CheckCircle2, 
+import {
+  CalendarCheck,
+  Search,
+  CheckCircle2,
   Clock,
   MessageSquare,
   AlertTriangle,
@@ -24,41 +24,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useSpace } from "@/components/providers/space-provider";
 
-const MOCK_SCHOOL_CLASSES = [
-  {
-    id: "cls-ci",
-    name: "Classe CI (Cours Initiatique)",
-    talibes: [
-      { id: "sch-1", firstName: "Alioune", lastName: "Badara", matricule: "EP-2026-001", status: "INTERNE", parentName: "Mamadou Badara", parentPhone: "+221 77 123 45 67" },
-      { id: "sch-2", firstName: "Fatoumata", lastName: "Sarr", matricule: "EP-2026-002", status: "EXTERNE", parentName: "Oumar Sarr", parentPhone: "+221 78 234 56 78" },
-      { id: "sch-3", firstName: "Moussa", lastName: "Kante", matricule: "EP-2026-003", status: "INTERNE", parentName: "Cheikh Kante", parentPhone: "+221 70 345 67 89" },
-    ]
-  },
-  {
-    id: "cls-cp",
-    name: "Classe CP (Cours Préparatoire)",
-    talibes: [
-      { id: "sch-5", firstName: "Aïssatou", lastName: "Fall", matricule: "EP-2026-005", status: "EXTERNE", parentName: "Ibrahima Fall", parentPhone: "+221 77 456 78 90" },
-      { id: "sch-6", firstName: "Cheikh Tidiane", lastName: "Sy", matricule: "EP-2026-006", status: "INTERNE", parentName: "Serigne Sy", parentPhone: "+221 76 567 89 01" }
-    ]
-  },
-  {
-    id: "cls-ce1",
-    name: "Classe CE1 (Cours Élémentaire 1)",
-    talibes: [
-      { id: "sch-8", firstName: "Mariama", lastName: "Bâ", matricule: "EP-2026-008", status: "INTERNE", parentName: "Alassane Bâ", parentPhone: "+221 77 678 90 12" },
-      { id: "sch-9", firstName: "Ibrahima", lastName: "Sow", matricule: "EP-2026-009", status: "EXTERNE", parentName: "Amadou Sow", parentPhone: "+221 78 789 01 23" }
-    ]
-  },
-  {
-    id: "cls-cm2",
-    name: "Classe CM2 (Cours Moyen 2)",
-    talibes: [
-      { id: "sch-15", firstName: "Ousmane", lastName: "Kane", matricule: "EP-2026-015", status: "INTERNE", parentName: "Saliou Kane", parentPhone: "+221 77 012 34 56" }
-    ]
-  }
-];
-
 interface AttendanceClientProps {
   classes: any[];
   todaysAttendances: any[];
@@ -66,9 +31,9 @@ interface AttendanceClientProps {
   schoolName: string;
 }
 
-export function AttendanceClient({ 
-  classes: initialClasses, 
-  todaysAttendances: initialAttendances, 
+export function AttendanceClient({
+  classes: initialClasses,
+  todaysAttendances: initialAttendances,
   recentIssues,
   schoolName: rawSchoolName
 }: AttendanceClientProps) {
@@ -76,18 +41,18 @@ export function AttendanceClient({
   const isSchool = activeSpace === "school";
   const schoolName = isSchool ? "École Franco-Arabe Pathé Pogne" : rawSchoolName;
 
-  const activeClasses = (isSchool || !initialClasses || initialClasses.length === 0) ? MOCK_SCHOOL_CLASSES : initialClasses;
+  const activeClasses: any[] = initialClasses || [];
 
   const [attendances, setAttendances] = useState<any[]>(initialAttendances);
   const [activeTab, setActiveTab] = useState<"APPEL" | "HISTORIQUE">("APPEL");
   const [selectedSession, setSelectedSession] = useState<string>("HALQA_MORNING");
-  
+
   // Appel state
   const [selectedClassId, setSelectedClassId] = useState("");
   const [search, setSearch] = useState("");
   const [isSaving, setIsSaving] = useState<string | null>(null);
 
-  const selectedClass = activeClasses.find(c => c.id === selectedClassId) || activeClasses[0];
+  const selectedClass = activeClasses.find((c: any) => c.id === selectedClassId) || activeClasses[0];
 
   useEffect(() => {
     if (activeClasses && activeClasses.length > 0) {
@@ -102,7 +67,7 @@ export function AttendanceClient({
 
   const handleMarkAttendance = async (talibeId: string, status: "PRESENT" | "ABSENT" | "RETARD" | "EXCUSED") => {
     setIsSaving(talibeId);
-    
+
     // Optimistic UI update
     const recordDate = new Date();
     setAttendances(prev => {
@@ -153,9 +118,9 @@ export function AttendanceClient({
     const message = encodeURIComponent(
       `Assalamu alaykum ${parentName || "Parent"}, ${schoolName} vous informe que votre enfant ${studentName} ${statusText} à la séance d'aujourd'hui. Merci de nous contacter. Baraka Allahou Feekum.`
     );
-    
+
     window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${message}`, '_blank');
-    
+
     await markParentNotified(attendanceId);
   };
 
@@ -166,89 +131,93 @@ export function AttendanceClient({
     return name.includes(query) || mat.includes(query);
   });
 
+  const presentCount = filteredTalibes.filter((s: any) => getTalibeStatus(s.id) === "PRESENT").length;
+  const absentCount = filteredTalibes.filter((s: any) => getTalibeStatus(s.id) === "ABSENT").length;
+  const todayStr = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className={cn(
-        "relative overflow-hidden rounded-3xl p-4 sm:p-6 md:p-8 text-white border shadow-2xl transition-colors",
-        isSchool 
-          ? "bg-gradient-to-r from-amber-950 via-amber-900 to-yellow-950 border-amber-500/30" 
-          : "bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-900 border-emerald-500/20"
-      )}>
-        <div className="absolute right-0 top-0 opacity-10 pointer-events-none translate-x-8 -translate-y-8">
-          <CalendarCheck className={cn("w-96 h-96", isSchool ? "text-amber-400" : "text-emerald-400")} />
-        </div>
-        <div className="relative z-10 max-w-3xl space-y-3">
+    <div className="space-y-4">
+      {/* TOOLBAR COMPACTE PRO - SANS GRANDES CARTES */}
+      <div className="bg-card border border-border rounded-xl p-3 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
           <div className={cn(
-            "inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest border",
-            isSchool ? "bg-amber-500/20 border-amber-500/40 text-amber-300" : "bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
+            "w-9 h-9 rounded-lg flex items-center justify-center font-bold shrink-0 border",
+            isSchool 
+              ? "bg-amber-500/10 text-amber-600 border-amber-500/20" 
+              : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
           )}>
-            <Sparkles className={cn("w-4 h-4", isSchool ? "text-amber-300" : "text-emerald-400")} /> Présences & WhatsApp Parents
+            <CalendarCheck className="w-5 h-5" />
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight font-arabic leading-snug text-white drop-shadow-md">
-            {isSchool ? "سجل الحضور والغياب • المدرسة الإبتدائية" : "تسجيل حضور وغياب الطلاب بالحلقات"}
-          </h1>
-          <p className="text-amber-100/80 text-xs sm:text-sm md:text-base leading-relaxed">
-            {isSchool 
-              ? "Effectuez l'appel des séances de classe (Matin, Après-midi) et prévenez instantanément les parents en cas d'absence." 
-              : "Effectuez l'appel des séances de Halqa (Subh/Fajr, Matin, Après-midi, Isha) et prévenez instantanément les parents en cas d'absence."}
-          </p>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm md:text-base font-black text-foreground">
+                {isSchool ? "Présences & Émargement • École" : "Présences & Émargement • Daara"}
+              </h1>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
+                {todayStr}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              {isSchool ? "Appel des séances de classe & notifications WhatsApp parents" : "Appel des séances de Halqa & alertes WhatsApp parents"}
+            </p>
+          </div>
+        </div>
+
+        {/* Main Tabs */}
+        <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-lg border border-border self-start md:self-auto">
+          <button
+            onClick={() => setActiveTab("APPEL")}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5",
+              activeTab === "APPEL" 
+                ? (isSchool ? "bg-amber-600 text-white shadow-xs" : "bg-emerald-600 text-white shadow-xs") 
+                : "text-muted-foreground hover:bg-muted"
+            )}
+          >
+            <UserCheck className="w-3.5 h-3.5" /> Appel Séance
+          </button>
+          <button
+            onClick={() => setActiveTab("HISTORIQUE")}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5",
+              activeTab === "HISTORIQUE" 
+                ? (isSchool ? "bg-amber-600 text-white shadow-xs" : "bg-emerald-600 text-white shadow-xs") 
+                : "text-muted-foreground hover:bg-muted"
+            )}
+          >
+            <AlertTriangle className="w-3.5 h-3.5" /> Incidents (30J)
+          </button>
         </div>
       </div>
 
-      {/* Main Tabs */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-muted/40 p-2 sm:p-3 rounded-2xl border border-border">
-        <div className="flex gap-2">
-          <button 
-            onClick={() => setActiveTab("APPEL")}
-            className={cn(
-              "px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0",
-              activeTab === "APPEL" 
-                ? (isSchool ? "bg-amber-600 text-white shadow-md shadow-amber-600/20" : "bg-emerald-600 text-white shadow-md shadow-emerald-600/20") 
-                : "text-muted-foreground hover:bg-muted"
-            )}
-          >
-            <UserCheck className="w-4 h-4" /> Appel Séance
-          </button>
-          <button 
-            onClick={() => setActiveTab("HISTORIQUE")}
-            className={cn(
-              "px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0",
-              activeTab === "HISTORIQUE" 
-                ? (isSchool ? "bg-amber-600 text-white shadow-md shadow-amber-600/20" : "bg-emerald-600 text-white shadow-md shadow-emerald-600/20") 
-                : "text-muted-foreground hover:bg-muted"
-            )}
-          >
-            <AlertTriangle className="w-4 h-4" /> Incidents (30J)
-          </button>
-        </div>
-
+      {/* Barre de Sélection de Séance & Créneaux */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-muted/30 p-2.5 rounded-xl border border-border">
         {/* Sessions Filter */}
-        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar bg-background p-1 rounded-xl border border-border w-full sm:w-auto">
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar bg-card p-1 rounded-lg border border-border w-full sm:w-auto">
           {!isSchool && (
-            <button 
-              onClick={() => setSelectedSession("HALQA_FAJR")} 
-              className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_FAJR" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
+            <button
+              onClick={() => setSelectedSession("HALQA_FAJR")}
+              className={cn("px-2.5 py-1 rounded-md text-[11px] font-bold uppercase shrink-0 transition-all", selectedSession === "HALQA_FAJR" ? "bg-emerald-500/20 text-emerald-600 font-extrabold" : "text-muted-foreground hover:bg-muted")}
             >
               Subh / Fajr
             </button>
           )}
-          <button 
-            onClick={() => setSelectedSession("HALQA_MORNING")} 
-            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_MORNING" ? (isSchool ? "bg-amber-500/20 text-amber-600" : "bg-emerald-500/20 text-emerald-600") : "text-muted-foreground")}
+          <button
+            onClick={() => setSelectedSession("HALQA_MORNING")}
+            className={cn("px-2.5 py-1 rounded-md text-[11px] font-bold uppercase shrink-0 transition-all", selectedSession === "HALQA_MORNING" ? (isSchool ? "bg-amber-500/20 text-amber-600 font-extrabold" : "bg-emerald-500/20 text-emerald-600 font-extrabold") : "text-muted-foreground hover:bg-muted")}
           >
             Matin
           </button>
-          <button 
-            onClick={() => setSelectedSession("HALQA_AFTERNOON")} 
-            className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_AFTERNOON" ? (isSchool ? "bg-amber-500/20 text-amber-600" : "bg-emerald-500/20 text-emerald-600") : "text-muted-foreground")}
+          <button
+            onClick={() => setSelectedSession("HALQA_AFTERNOON")}
+            className={cn("px-2.5 py-1 rounded-md text-[11px] font-bold uppercase shrink-0 transition-all", selectedSession === "HALQA_AFTERNOON" ? (isSchool ? "bg-amber-500/20 text-amber-600 font-extrabold" : "bg-emerald-500/20 text-emerald-600 font-extrabold") : "text-muted-foreground hover:bg-muted")}
           >
             Après-midi
           </button>
           {!isSchool && (
-            <button 
-              onClick={() => setSelectedSession("HALQA_EVENING")} 
-              className={cn("px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase shrink-0", selectedSession === "HALQA_EVENING" ? "bg-emerald-500/20 text-emerald-600" : "text-muted-foreground")}
+            <button
+              onClick={() => setSelectedSession("HALQA_EVENING")}
+              className={cn("px-2.5 py-1 rounded-md text-[11px] font-bold uppercase shrink-0 transition-all", selectedSession === "HALQA_EVENING" ? "bg-emerald-500/20 text-emerald-600 font-extrabold" : "text-muted-foreground hover:bg-muted")}
             >
               Nuit / Isha
             </button>
@@ -258,229 +227,203 @@ export function AttendanceClient({
 
       {activeTab === "APPEL" && (
         <div className="space-y-6">
-          {/* Class Selection & Search Bar */}
-          <div className="flex flex-col md:flex-row gap-4 bg-card border border-border p-4 rounded-2xl shadow-sm">
+          {/* Class Selection & Search Bar (Compact Pro) */}
+          <div className="flex flex-col sm:flex-row gap-2 bg-card border border-border p-2.5 rounded-xl shadow-xs">
             <div className="flex-1">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">
-                {isSchool ? "Sélectionner la Classe" : "Sélectionner la Halqa"}
-              </label>
-              <select 
+              <select
                 value={selectedClass?.id || ""}
                 onChange={(e) => setSelectedClassId(e.target.value)}
-                className="w-full bg-background border border-input rounded-xl px-4 py-2.5 text-sm font-bold text-foreground"
+                className="w-full h-9 bg-background border border-input rounded-lg px-3 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="">{isSchool ? "-- Choisir une Classe --" : "-- Choisir une Halqa --"}</option>
-                {activeClasses.map(c => (
+                {activeClasses.map((c: any) => (
                   <option key={c.id} value={c.id}>{c.name} ({c.talibes?.length || c.students?.length || 0} {isSchool ? "Élèves" : "Talibés"})</option>
                 ))}
               </select>
             </div>
-            <div className="flex-1 relative flex flex-col justify-end">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Filtrer par Nom / Matricule</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <input 
-                  type="text"
-                  disabled={!selectedClassId}
-                  placeholder={isSchool ? "Rechercher un Élève..." : "Rechercher un Talibé..."} 
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className={cn(
-                    "w-full bg-background border border-input rounded-xl pl-9 pr-4 py-2 text-sm focus:outline-none focus:ring-2 disabled:opacity-50",
-                    isSchool ? "focus:ring-amber-500" : "focus:ring-emerald-500"
-                  )}
-                />
-              </div>
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+              <input 
+                type="text"
+                disabled={!selectedClassId}
+                placeholder={isSchool ? "Rechercher un Élève..." : "Rechercher un Talibé..."} 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className={cn(
+                  "w-full h-9 bg-background border border-input rounded-lg pl-9 pr-3 text-xs focus:outline-none focus:ring-1 disabled:opacity-50",
+                  isSchool ? "focus:ring-amber-500" : "focus:ring-emerald-500"
+                )}
+              />
             </div>
           </div>
 
-          {/* Student Table */}
+          {/* Student Table (Style Feuille de Calcul Excel Pro) */}
           {selectedClassId ? (
-            <Card className="border border-border shadow-sm overflow-hidden">
-              {/* VUE MOBILE (< 768px) : Cartes Tactiles d'Appel Ultra-Rapides */}
-              <div className="md:hidden divide-y divide-border">
-                {filteredTalibes.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground text-xs font-bold">
-                    Aucun Talibé trouvé dans cette Halqa.
+            <div className="w-full overflow-hidden rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm print:border-none print:shadow-none">
+
+              {/* BANDEAU SUPÉRIEUR EXCEL */}
+              <div className="bg-slate-100 dark:bg-slate-800/90 px-4 py-2.5 border-b border-slate-300 dark:border-slate-700 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5 font-bold text-slate-800 dark:text-slate-200">
+                  <div className="w-5 h-5 rounded bg-[#107c41] text-white flex items-center justify-center font-black text-[10px] shrink-0">
+                    X
                   </div>
-                ) : (
-                  filteredTalibes.map((s: any) => {
-                    const status = getTalibeStatus(s.id);
-                    return (
-                      <div 
-                        key={s.id} 
-                        className="p-3.5 space-y-3 transition-colors active:bg-muted/30"
-                        style={{ contentVisibility: "auto", containIntrinsicSize: "1px 120px" }}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <h4 className="font-black text-sm text-foreground truncate">
-                              {s.firstName} {s.lastName}
-                            </h4>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className="font-mono text-[10px] text-muted-foreground font-semibold">
-                                {s.matricule}
-                              </span>
-                              <Badge variant="outline" className={cn(
-                                "text-[10px] py-0 font-bold",
-                                s.status === "INTERNE" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" : "bg-blue-500/10 text-blue-600 border-blue-500/30"
-                              )}>
-                                {s.status || "INTERNE"}
-                              </Badge>
-                            </div>
-                          </div>
+                  <span className="font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
+                    {isSchool ? `Feuille : Émargement Séance • Classe ${selectedClass?.name || ""}` : `Feuille : Émargement Séance • Halqa ${selectedClass?.name || ""}`}
+                  </span>
+                  <span className="text-slate-400 font-normal">|</span>
+                  <span className="text-slate-500 font-mono text-[11px]">
+                    Séance : {todayStr}
+                  </span>
+                </div>
 
-                          {status && (
-                            <Badge className={cn(
-                              "text-[10px] font-extrabold uppercase shrink-0",
-                              status === "PRESENT" ? "bg-emerald-600 text-white" :
-                              status === "ABSENT" ? "bg-red-600 text-white" :
-                              status === "RETARD" ? "bg-amber-600 text-white" : "bg-blue-600 text-white"
-                            )}>
-                              {status === "PRESENT" ? "Présent ✓" : status === "ABSENT" ? "Absent ✗" : status === "RETARD" ? "Retard ⏱" : "Excusé"}
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Boutons d'Appel Tactiles (Touch-Friendly 44px) */}
-                        <div className="grid grid-cols-4 gap-1.5 pt-1">
-                          <button
-                            type="button"
-                            disabled={isSaving === s.id}
-                            onClick={() => handleMarkAttendance(s.id, "PRESENT")}
-                            className={cn(
-                              "h-10 rounded-xl font-bold text-xs flex items-center justify-center transition-all cursor-pointer border",
-                              status === "PRESENT" 
-                                ? "bg-emerald-600 text-white border-emerald-600 shadow-sm" 
-                                : "bg-background text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10 active:scale-95"
-                            )}
-                          >
-                            <UserCheck className="w-3.5 h-3.5 mr-1" />
-                            <span>Présent</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={isSaving === s.id}
-                            onClick={() => handleMarkAttendance(s.id, "ABSENT")}
-                            className={cn(
-                              "h-10 rounded-xl font-bold text-xs flex items-center justify-center transition-all cursor-pointer border",
-                              status === "ABSENT" 
-                                ? "bg-red-600 text-white border-red-600 shadow-sm" 
-                                : "bg-background text-red-600 border-red-500/30 hover:bg-red-500/10 active:scale-95"
-                            )}
-                          >
-                            <UserX className="w-3.5 h-3.5 mr-1" />
-                            <span>Absent</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={isSaving === s.id}
-                            onClick={() => handleMarkAttendance(s.id, "RETARD")}
-                            className={cn(
-                              "h-10 rounded-xl font-bold text-xs flex items-center justify-center transition-all cursor-pointer border",
-                              status === "RETARD" 
-                                ? "bg-amber-600 text-white border-amber-600 shadow-sm" 
-                                : "bg-background text-amber-600 border-amber-500/30 hover:bg-amber-500/10 active:scale-95"
-                            )}
-                          >
-                            <Clock className="w-3.5 h-3.5 mr-1" />
-                            <span>Retard</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={isSaving === s.id}
-                            onClick={() => handleMarkAttendance(s.id, "EXCUSED")}
-                            className={cn(
-                              "h-10 rounded-xl font-bold text-xs flex items-center justify-center transition-all cursor-pointer border",
-                              status === "EXCUSED" 
-                                ? "bg-blue-600 text-white border-blue-600 shadow-sm" 
-                                : "bg-background text-blue-600 border-blue-500/30 hover:bg-blue-500/10 active:scale-95"
-                            )}
-                          >
-                            <UserMinus className="w-3.5 h-3.5 mr-1" />
-                            <span>Excusé</span>
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
+                <div className="flex items-center gap-2 font-mono text-[11px]">
+                  <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 font-bold">
+                    Présents : {presentCount}
+                  </span>
+                  <span className="px-2 py-0.5 rounded bg-red-50 text-red-800 border border-red-300 dark:bg-red-950 dark:text-red-300 font-bold">
+                    Absents : {absentCount}
+                  </span>
+                </div>
               </div>
 
-              {/* VUE TABLETTE & DESKTOP (>= 768px) : Tableau Traditionnel */}
-              <div className="hidden md:block overflow-x-auto touch-pan-x">
-                <table className="w-full min-w-[650px] text-left text-sm">
-                  <thead className="bg-muted/60 text-muted-foreground text-xs uppercase tracking-wider">
-                    <tr>
-                      <th className="px-6 py-3.5 font-bold">{isSchool ? "Élève" : "Talibé"}</th>
-                      <th className="px-6 py-3.5 font-bold">Matricule</th>
-                      <th className="px-6 py-3.5 font-bold">Régime</th>
-                      <th className="px-6 py-3.5 font-bold text-center">Appel de la Séance</th>
+              {/* TABLEAU GRILLE EXCEL (DÉFILEMENT HORIZONTAL FLUIDE) */}
+              <div className="w-full overflow-x-auto touch-pan-x">
+                <table className="w-full min-w-[780px] border-collapse text-left text-xs text-slate-800 dark:text-slate-200">
+                  <thead>
+                    <tr className="bg-[#107c41] text-white font-bold text-xs uppercase tracking-wider select-none">
+                      <th className="w-12 py-2.5 px-2 text-center border-r border-emerald-600/50 bg-[#0d6937] text-white/90 font-mono text-[11px]">
+                        N°
+                      </th>
+                      <th className="w-32 py-2.5 px-3 text-center border-r border-emerald-600/50">
+                        Matricule
+                      </th>
+                      <th className="py-2.5 px-3 border-r border-emerald-600/50 min-w-[180px]">
+                        {isSchool ? "Élève (Nom & Prénom)" : "Talibé (Nom & Prénom)"}
+                      </th>
+                      <th className="w-28 py-2.5 px-3 text-center border-r border-emerald-600/50">
+                        Régime
+                      </th>
+                      <th className="w-32 py-2.5 px-3 text-center border-r border-emerald-600/50">
+                        Statut Appel
+                      </th>
+                      <th className="py-2.5 px-3 text-center min-w-[280px]">
+                        Émargement Séance
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border">
+                  <tbody>
                     {filteredTalibes.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="text-center py-8 text-muted-foreground">
-                          Aucun Talibé trouvé dans cette Halqa.
+                        <td colSpan={6} className="p-10 text-center text-slate-400 border-b border-slate-200 dark:border-slate-800 italic">
+                          Aucun élève trouvé dans cette classe.
                         </td>
                       </tr>
                     ) : (
-                      filteredTalibes.map((s: any) => {
+                      filteredTalibes.map((s: any, idx: number) => {
                         const status = getTalibeStatus(s.id);
                         return (
-                          <tr key={s.id} className="hover:bg-muted/30 transition-colors">
-                            <td className="px-6 py-4 font-bold text-foreground">
+                          <tr
+                            key={s.id}
+                            className={cn(
+                              "transition-colors hover:bg-[#e8f4fc] dark:hover:bg-slate-800/80",
+                              idx % 2 === 1 ? "bg-[#f8fafc] dark:bg-slate-800/40" : "bg-white dark:bg-slate-900"
+                            )}
+                          >
+                            <td className="py-2 px-2 text-center font-mono text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-[#f1f3f5] dark:bg-slate-800/70 border-r border-b border-slate-200 dark:border-slate-700/80 select-none">
+                              {idx + 1}
+                            </td>
+                            <td className="py-2 px-3 text-center border-r border-b border-slate-200 dark:border-slate-700/80 font-mono font-bold text-emerald-700 dark:text-emerald-400 text-[11px]">
+                              {s.matricule || "—"}
+                            </td>
+                            <td className="py-2 px-3 font-extrabold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
                               {s.firstName} {s.lastName}
                             </td>
-                            <td className="px-6 py-4 font-mono text-xs text-muted-foreground">
-                              {s.matricule}
+                            <td className="py-2 px-3 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                              <span className={cn(
+                                "inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase border",
+                                s.status === "INTERNE" ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300" :
+                                  s.status === "DEMI_PENSION" ? "bg-purple-50 text-purple-800 border-purple-300 dark:bg-purple-950 dark:text-purple-300" :
+                                    "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300"
+                              )}>
+                                {s.status === "INTERNE" ? "Internat" : s.status === "DEMI_PENSION" ? "Demi-Pen." : "Externat"}
+                              </span>
                             </td>
-                            <td className="px-6 py-4">
-                              <Badge variant="outline" className={s.status === "INTERNE" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" : "bg-blue-500/10 text-blue-600 border-blue-500/30"}>
-                                {s.status || "INTERNE"}
-                              </Badge>
+                            <td className="py-2 px-3 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
+                              {status ? (
+                                <span className={cn(
+                                  "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase border",
+                                  status === "PRESENT" ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200" :
+                                    status === "ABSENT" ? "bg-red-50 text-red-800 border-red-300 dark:bg-red-950 dark:text-red-200" :
+                                      status === "RETARD" ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-200" :
+                                        "bg-blue-50 text-blue-800 border-blue-300 dark:bg-blue-950 dark:text-blue-200"
+                                )}>
+                                  {status === "PRESENT" ? "Présent ✓" : status === "ABSENT" ? "Absent ✗" : status === "RETARD" ? "Retard ⏱" : "Excusé"}
+                                </span>
+                              ) : (
+                                <span className="text-slate-400 text-xs italic">—</span>
+                              )}
                             </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center justify-center gap-2">
-                                <Button 
-                                  size="sm"
-                                  variant={status === "PRESENT" ? "default" : "outline"}
+                            <td className="py-2 px-3 border-b border-slate-200 dark:border-slate-700/80">
+                              <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                <button
+                                  type="button"
+                                  disabled={isSaving === s.id}
                                   onClick={() => handleMarkAttendance(s.id, "PRESENT")}
-                                  className={status === "PRESENT" ? "bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs" : "text-emerald-600 hover:bg-emerald-500/10 text-xs"}
+                                  className={cn(
+                                    "h-6 px-2 rounded font-bold text-[10px] flex items-center transition-all cursor-pointer border",
+                                    status === "PRESENT"
+                                      ? "bg-[#107c41] text-white border-emerald-700 shadow-2xs font-extrabold"
+                                      : "bg-slate-50 dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 border-slate-200 dark:border-slate-700 hover:bg-emerald-50"
+                                  )}
                                 >
-                                  <UserCheck className="w-3.5 h-3.5 mr-1" /> Présent
-                                </Button>
+                                  <UserCheck className="w-3 h-3 mr-1" />
+                                  <span>Présent</span>
+                                </button>
 
-                                <Button 
-                                  size="sm"
-                                  variant={status === "ABSENT" ? "default" : "outline"}
+                                <button
+                                  type="button"
+                                  disabled={isSaving === s.id}
                                   onClick={() => handleMarkAttendance(s.id, "ABSENT")}
-                                  className={status === "ABSENT" ? "bg-red-600 hover:bg-red-700 text-white font-bold text-xs" : "text-red-600 hover:bg-red-500/10 text-xs"}
+                                  className={cn(
+                                    "h-6 px-2 rounded font-bold text-[10px] flex items-center transition-all cursor-pointer border",
+                                    status === "ABSENT"
+                                      ? "bg-red-600 text-white border-red-700 shadow-2xs font-extrabold"
+                                      : "bg-slate-50 dark:bg-slate-800 text-red-600 dark:text-red-300 border-slate-200 dark:border-slate-700 hover:bg-red-50"
+                                  )}
                                 >
-                                  <UserX className="w-3.5 h-3.5 mr-1" /> Absent
-                                </Button>
+                                  <UserX className="w-3 h-3 mr-1" />
+                                  <span>Absent</span>
+                                </button>
 
-                                <Button 
-                                  size="sm"
-                                  variant={status === "RETARD" ? "default" : "outline"}
+                                <button
+                                  type="button"
+                                  disabled={isSaving === s.id}
                                   onClick={() => handleMarkAttendance(s.id, "RETARD")}
-                                  className={status === "RETARD" ? "bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs" : "text-amber-600 hover:bg-amber-500/10 text-xs"}
+                                  className={cn(
+                                    "h-6 px-2 rounded font-bold text-[10px] flex items-center transition-all cursor-pointer border",
+                                    status === "RETARD"
+                                      ? "bg-amber-600 text-white border-amber-700 shadow-2xs font-extrabold"
+                                      : "bg-slate-50 dark:bg-slate-800 text-amber-600 dark:text-amber-300 border-slate-200 dark:border-slate-700 hover:bg-amber-50"
+                                  )}
                                 >
-                                  <Clock className="w-3.5 h-3.5 mr-1" /> Retard
-                                </Button>
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  <span>Retard</span>
+                                </button>
 
-                                <Button 
-                                  size="sm"
-                                  variant={status === "EXCUSED" ? "default" : "outline"}
+                                <button
+                                  type="button"
+                                  disabled={isSaving === s.id}
                                   onClick={() => handleMarkAttendance(s.id, "EXCUSED")}
-                                  className={status === "EXCUSED" ? "bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs" : "text-blue-600 hover:bg-blue-500/10 text-xs"}
+                                  className={cn(
+                                    "h-6 px-2 rounded font-bold text-[10px] flex items-center transition-all cursor-pointer border",
+                                    status === "EXCUSED"
+                                      ? "bg-blue-600 text-white border-blue-700 shadow-2xs font-extrabold"
+                                      : "bg-slate-50 dark:bg-slate-800 text-blue-600 dark:text-blue-300 border-slate-200 dark:border-slate-700 hover:bg-blue-50"
+                                  )}
                                 >
-                                  <UserMinus className="w-3.5 h-3.5 mr-1" /> Excusé
-                                </Button>
+                                  <UserMinus className="w-3 h-3 mr-1" />
+                                  <span>Excusé</span>
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -488,11 +431,28 @@ export function AttendanceClient({
                       })
                     )}
                   </tbody>
+
+                  {/* PIED DU TABLEAU EXCEL */}
+                  <tfoot>
+                    <tr className="bg-[#f1f3f5] dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border-t-2 border-slate-300 dark:border-slate-600 text-xs select-none">
+                      <td colSpan={3} className="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700">
+                        <span className="text-slate-500 uppercase tracking-wider text-[10px] mr-2">TOTAL APPEL :</span>
+                        <span>{filteredTalibes.length} Élèves inscrits</span>
+                      </td>
+                      <td colSpan={2} className="py-2.5 px-3 border-r border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
+                        <span className="text-emerald-700 dark:text-emerald-400 mr-3">✓ Présents : {presentCount}</span>
+                        <span className="text-red-700 dark:text-red-400">✗ Absents : {absentCount}</span>
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-mono text-[11px] text-slate-500">
+                        Taux de présence : {filteredTalibes.length > 0 ? Math.round((presentCount / filteredTalibes.length) * 100) : 0}%
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
-            </Card>
+            </div>
           ) : (
-            <div className="text-center py-12 border border-dashed rounded-3xl bg-muted/20 space-y-2">
+            <div className="text-center py-12 border border-dashed rounded-xl bg-muted/10 space-y-2">
               <CalendarCheck className="w-12 h-12 text-muted-foreground mx-auto opacity-40" />
               <p className="text-sm font-bold text-muted-foreground">Sélectionnez une Halqa ci-dessus pour faire l'appel.</p>
             </div>
@@ -530,7 +490,7 @@ export function AttendanceClient({
                     </div>
 
                     {issue.talibe?.parentPhone && (
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={() => handleSendWhatsAppAlert(
                           issue.id,

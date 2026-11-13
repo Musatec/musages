@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { 
-    TrendingUp, 
-    DollarSign, Package, 
+    DollarSign,
     RefreshCcw, 
     CreditCard,
     Activity,
@@ -30,10 +29,8 @@ interface ReportsClientProps {
     initialData: {
         summary: {
             totalRevenue: number;
-            grossProfit: number;
             totalExpenses: number;
             netProfit: number;
-            inventoryValue: number;
         };
         chartData: { name: string; total: number }[];
         success: boolean;
@@ -46,6 +43,12 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
     const [loadingAI, setLoadingAI] = useState(false);
     const [insights, setInsights] = useState<string[]>([]);
     const [aiError, setAiError] = useState<string | null>(null);
+    const expenseRate = summary.totalRevenue > 0
+        ? Math.min(100, Math.max(0, Math.round((summary.totalExpenses / summary.totalRevenue) * 100)))
+        : 0;
+    const netRate = summary.totalRevenue > 0
+        ? Math.min(100, Math.max(0, Math.round((summary.netProfit / summary.totalRevenue) * 100)))
+        : 0;
 
     const handleFetchAI = async () => {
         setLoadingAI(true);
@@ -63,45 +66,6 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
             setLoadingAI(false);
         }
     };
-
-    const cards = [
-        { 
-            label: "Chiffre d'Affaires", 
-            value: formatMoney(summary.totalRevenue), 
-            sub: "Ventes mensuelles cumulées", 
-            icon: DollarSign, 
-            color: "text-primary", 
-            bg: "bg-primary/5",
-            trend: "+12.4%"
-        },
-        { 
-            label: "Bénéfice Net", 
-            value: formatMoney(summary.netProfit), 
-            sub: "Après coûts et dépenses", 
-            icon: Target, 
-            color: summary.netProfit >= 0 ? "text-emerald-500" : "text-red-500", 
-            bg: summary.netProfit >= 0 ? "bg-emerald-500/5" : "bg-red-500/5",
-            trend: "En Direct"
-        },
-        { 
-            label: "Valeur Initiale Stock", 
-            value: formatMoney(summary.inventoryValue), 
-            sub: "Total immobilisé (Achat)", 
-            icon: Package, 
-            color: "text-blue-500", 
-            bg: "bg-blue-500/5",
-            trend: "Logistique"
-        },
-        { 
-            label: "Dépenses Totales", 
-            value: formatMoney(summary.totalExpenses), 
-            sub: "Charges d'exploitation", 
-            icon: CreditCard, 
-            color: "text-orange-500", 
-            bg: "bg-orange-500/5",
-            trend: "Opérationnel"
-        }
-    ];
 
     return (
         <div className="flex-1 flex flex-col h-full bg-background transition-all duration-300 overflow-y-auto p-6 md:p-8 space-y-4 text-foreground">
@@ -124,34 +88,27 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
             />
 
             {/* --- PRIMARY METRICS GRID (Elite SaaS) --- */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <EliteMetricCard 
-                    label="Chiffre d'Affaires" 
+                    label="Recettes du mois" 
                     value={`${formatMoney(summary.totalRevenue)} F`} 
                     icon={DollarSign} 
                     variant="blue"
-                    sub="Ventes mensuelles"
+                    sub="Entrées enregistrées"
                 />
                 <EliteMetricCard 
-                    label="Bénéfice Net" 
+                    label="Solde net du mois" 
                     value={`${formatMoney(summary.netProfit)} F`} 
                     icon={Target} 
                     variant="emerald"
-                    sub="Après charges"
+                    sub="Recettes moins dépenses"
                 />
                 <EliteMetricCard 
-                    label="Valeur Stock" 
-                    value={`${formatMoney(summary.inventoryValue)} F`} 
-                    icon={Package} 
-                    variant="orange"
-                    sub="Total immobilisé"
-                />
-                <EliteMetricCard 
-                    label="Dépenses" 
+                    label="Dépenses du mois" 
                     value={`${formatMoney(summary.totalExpenses)} F`} 
                     icon={CreditCard} 
                     variant="red"
-                    sub="Charges d'exploitation"
+                    sub="Sorties enregistrées"
                 />
             </div>
 
@@ -227,9 +184,9 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
                     <div className="flex items-center justify-between">
                         <div>
                             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
-                                Courbe d'Activité <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded text-[9px]">Calcul Temps Réel</span>
+                                Recettes journalières
                             </h3>
-                            <p className="text-[10px] text-muted-foreground mt-0.5 uppercase font-medium opacity-60">Volume transactionnel des derniers jours</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5 uppercase font-medium opacity-60">Entrées consignées ce mois</p>
                         </div>
                     </div>
 
@@ -287,15 +244,14 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
                 <div className="bg-muted/10 border border-border rounded-xl p-6 flex flex-col justify-between shadow-sm">
                     <div className="space-y-6">
                         <div>
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground italic">Structure de Profitabilité</h3>
-                            <p className="text-[10px] text-muted-foreground uppercase font-medium opacity-50">Répartition des marges</p>
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground italic">Répartition financière</h3>
+                            <p className="text-[10px] text-muted-foreground uppercase font-medium opacity-50">Part des recettes du mois</p>
                         </div>
 
                         <div className="space-y-5">
                             {[
-                                { label: "Marge Brute", val: Math.round((summary.grossProfit / summary.totalRevenue || 0) * 100), color: "bg-primary" },
-                                { label: "Taux Dépenses", val: Math.round((summary.totalExpenses / summary.totalRevenue || 0) * 100), color: "bg-orange-500" },
-                                { label: "Marge Nette", val: Math.round((summary.netProfit / summary.totalRevenue || 0) * 100), color: "bg-emerald-500" }
+                                { label: "Dépenses / recettes", val: expenseRate, color: "bg-orange-500" },
+                                { label: "Solde net / recettes", val: netRate, color: "bg-emerald-500" }
                             ].map(item => (
                                 <div key={item.label} className="space-y-1.5">
                                     <div className="flex justify-between text-[11px] font-bold uppercase tracking-tight">
@@ -318,10 +274,10 @@ export function ReportsClient({ initialData }: ReportsClientProps) {
                     <div className="mt-8 bg-card border border-border/50 p-4 rounded-xl shadow-sm">
                         <div className="flex items-center gap-2 mb-2">
                             <Target className="w-3.5 h-3.5 text-primary" />
-                            <span className="text-[10px] font-bold uppercase text-foreground">Indice de Rentabilité</span>
+                            <span className="text-[10px] font-bold uppercase text-foreground">Solde du mois</span>
                         </div>
                         <p className="text-[10px] text-muted-foreground font-medium uppercase leading-relaxed opacity-70">
-                            Votre cycle d'exploitation génère actuellement une marge nette de <span className="font-bold text-foreground">{Math.round((summary.netProfit / summary.totalRevenue || 0) * 100)}%</span>.
+                            Les recettes moins les dépenses donnent un solde de <span className="font-bold text-foreground">{formatMoney(summary.netProfit)} F</span> pour ce mois.
                         </p>
                     </div>
                 </div>

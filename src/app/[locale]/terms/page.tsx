@@ -27,7 +27,6 @@ export default async function TermsPage() {
                         <LegalNav title="Introduction" id="intro" />
                         <LegalNav title="Services Offerts" id="services" />
                         <LegalNav title="Gestion des Comptes" id="accounts" />
-                        <LegalNav title="Paiements & Tarifs" id="billing" />
                         <LegalNav title="Propriété Intellectuelle" id="ip" />
                         <LegalNav title="Responsabilités" id="liability" />
                     </aside>
@@ -46,8 +45,7 @@ export default async function TermsPage() {
                         <section id="services" className="space-y-4">
                             <h2 className="text-xl font-black uppercase italic tracking-tighter text-primary">2. Description des Services</h2>
                             <p className="text-gray-400 leading-relaxed italic">
-                                MINDOS fournit des outils de gestion ERP (Enterprise Resource Planning) incluant, sans s'y limiter : 
-                                gestion de stock, point de vente (POS), suivi de trésorerie, et analyse via intelligence artificielle.
+                                MINDOS fournit aux directions des établissements scolaires et des Daaras des outils de gestion, notamment le suivi des apprenants, des présences, des cours, du personnel, des frais scolaires et des documents administratifs.
                             </p>
                         </section>
 
@@ -60,17 +58,8 @@ export default async function TermsPage() {
                             </p>
                         </section>
 
-                        <section id="billing" className="space-y-4">
-                            <h2 className="text-xl font-black uppercase italic tracking-tighter text-primary">4. Modalités de Paiement</h2>
-                            <p className="text-gray-400 leading-relaxed italic">
-                                Les services sont facturés sur une base mensuelle selon le plan choisi (Starter, Growth, Business). 
-                                Les paiements sont sécurisés et traités par nos partenaires tiers (PayTech). 
-                                Tout retard de paiement peut entraîner une suspension immédiate de l'accès à la plateforme.
-                            </p>
-                        </section>
-
                         <section id="liability" className="space-y-4">
-                            <h2 className="text-xl font-black uppercase italic tracking-tighter text-primary">5. Limitation de Responsabilité</h2>
+                            <h2 className="text-xl font-black uppercase italic tracking-tighter text-primary">4. Limitation de Responsabilité</h2>
                             <p className="text-gray-400 leading-relaxed italic">
                                 MINDOS est fourni "en l'état". Bien que nous nous efforcions d'assurer une disponibilité maximale, 
                                 Musatec ne peut être tenue responsable des interruptions de service, pertes de données 

@@ -29,7 +29,7 @@ export function LanguageSwitcher() {
     };
 
     return (
-        <div className="inline-flex items-center p-0.5 sm:p-1 rounded-xl bg-slate-900 border border-slate-800 shadow-xs text-xs font-semibold">
+        <div className="inline-flex items-center rounded-xl border border-border bg-card p-1 text-xs font-semibold shadow-sm">
             <button
                 type="button"
                 onClick={() => switchLocale('fr')}
@@ -37,8 +37,8 @@ export function LanguageSwitcher() {
                 className={cn(
                     "px-2 sm:px-3 py-1 rounded-lg transition-all duration-150 font-bold flex items-center gap-1 cursor-pointer select-none text-[11px] sm:text-xs",
                     activeLocale === 'fr'
-                        ? "bg-[#0C5A34] text-white shadow-xs font-bold"
-                        : "text-slate-400 hover:text-white"
+                        ? "bg-primary text-primary-foreground shadow-sm font-bold"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
             >
                 {isChanging && activeLocale === 'fr' && (
@@ -54,8 +54,8 @@ export function LanguageSwitcher() {
                 className={cn(
                     "px-2 sm:px-3 py-1 rounded-lg font-arabic transition-all duration-150 font-bold flex items-center gap-1 cursor-pointer select-none text-[11px] sm:text-xs",
                     activeLocale === 'ar'
-                        ? "bg-[#0C5A34] text-white shadow-xs font-bold"
-                        : "text-slate-400 hover:text-white"
+                        ? "bg-primary text-primary-foreground shadow-sm font-bold"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
                 dir="rtl"
             >

@@ -17,6 +17,7 @@ interface DashboardWrapperClientProps {
 
   // Props pour École Franco-Arabe / School
   schoolName?: string;
+  totalSchoolStudents?: number;
   totalClasses?: number;
   totalTeachers?: number;
   totalAmountDue?: number;
@@ -34,12 +35,12 @@ export function DashboardWrapperClient(props: DashboardWrapperClientProps) {
     return (
       <JanguDashboardClient 
         schoolName={props.schoolName || "École Franco-Arabe Pathé Pogne"}
-        totalStudents={props.totalTalibes}
-        totalClasses={props.totalClasses || 8}
-        totalTeachers={props.totalTeachers || 12}
-        totalAmountDue={props.totalAmountDue || 1500000}
-        totalAmountPaid={props.totalAmountPaid || 1125000}
-        collectionRate={props.collectionRate || 75}
+        totalStudents={props.totalSchoolStudents ?? 0}
+        totalClasses={props.totalClasses ?? 0}
+        totalTeachers={props.totalTeachers ?? 0}
+        totalAmountDue={props.totalAmountDue ?? 0}
+        totalAmountPaid={props.totalAmountPaid ?? 0}
+        collectionRate={props.collectionRate ?? 0}
         recentTuitions={props.recentTuitions || []}
         currentMonth={props.currentMonth || new Date().getMonth() + 1}
         currentYear={props.currentYear || new Date().getFullYear()}

@@ -75,8 +75,8 @@ export function SearchCenter() {
         <div className="flex-1 max-w-xl relative" ref={containerRef}>
             {/* Visual Search Bar - The Trigger */}
             <div className={cn(
-                "flex items-center gap-2 px-2 md:px-4 py-2 bg-muted/30 border rounded-xl transition-all group",
-                open ? "border-primary ring-2 ring-primary/10 bg-background" : "border-border/50 hover:bg-muted/50"
+                "flex items-center gap-2 px-2.5 md:px-4 py-2.5 bg-card border rounded-xl transition-all group shadow-sm shadow-black/[0.02]",
+                open ? "border-primary/50 ring-4 ring-primary/5 bg-card" : "border-border/80 hover:bg-muted/40"
             )}>
                 <Search className={cn("w-4 h-4 transition-colors shrink-0", open ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
                 <input 
@@ -87,7 +87,7 @@ export function SearchCenter() {
                         if (!open) setOpen(true);
                     }}
                     onFocus={() => setOpen(true)}
-                    className="flex-1 bg-transparent border-none outline-none text-[11px] md:text-sm font-medium text-white placeholder:text-muted-foreground/50 min-w-0"
+                    className="flex-1 bg-transparent border-none outline-none text-[11px] md:text-sm font-medium text-foreground placeholder:text-muted-foreground/75 min-w-0"
                 />
                 {loading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
@@ -107,7 +107,7 @@ export function SearchCenter() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.98 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute top-full left-0 right-0 mt-3 bg-background border border-border rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden z-[100] backdrop-blur-2xl"
+                        className="absolute top-full left-0 right-0 mt-3 bg-card border border-border rounded-2xl shadow-[0_20px_50px_-28px_rgba(12,48,34,0.55)] overflow-hidden z-[100]"
                     >
                         <Command className="flex flex-col h-full">
                             <Command.List className="max-h-[60vh] overflow-y-auto p-2 no-scrollbar">
@@ -141,13 +141,13 @@ export function SearchCenter() {
                                         onSelect={() => runCommand(() => router.push('/students'))}
                                         icon={User}
                                         title="Élèves"
-                                        subtitle="Gestion des élèves"
+                                        subtitle="Inscriptions et dossiers scolaires"
                                     />
                                     <CommandItem 
                                         onSelect={() => runCommand(() => router.push('/tuition'))}
                                         icon={FileText}
                                         title="Écolages"
-                                        subtitle="Paiements et reçus"
+                                        subtitle="Frais scolaires et reçus"
                                     />
                                     <CommandItem 
                                         onSelect={() => runCommand(() => router.push('/settings'))}
