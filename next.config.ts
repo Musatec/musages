@@ -8,6 +8,15 @@ const withNextIntl = createNextIntlPlugin(
 
 const nextConfig: NextConfig = {
   /* config options here */
+  compress: true,
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "framer-motion",
+      "date-fns",
+      "recharts",
+    ],
+  },
   typescript: {
     ignoreBuildErrors: false,
   },

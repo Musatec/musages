@@ -31,51 +31,54 @@ export default async function DashboardPage({
     }
   };
 
-  // Métriques du Daara / Établissement
-  const daara = await fetchSafe(() => prisma.daara.findUnique({
-    where: { id: daaraId }
-  }), null);
-
-  // Métriques Daara (space: "daara")
-  const totalTalibes = await fetchSafe(() => prisma.talibe.count({
-    where: { daaraId, space: "daara", deletedAt: null }
-  }), 0);
-
-  const totalInternes = await fetchSafe(() => prisma.talibe.count({
-    where: { daaraId, space: "daara", status: "INTERNE", deletedAt: null }
-  }), 0);
-
-  const totalHalqas = await fetchSafe(() => prisma.halqa.count({
-    where: { daaraId, space: "daara" }
-  }), 0);
-
-  const totalSponsorships = await fetchSafe(() => prisma.sponsorship.count({
-    where: { daaraId, status: "ACTIVE" }
-  }), 0);
-
-  const hifzRecordsToday = await fetchSafe(() => prisma.hifzProgress.count({
-    where: { daaraId }
-  }), 0);
-
-  const recentHifz = await fetchSafe(() => prisma.hifzProgress.findMany({
-    where: { daaraId },
-    include: { talibe: true },
-    orderBy: { date: "desc" },
-    take: 6,
-  }), []);
-
-  // Métriques École Pathé Pogne (space: "school")
-  const totalSchoolStudents = await fetchSafe(() => prisma.talibe.count({
-    where: { daaraId, space: "school", deletedAt: null }
-  }), 0);
-
-  const totalSchoolClasses = await fetchSafe(() => prisma.halqa.count({
-    where: { daaraId, space: "school" }
-  }), 0);
-
-  const totalSchoolTeachers = await fetchSafe(() => prisma.user.count({
-    where: { daaraId, space: "school", role: "OUSTAZ", deletedAt: null }
-  }), 0);
+  // Exécution parallèle de toutes les requêtes métriques pour minimiser la latence TTFB
+  const [
+    daara,
+    totalTalibes,
+    totalInternes,
+    totalHalqas,
+    totalSponsorships,
+    hifzRecordsToday,
+    recentHifz,
+    totalSchoolStudents,
+    totalSchoolClasses,
+    totalSchoolTeachers
+  ] = await Promise.all([
+    fetchSafe(() => prisma.daara.findUnique({
+      where: { id: daaraId },
+      select: { name: true }
+    }), null),
+    fetchSafe(() => prisma.talibe.count({
+      where: { daaraId, space: "daara", deletedAt: null }
+    }), 0),
+    fetchSafe(() => prisma.talibe.count({
+      where: { daaraId, space: "daara", status: "INTERNE", deletedAt: null }
+    }), 0),
+    fetchSafe(() => prisma.halqa.count({
+      where: { daaraId, space: "daara" }
+    }), 0),
+    fetchSafe(() => prisma.sponsorship.count({
+      where: { daaraId, status: "ACTIVE" }
+    }), 0),
+    fetchSafe(() => prisma.hifzProgress.count({
+      where: { daaraId }
+    }), 0),
+    fetchSafe(() => prisma.hifzProgress.findMany({
+      where: { daaraId },
+      include: { talibe: true },
+      orderBy: { date: "desc" },
+      take: 6,
+    }), []),
+    fetchSafe(() => prisma.talibe.count({
+      where: { daaraId, space: "school", deletedAt: null }
+    }), 0),
+    fetchSafe(() => prisma.halqa.count({
+      where: { daaraId, space: "school" }
+    }), 0),
+    fetchSafe(() => prisma.user.count({
+      where: { daaraId, space: "school", role: "OUSTAZ", deletedAt: null }
+    }), 0),
+  ]);
 
   return (
     <DashboardWrapperClient 

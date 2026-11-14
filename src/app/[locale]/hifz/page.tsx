@@ -22,41 +22,40 @@ export default async function HifzPage({
   const daaraId = session.user.daaraId;
   if (!daaraId) redirect(`/${locale}/setup`);
 
-  // Fetch Daara info
-  const daara = await prisma.daara.findUnique({
-    where: { id: daaraId }
-  });
-
-  // Fetch all Halqas with their Talibes
-  const halqas = await prisma.halqa.findMany({
-    where: { daaraId },
-    orderBy: { name: "asc" },
-    include: {
-      talibes: {
-        where: { deletedAt: null },
-        include: {
-          hifzRecords: {
-            orderBy: { date: "desc" },
-            take: 1
-          }
-        },
-        orderBy: [{ lastName: "asc" }, { firstName: "asc" }]
+  // Fetch Daara info, Halqas, and Talibes concurrently in parallel
+  const [daara, halqas, talibes] = await Promise.all([
+    prisma.daara.findUnique({
+      where: { id: daaraId },
+      select: { name: true }
+    }),
+    prisma.halqa.findMany({
+      where: { daaraId },
+      orderBy: { name: "asc" },
+      include: {
+        talibes: {
+          where: { deletedAt: null },
+          include: {
+            hifzRecords: {
+              orderBy: { date: "desc" },
+              take: 1
+            }
+          },
+          orderBy: [{ lastName: "asc" }, { firstName: "asc" }]
+        }
       }
-    }
-  });
-
-  // Fetch all Talibes
-  const talibes = await prisma.talibe.findMany({
-    where: { daaraId, deletedAt: null },
-    include: {
-      halqa: true,
-      hifzRecords: {
-        orderBy: { date: "desc" },
-        take: 1
-      }
-    },
-    orderBy: [{ lastName: "asc" }, { firstName: "asc" }]
-  });
+    }),
+    prisma.talibe.findMany({
+      where: { daaraId, deletedAt: null },
+      include: {
+        halqa: true,
+        hifzRecords: {
+          orderBy: { date: "desc" },
+          take: 1
+        }
+      },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }]
+    })
+  ]);
 
   const formattedTalibes: TalibeHifzItem[] = talibes.map((t) => {
     const latestRecord = t.hifzRecords[0];

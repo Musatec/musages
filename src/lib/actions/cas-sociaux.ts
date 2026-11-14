@@ -14,26 +14,26 @@ export async function getSocialCases() {
 
     const space = await getActiveSpace();
 
-    // Récupération des Talibés / Élèves marqués comme Cas Sociaux
-    const socialTalibes = await prisma.talibe.findMany({
-      where: {
-        daaraId,
-        space,
-        deletedAt: null,
-        isSocialCase: true,
-      },
-      include: {
-        halqa: true,
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
-    });
-
-    // Statistiques global espace actif
-    const totalTalibes = await prisma.talibe.count({
-      where: { daaraId, space, deletedAt: null },
-    });
+    // Récupération des Talibés / Élèves marqués comme Cas Sociaux et statistiques en parallèle
+    const [socialTalibes, totalTalibes] = await Promise.all([
+      prisma.talibe.findMany({
+        where: {
+          daaraId,
+          space,
+          deletedAt: null,
+          isSocialCase: true,
+        },
+        include: {
+          halqa: true,
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+      }),
+      prisma.talibe.count({
+        where: { daaraId, space, deletedAt: null },
+      })
+    ]);
 
     const totalSocialCases = socialTalibes.length;
     const totalInternesExempted = socialTalibes.filter(t => t.status === "INTERNE").length;

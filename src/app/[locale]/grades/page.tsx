@@ -25,27 +25,28 @@ export default async function GradesPage({
 
   const isManager = hasAnyRole(session.user.role, DAARA_MANAGER_ROLES);
 
-  // Fetch all halqas for active space
-  const halqasRaw = await prisma.halqa.findMany({
-    where: { daaraId, space },
-    orderBy: { name: "asc" }
-  });
-
-  const allTalibes = await prisma.talibe.findMany({
-    where: { daaraId, space, deletedAt: null },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      matricule: true,
-      halqaId: true,
-      status: true,
-      gender: true,
-      dateOfBirth: true,
-      ...(isManager ? { parentName: true, parentPhone: true } : {}),
-    },
-    orderBy: { firstName: "asc" }
-  });
+  // Fetch halqas and talibes in parallel
+  const [halqasRaw, allTalibes] = await Promise.all([
+    prisma.halqa.findMany({
+      where: { daaraId, space },
+      orderBy: { name: "asc" }
+    }),
+    prisma.talibe.findMany({
+      where: { daaraId, space, deletedAt: null },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        matricule: true,
+        halqaId: true,
+        status: true,
+        gender: true,
+        dateOfBirth: true,
+        ...(isManager ? { parentName: true, parentPhone: true } : {}),
+      },
+      orderBy: { firstName: "asc" }
+    })
+  ]);
 
   const classes = halqasRaw.map(c => ({
     ...c,

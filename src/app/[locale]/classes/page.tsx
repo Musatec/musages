@@ -23,24 +23,26 @@ export default async function ClassesPage({
   if (!daaraId) redirect(`/${locale}/setup`);
   const space = await getActiveSpace();
 
-  // Fetch daara info & all halqas/classes for the active space
-  const daara = await prisma.daara.findUnique({
-    where: { id: daaraId }
-  });
-
-  const halqas = await prisma.halqa.findMany({
-    where: { daaraId, space },
-    orderBy: { name: "asc" },
-    include: {
-      talibes: {
-        where: { deletedAt: null, space },
-        orderBy: [{ lastName: "asc" }, { firstName: "asc" }]
-      },
-      _count: {
-        select: { talibes: { where: { deletedAt: null, space } } }
+  // Fetch daara info & all halqas/classes for the active space in parallel
+  const [daara, halqas] = await Promise.all([
+    prisma.daara.findUnique({
+      where: { id: daaraId },
+      select: { name: true }
+    }),
+    prisma.halqa.findMany({
+      where: { daaraId, space },
+      orderBy: { name: "asc" },
+      include: {
+        talibes: {
+          where: { deletedAt: null, space },
+          orderBy: [{ lastName: "asc" }, { firstName: "asc" }]
+        },
+        _count: {
+          select: { talibes: { where: { deletedAt: null, space } } }
+        }
       }
-    }
-  });
+    })
+  ]);
 
   return (
     <ClassesClient

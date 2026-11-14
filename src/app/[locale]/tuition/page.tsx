@@ -24,21 +24,19 @@ export default async function TuitionPage({
   if (!daaraId) redirect(`/${locale}/setup`);
   const space = await getActiveSpace();
 
-  // Fetch all halqas for active space
-  const halqas = await prisma.halqa.findMany({
-    where: { daaraId, space },
-    orderBy: { name: "asc" }
-  });
-
-  // Fetch all active Talibes/students for active space
-  const talibes = await prisma.talibe.findMany({
-    where: { daaraId, space, deletedAt: null },
-    include: { halqa: true },
-    orderBy: { lastName: "asc" }
-  });
-
-  // Fetch tuition transactions
-  const { transactions } = await getTuitionRecords();
+  // Fetch halqas, talibes, and tuition records in parallel
+  const [halqas, talibes, { transactions }] = await Promise.all([
+    prisma.halqa.findMany({
+      where: { daaraId, space },
+      orderBy: { name: "asc" }
+    }),
+    prisma.talibe.findMany({
+      where: { daaraId, space, deletedAt: null },
+      include: { halqa: true },
+      orderBy: { lastName: "asc" }
+    }),
+    getTuitionRecords()
+  ]);
 
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();

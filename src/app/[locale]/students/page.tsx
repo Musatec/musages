@@ -23,29 +23,29 @@ export default async function StudentsPage({
   if (!daaraId) redirect(`/${locale}/setup`);
   const space = await getActiveSpace();
 
-  // Fetch all halqas/classes for the active space
-  const halqas = await prisma.halqa.findMany({
-    where: { daaraId, space },
-    orderBy: { name: "asc" }
-  });
-
-  // Fetch all talibes/students for the active space
+  // Fetch halqas and talibes concurrently in parallel
   const talibeWhere = { daaraId, space, deletedAt: null };
-  const talibes = hasAnyRole(session.user.role, DAARA_MANAGER_ROLES)
-    ? await prisma.talibe.findMany({
-        where: talibeWhere,
-        include: { halqa: true },
-        orderBy: { lastName: "asc" },
-      })
-    : await prisma.talibe.findMany({
-        where: talibeWhere,
-        select: {
-          id: true, matricule: true, firstName: true, lastName: true, gender: true,
-          status: true, halqaId: true, parentName: true, parentPhone: true, createdAt: true,
-          halqa: { select: { id: true, name: true, level: true, oustazName: true } },
-        },
-        orderBy: { lastName: "asc" },
-      });
+  const [halqas, talibes] = await Promise.all([
+    prisma.halqa.findMany({
+      where: { daaraId, space },
+      orderBy: { name: "asc" }
+    }),
+    hasAnyRole(session.user.role, DAARA_MANAGER_ROLES)
+      ? prisma.talibe.findMany({
+          where: talibeWhere,
+          include: { halqa: true },
+          orderBy: { lastName: "asc" },
+        })
+      : prisma.talibe.findMany({
+          where: talibeWhere,
+          select: {
+            id: true, matricule: true, firstName: true, lastName: true, gender: true,
+            status: true, halqaId: true, parentName: true, parentPhone: true, createdAt: true,
+            halqa: { select: { id: true, name: true, level: true, oustazName: true } },
+          },
+          orderBy: { lastName: "asc" },
+        })
+  ]);
 
   return (
     <StudentsClient 

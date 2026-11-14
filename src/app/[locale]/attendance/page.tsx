@@ -36,66 +36,65 @@ export default async function AttendancePage({
     ...(isManager ? { parentName: true, parentPhone: true } : {}),
   } as const;
 
-  // Fetch all halqas and their active talibes for the active space
-  const halqas = await prisma.halqa.findMany({
-    where: { daaraId, space },
-    orderBy: { name: "asc" },
-    include: { 
-      talibes: {
-        where: { deletedAt: null, space },
-        select: talibeSelect,
-        orderBy: { firstName: "asc" }
-      } 
-    }
-  });
-
-  // Fetch today's attendances
+  // Date boundaries
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date();
   endOfDay.setHours(23, 59, 59, 999);
 
-  const todaysAttendances = await prisma.attendance.findMany({
-    where: {
-      daaraId,
-      space,
-      date: {
-        gte: startOfDay,
-        lte: endOfDay,
-      }
-    },
-    include: {
-      talibe: {
-        select: {
-          ...talibeSelect,
-          halqa: true,
-        }
-      }
-    }
-  });
-
-  // Fetch recent absences/delays for statistics
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const recentIssues = await prisma.attendance.findMany({
-    where: {
-      daaraId,
-      space,
-      date: { gte: thirtyDaysAgo },
-      status: { in: ["ABSENT", "RETARD"] }
-    },
-    include: {
-      talibe: {
-        select: {
-          ...talibeSelect,
-          halqa: true,
+  // Fetch halqas, today's attendances, and recent issues in parallel
+  const [halqas, todaysAttendances, recentIssues] = await Promise.all([
+    prisma.halqa.findMany({
+      where: { daaraId, space },
+      orderBy: { name: "asc" },
+      include: { 
+        talibes: {
+          where: { deletedAt: null, space },
+          select: talibeSelect,
+          orderBy: { firstName: "asc" }
+        } 
+      }
+    }),
+    prisma.attendance.findMany({
+      where: {
+        daaraId,
+        space,
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        }
+      },
+      include: {
+        talibe: {
+          select: {
+            ...talibeSelect,
+            halqa: true,
+          }
         }
       }
-    },
-    orderBy: { date: "desc" },
-    take: 50
-  });
+    }),
+    prisma.attendance.findMany({
+      where: {
+        daaraId,
+        space,
+        date: { gte: thirtyDaysAgo },
+        status: { in: ["ABSENT", "RETARD"] }
+      },
+      include: {
+        talibe: {
+          select: {
+            ...talibeSelect,
+            halqa: true,
+          }
+        }
+      },
+      orderBy: { date: "desc" },
+      take: 50
+    })
+  ]);
 
   return (
     <AttendanceClient 
