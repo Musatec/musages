@@ -44,8 +44,7 @@ interface GradesClientProps {
 const TERMS = [
   { value: "TRIMESTRE_1", labelFr: "1ère Composition (Trimestre 1)", labelAr: "الاختبار 1 (الفصل الأول)", compoKey: "c1" },
   { value: "TRIMESTRE_2", labelFr: "2ème Composition (Trimestre 2)", labelAr: "الاختبار 2 (الفصل الثاني)", compoKey: "c2" },
-  { value: "TRIMESTRE_3", labelFr: "3ème Composition & Bilan Général", labelAr: "الاختبار 3 والتقرير العام", compoKey: "c3" },
-  { value: "ALL", labelFr: "Toutes les Compositions (Vue Complète)", labelAr: "كل الفصول (عرض سنوي)", compoKey: "all" },
+  { value: "TRIMESTRE_3", labelFr: "3ème Composition & Bilan Général (Les 3 Compositions)", labelAr: "الاختبار 3 والتقرير العام (الفصول الثلاثة)", compoKey: "c3" },
 ];
 
 const SUBJECT_OPTIONS = [
@@ -185,23 +184,14 @@ const OfficialReportCard = ({
   const student = data.student || {};
   const className = student.class?.name || reportClass?.name || "CE1";
 
-  // Check if each column is visible depending on the selected composition
-  const isColVisible = (compo: "c1" | "c2" | "c3") => {
-    if (highlightPeriod === "TRIMESTRE_1") return compo === "c1";
-    if (highlightPeriod === "TRIMESTRE_2") return compo === "c1" || compo === "c2";
-    // For TRIMESTRE_3 or ALL
-    return true;
-  };
-
-  // Only the 3rd composition or full annual view includes the General Annual Report
-  const isAnnualVisible = highlightPeriod === "TRIMESTRE_3" || highlightPeriod === "ALL";
+  // Check which mode is active:
+  // ONLY TRIMESTRE_3 displays all three compositions and the Annual General Report
+  const isThreeCompos = highlightPeriod === "TRIMESTRE_3" || highlightPeriod === "ALL";
+  const isCompo1Only = highlightPeriod === "TRIMESTRE_1";
+  const isCompo2Only = highlightPeriod === "TRIMESTRE_2";
 
   const renderCell = (rIdx: number, field: "notesFr" | "notesAr", compo: "c1" | "c2" | "c3", max: number, hasVal: boolean) => {
     if (!hasVal) {
-      return <span className="text-slate-400 font-bold">—</span>;
-    }
-
-    if (!isColVisible(compo)) {
       return <span className="text-slate-400 font-bold">—</span>;
     }
 
@@ -234,6 +224,38 @@ const OfficialReportCard = ({
     );
   };
 
+  const renderFrCells = (rIdx: number, max: number) => {
+    if (isThreeCompos) {
+      return (
+        <>
+          <td className="border-r border-slate-950 p-1">{renderCell(rIdx, "notesFr", "c1", max, true)}</td>
+          <td className="border-r border-slate-950 p-1">{renderCell(rIdx, "notesFr", "c2", max, true)}</td>
+          <td className="border-r-2 border-slate-950 p-1">{renderCell(rIdx, "notesFr", "c3", max, true)}</td>
+        </>
+      );
+    }
+    if (isCompo1Only) {
+      return <td className="border-r-2 border-slate-950 p-1">{renderCell(rIdx, "notesFr", "c1", max, true)}</td>;
+    }
+    return <td className="border-r-2 border-slate-950 p-1">{renderCell(rIdx, "notesFr", "c2", max, true)}</td>;
+  };
+
+  const renderArCells = (rIdx: number, max: number, hasAr: boolean) => {
+    if (isThreeCompos) {
+      return (
+        <>
+          <td className="border-r border-slate-950 p-1">{renderCell(rIdx, "notesAr", "c1", max, hasAr)}</td>
+          <td className="border-r border-slate-950 p-1">{renderCell(rIdx, "notesAr", "c2", max, hasAr)}</td>
+          <td className="border-r-2 border-slate-950 p-1">{renderCell(rIdx, "notesAr", "c3", max, hasAr)}</td>
+        </>
+      );
+    }
+    if (isCompo1Only) {
+      return <td className="border-r-2 border-slate-950 p-1">{renderCell(rIdx, "notesAr", "c1", max, hasAr)}</td>;
+    }
+    return <td className="border-r-2 border-slate-950 p-1">{renderCell(rIdx, "notesAr", "c2", max, hasAr)}</td>;
+  };
+
   return (
     <div className={cn(
       "p-3 sm:p-5 md:p-8 rounded-xl sm:rounded-2xl shadow-xl mx-auto w-full max-w-[950px] border border-slate-400 font-sans relative text-slate-950 print:border-none print:shadow-none print:p-2 print:max-w-none print:m-0",
@@ -258,19 +280,19 @@ const OfficialReportCard = ({
           <h1 className="text-sm sm:text-base md:text-lg font-black uppercase tracking-wider text-slate-950">
             BULLETIN DE NOTES
           </h1>
-          {highlightPeriod === "TRIMESTRE_1" && (
+          {isCompo1Only && (
             <span className="text-[9px] sm:text-[10px] font-black bg-emerald-800 text-white px-2 py-0.5 rounded uppercase">
               1ère Composition
             </span>
           )}
-          {highlightPeriod === "TRIMESTRE_2" && (
+          {isCompo2Only && (
             <span className="text-[9px] sm:text-[10px] font-black bg-blue-800 text-white px-2 py-0.5 rounded uppercase">
               2ème Composition
             </span>
           )}
-          {highlightPeriod === "TRIMESTRE_3" && (
+          {isThreeCompos && (
             <span className="text-[9px] sm:text-[10px] font-black bg-purple-800 text-white px-2 py-0.5 rounded uppercase">
-              3ème Composition & Bilan Général
+              3ème Composition & Bilan Général (Fin d'Année)
             </span>
           )}
         </div>
@@ -301,21 +323,26 @@ const OfficialReportCard = ({
       </div>
 
       {/* Indication de défilement horizontal pour mobile */}
-      <div className="flex items-center justify-end text-[10px] text-slate-700 sm:hidden mb-1 font-semibold italic gap-1 print:hidden">
-        <MoveHorizontal className="w-3 h-3 text-emerald-800 animate-pulse" />
-        <span>Défiler le tableau horizontalement ↔️</span>
-      </div>
+      {isThreeCompos && (
+        <div className="flex items-center justify-end text-[10px] text-slate-700 sm:hidden mb-1 font-semibold italic gap-1 print:hidden">
+          <MoveHorizontal className="w-3 h-3 text-emerald-800 animate-pulse" />
+          <span>Défiler le tableau horizontalement ↔️</span>
+        </div>
+      )}
 
-      {/* 4. LA GRANDE GRILLE BILINGUE FRANÇAIS / ARABE (10 COLONNES) */}
+      {/* 4. LA GRANDE GRILLE BILINGUE FRANÇAIS / ARABE */}
       <div className="w-full overflow-x-auto touch-pan-x -webkit-overflow-scrolling-touch border-2 border-slate-950 mb-3 bg-white/40 shadow-inner">
-        <table className="w-full min-w-[700px] border-collapse text-center text-[10px] sm:text-[11px] leading-tight font-sans">
+        <table className={cn(
+          "w-full border-collapse text-center text-[10px] sm:text-[11px] leading-tight font-sans",
+          isThreeCompos ? "min-w-[700px]" : "min-w-[480px]"
+        )}>
           <thead>
             {/* Ligne d'en-tête 1 */}
             <tr className="border-b-2 border-slate-950 font-black uppercase text-[9px] sm:text-[11px]">
               <th rowSpan={2} className="border-r-2 border-slate-950 p-1 w-24 sm:w-28 bg-slate-900/5">Domaine</th>
               <th rowSpan={2} className="border-r-2 border-slate-950 p-1 w-20 sm:w-24 bg-slate-900/5">Discipline</th>
-              <th colSpan={3} className="border-r-2 border-slate-950 p-1 bg-slate-900/5">Notes</th>
-              <th colSpan={3} className="border-r-2 border-slate-950 p-1 font-arabic bg-slate-900/5">الدرجات</th>
+              <th colSpan={isThreeCompos ? 3 : 1} className="border-r-2 border-slate-950 p-1 bg-slate-900/5">Notes</th>
+              <th colSpan={isThreeCompos ? 3 : 1} className="border-r-2 border-slate-950 p-1 font-arabic bg-slate-900/5">الدرجات</th>
               <th rowSpan={2} className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 font-arabic bg-slate-900/5">
                 <div>المجال</div>
                 <div className="font-sans text-[8px] sm:text-[9px] font-bold">Domaine</div>
@@ -327,12 +354,26 @@ const OfficialReportCard = ({
             </tr>
             {/* Ligne d'en-tête 2 */}
             <tr className="border-b-2 border-slate-950 font-bold text-[8px] sm:text-[10px]">
-              <th className="border-r border-slate-950 p-1 w-11 sm:w-12 bg-slate-900/5 font-black">1e Compo</th>
-              <th className={cn("border-r border-slate-950 p-1 w-11 sm:w-12", isColVisible("c2") ? "font-black" : "opacity-50")}>2è Compo</th>
-              <th className={cn("border-r-2 border-slate-950 p-1 w-11 sm:w-12", isColVisible("c3") ? "font-black" : "opacity-50")}>3è Compo</th>
-              <th className="border-r border-slate-950 p-1 w-11 sm:w-12 font-arabic bg-slate-900/5 font-black">الاختبار 1</th>
-              <th className={cn("border-r border-slate-950 p-1 w-11 sm:w-12 font-arabic", isColVisible("c2") ? "font-black" : "opacity-50")}>الاختبار 2</th>
-              <th className={cn("border-r-2 border-slate-950 p-1 w-11 sm:w-12 font-arabic", isColVisible("c3") ? "font-black" : "opacity-50")}>الاختبار 3</th>
+              {isThreeCompos ? (
+                <>
+                  <th className="border-r border-slate-950 p-1 w-11 sm:w-12 bg-slate-900/5 font-black">1e Compo</th>
+                  <th className="border-r border-slate-950 p-1 w-11 sm:w-12 font-black">2è Compo</th>
+                  <th className="border-r-2 border-slate-950 p-1 w-11 sm:w-12 font-black">3è Compo</th>
+                  <th className="border-r border-slate-950 p-1 w-11 sm:w-12 font-arabic bg-slate-900/5 font-black">الاختبار 1</th>
+                  <th className="border-r border-slate-950 p-1 w-11 sm:w-12 font-arabic font-black">الاختبار 2</th>
+                  <th className="border-r-2 border-slate-950 p-1 w-11 sm:w-12 font-arabic font-black">الاختبار 3</th>
+                </>
+              ) : isCompo1Only ? (
+                <>
+                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 bg-slate-900/5 font-black">1e Compo</th>
+                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 font-arabic bg-slate-900/5 font-black">الاختبار 1</th>
+                </>
+              ) : (
+                <>
+                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 bg-slate-900/5 font-black">2è Compo</th>
+                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 font-arabic bg-slate-900/5 font-black">الاختبار 2</th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -342,12 +383,8 @@ const OfficialReportCard = ({
                 Langue et<br />Communication
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Lecture</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(0, "notesFr", "c1", rows[0]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(0, "notesFr", "c2", rows[0]?.maxFr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(0, "notesFr", "c3", rows[0]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(0, "notesAr", "c1", rows[0]?.maxAr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(0, "notesAr", "c2", rows[0]?.maxAr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(0, "notesAr", "c3", rows[0]?.maxAr, true)}</td>
+              {renderFrCells(0, rows[0]?.maxFr)}
+              {renderArCells(0, rows[0]?.maxAr, true)}
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الموارد</td>
               <td rowSpan={4} className="p-1 font-bold align-middle bg-slate-900/5 leading-snug">
                 <div className="font-arabic text-xs sm:text-sm text-slate-950">اللغة والتواصل</div>
@@ -358,24 +395,16 @@ const OfficialReportCard = ({
             {/* Row 1: Ressources */}
             <tr className="border-b border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Ressources</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(1, "notesFr", "c1", rows[1]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(1, "notesFr", "c2", rows[1]?.maxFr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(1, "notesFr", "c3", rows[1]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(1, "notesAr", "c1", rows[1]?.maxAr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(1, "notesAr", "c2", rows[1]?.maxAr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(1, "notesAr", "c3", rows[1]?.maxAr, true)}</td>
+              {renderFrCells(1, rows[1]?.maxFr)}
+              {renderArCells(1, rows[1]?.maxAr, true)}
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الموارد</td>
             </tr>
 
             {/* Row 2: Compétence */}
             <tr className="border-b-2 border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Compétence</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(2, "notesFr", "c1", rows[2]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(2, "notesFr", "c2", rows[2]?.maxFr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(2, "notesFr", "c3", rows[2]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(2, "notesAr", "c1", rows[2]?.maxAr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(2, "notesAr", "c2", rows[2]?.maxAr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(2, "notesAr", "c3", rows[2]?.maxAr, true)}</td>
+              {renderFrCells(2, rows[2]?.maxFr)}
+              {renderArCells(2, rows[2]?.maxAr, true)}
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الكفاءة</td>
             </tr>
 
@@ -385,24 +414,16 @@ const OfficialReportCard = ({
                 Mathématiques
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Ressources</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(3, "notesFr", "c1", rows[3]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(3, "notesFr", "c2", rows[3]?.maxFr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(3, "notesFr", "c3", rows[3]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(3, "notesAr", "c1", rows[3]?.maxAr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(3, "notesAr", "c2", rows[3]?.maxAr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(3, "notesAr", "c3", rows[3]?.maxAr, true)}</td>
+              {renderFrCells(3, rows[3]?.maxFr)}
+              {renderArCells(3, rows[3]?.maxAr, true)}
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الكفاءة</td>
             </tr>
 
             {/* Row 4: Mathématiques / Compétence */}
             <tr className="border-b-2 border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Compétence</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(4, "notesFr", "c1", rows[4]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(4, "notesFr", "c2", rows[4]?.maxFr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(4, "notesFr", "c3", rows[4]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(4, "notesAr", "c1", 0, false)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(4, "notesAr", "c2", 0, false)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(4, "notesAr", "c3", 0, false)}</td>
+              {renderFrCells(4, rows[4]?.maxFr)}
+              {renderArCells(4, 0, false)}
               <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
               <td className="p-1 text-slate-400">—</td>
             </tr>
@@ -413,12 +434,8 @@ const OfficialReportCard = ({
                 Découverte du<br />Monde
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Ressources</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(5, "notesFr", "c1", rows[5]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(5, "notesFr", "c2", rows[5]?.maxFr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(5, "notesFr", "c3", rows[5]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(5, "notesAr", "c1", rows[5]?.maxAr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(5, "notesAr", "c2", rows[5]?.maxAr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(5, "notesAr", "c3", rows[5]?.maxAr, true)}</td>
+              {renderFrCells(5, rows[5]?.maxFr)}
+              {renderArCells(5, rows[5]?.maxAr, true)}
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الموارد</td>
               <td rowSpan={4} className="p-1 font-bold align-middle bg-slate-900/5 leading-snug">
                 <div className="font-arabic text-xs sm:text-sm text-slate-950">التربية الدينية</div>
@@ -429,12 +446,8 @@ const OfficialReportCard = ({
             {/* Row 6: Compétence */}
             <tr className="border-b-2 border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Compétence</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(6, "notesFr", "c1", rows[6]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(6, "notesFr", "c2", rows[6]?.maxFr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(6, "notesFr", "c3", rows[6]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(6, "notesAr", "c1", rows[6]?.maxAr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(6, "notesAr", "c2", rows[6]?.maxAr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(6, "notesAr", "c3", rows[6]?.maxAr, true)}</td>
+              {renderFrCells(6, rows[6]?.maxFr)}
+              {renderArCells(6, rows[6]?.maxAr, true)}
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الموارد</td>
             </tr>
 
@@ -444,24 +457,16 @@ const OfficialReportCard = ({
                 Développement<br />durable
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Ressources</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(7, "notesFr", "c1", rows[7]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(7, "notesFr", "c2", rows[7]?.maxFr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(7, "notesFr", "c3", rows[7]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(7, "notesAr", "c1", rows[7]?.maxAr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(7, "notesAr", "c2", rows[7]?.maxAr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(7, "notesAr", "c3", rows[7]?.maxAr, true)}</td>
+              {renderFrCells(7, rows[7]?.maxFr)}
+              {renderArCells(7, rows[7]?.maxAr, true)}
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الكفاءة</td>
             </tr>
 
             {/* Row 8: Compétence */}
             <tr className="border-b-2 border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Compétence</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(8, "notesFr", "c1", rows[8]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(8, "notesFr", "c2", rows[8]?.maxFr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(8, "notesFr", "c3", rows[8]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(8, "notesAr", "c1", rows[8]?.maxAr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(8, "notesAr", "c2", rows[8]?.maxAr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(8, "notesAr", "c3", rows[8]?.maxAr, true)}</td>
+              {renderFrCells(8, rows[8]?.maxFr)}
+              {renderArCells(8, rows[8]?.maxAr, true)}
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الكفاءة</td>
             </tr>
 
@@ -471,12 +476,8 @@ const OfficialReportCard = ({
                 EPSA
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Art Plastique</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(9, "notesFr", "c1", rows[9]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(9, "notesFr", "c2", rows[9]?.maxFr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(9, "notesFr", "c3", rows[9]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(9, "notesAr", "c1", 0, false)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(9, "notesAr", "c2", 0, false)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(9, "notesAr", "c3", 0, false)}</td>
+              {renderFrCells(9, rows[9]?.maxFr)}
+              {renderArCells(9, 0, false)}
               <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
               <td className="p-1 text-slate-400">—</td>
             </tr>
@@ -484,12 +485,8 @@ const OfficialReportCard = ({
             {/* Row 10: Edu. Musicale */}
             <tr className="border-b-2 border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Edu. Musicale</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(10, "notesFr", "c1", rows[10]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(10, "notesFr", "c2", rows[10]?.maxFr, true)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(10, "notesFr", "c3", rows[10]?.maxFr, true)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(10, "notesAr", "c1", 0, false)}</td>
-              <td className="border-r border-slate-950 p-1">{renderCell(10, "notesAr", "c2", 0, false)}</td>
-              <td className="border-r-2 border-slate-950 p-1">{renderCell(10, "notesAr", "c3", 0, false)}</td>
+              {renderFrCells(10, rows[10]?.maxFr)}
+              {renderArCells(10, 0, false)}
               <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
               <td className="p-1 text-slate-400">—</td>
             </tr>
@@ -497,118 +494,156 @@ const OfficialReportCard = ({
             {/* TOTAL */}
             <tr className="border-b border-slate-950 font-black text-[10px] sm:text-xs bg-slate-900/10">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">TOTAL</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-black text-emerald-950">
-                {summary.totalFr?.c1} / {summary.maxTotalFr}
-              </td>
-              <td className="border-r border-slate-950 p-1 font-mono">
-                {isColVisible("c2") ? `${summary.totalFr?.c2} / ${summary.maxTotalFr}` : "—"}
-              </td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono">
-                {isColVisible("c3") ? `${summary.totalFr?.c3} / ${summary.maxTotalFr}` : "—"}
-              </td>
-              <td className="border-r border-slate-950 p-1 font-mono font-black text-emerald-950">
-                {summary.totalAr?.c1} / {summary.maxTotalAr}
-              </td>
-              <td className="border-r border-slate-950 p-1 font-mono">
-                {isColVisible("c2") ? `${summary.totalAr?.c2} / ${summary.maxTotalAr}` : "—"}
-              </td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono">
-                {isColVisible("c3") ? `${summary.totalAr?.c3} / ${summary.maxTotalAr}` : "—"}
-              </td>
+              {isThreeCompos ? (
+                <>
+                  <td className="border-r border-slate-950 p-1 font-mono font-black text-emerald-950">{summary.totalFr?.c1} / {summary.maxTotalFr}</td>
+                  <td className="border-r border-slate-950 p-1 font-mono font-black text-blue-950">{summary.totalFr?.c2} / {summary.maxTotalFr}</td>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-black text-purple-950">{summary.totalFr?.c3} / {summary.maxTotalFr}</td>
+                  <td className="border-r border-slate-950 p-1 font-mono font-black text-emerald-950">{summary.totalAr?.c1} / {summary.maxTotalAr}</td>
+                  <td className="border-r border-slate-950 p-1 font-mono font-black text-blue-950">{summary.totalAr?.c2} / {summary.maxTotalAr}</td>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-black text-purple-950">{summary.totalAr?.c3} / {summary.maxTotalAr}</td>
+                </>
+              ) : isCompo1Only ? (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-black text-emerald-950">{summary.totalFr?.c1} / {summary.maxTotalFr}</td>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-black text-emerald-950">{summary.totalAr?.c1} / {summary.maxTotalAr}</td>
+                </>
+              ) : (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-black text-blue-950">{summary.totalFr?.c2} / {summary.maxTotalFr}</td>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-black text-blue-950">{summary.totalAr?.c2} / {summary.maxTotalAr}</td>
+                </>
+              )}
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">المجموع</td>
             </tr>
 
             {/* MOYENNE */}
             <tr className="border-b border-slate-950 font-black text-[10px] sm:text-xs bg-slate-900/5">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">MOYENNE</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold text-emerald-900">
-                {summary.moyFr?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span>
-              </td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">
-                {isColVisible("c2") ? <>{summary.moyFr?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
-              </td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">
-                {isColVisible("c3") ? <>{summary.moyFr?.c3} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
-              </td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold text-emerald-900">
-                {summary.moyAr?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span>
-              </td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">
-                {isColVisible("c2") ? <>{summary.moyAr?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
-              </td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">
-                {isColVisible("c3") ? <>{summary.moyAr?.c3} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
-              </td>
+              {isThreeCompos ? (
+                <>
+                  <td className="border-r border-slate-950 p-1 font-mono font-bold text-emerald-900">{summary.moyFr?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r border-slate-950 p-1 font-mono font-bold text-blue-900">{summary.moyFr?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-bold text-purple-900">{summary.moyFr?.c3} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r border-slate-950 p-1 font-mono font-bold text-emerald-900">{summary.moyAr?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r border-slate-950 p-1 font-mono font-bold text-blue-900">{summary.moyAr?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-bold text-purple-900">{summary.moyAr?.c3} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                </>
+              ) : isCompo1Only ? (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-bold text-emerald-900">{summary.moyFr?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-bold text-emerald-900">{summary.moyAr?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                </>
+              ) : (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-bold text-blue-900">{summary.moyFr?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-bold text-blue-900">{summary.moyAr?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                </>
+              )}
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">المعدل</td>
             </tr>
 
             {/* RANG */}
             <tr className="border-b-2 border-slate-950 font-bold text-[10px] sm:text-xs">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">RANG</td>
-              <td className="border-r border-slate-950 p-1">{summary.rankFr?.c1}ème Élèves</td>
-              <td className="border-r border-slate-950 p-1">
-                {isColVisible("c2") ? `${summary.rankFr?.c2}ème Élèves` : "—"}
-              </td>
-              <td className="border-r-2 border-slate-950 p-1">
-                {isColVisible("c3") ? `${summary.rankFr?.c3}ème Élèves` : "—"}
-              </td>
-              <td className="border-r border-slate-950 p-1 font-arabic">{summary.rankAr?.c1} تلميذاً</td>
-              <td className="border-r border-slate-950 p-1 font-arabic">
-                {isColVisible("c2") ? `${summary.rankAr?.c2} تلميذاً` : "—"}
-              </td>
-              <td className="border-r-2 border-slate-950 p-1 font-arabic">
-                {isColVisible("c3") ? `${summary.rankAr?.c3} تلميذاً` : "—"}
-              </td>
+              {isThreeCompos ? (
+                <>
+                  <td className="border-r border-slate-950 p-1">{summary.rankFr?.c1}ème Élèves</td>
+                  <td className="border-r border-slate-950 p-1">{summary.rankFr?.c2}ème Élèves</td>
+                  <td className="border-r-2 border-slate-950 p-1">{summary.rankFr?.c3}ème Élèves</td>
+                  <td className="border-r border-slate-950 p-1 font-arabic">{summary.rankAr?.c1} تلميذاً</td>
+                  <td className="border-r border-slate-950 p-1 font-arabic">{summary.rankAr?.c2} تلميذاً</td>
+                  <td className="border-r-2 border-slate-950 p-1 font-arabic">{summary.rankAr?.c3} تلميذاً</td>
+                </>
+              ) : isCompo1Only ? (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-bold">{summary.rankFr?.c1}ème Élèves</td>
+                  <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">{summary.rankAr?.c1} تلميذاً</td>
+                </>
+              ) : (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-bold">{summary.rankFr?.c2}ème Élèves</td>
+                  <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">{summary.rankAr?.c2} تلميذاً</td>
+                </>
+              )}
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">الترتيب</td>
             </tr>
 
             {/* TOTAL GENERAL */}
             <tr className="border-b border-slate-950 font-black text-[10px] sm:text-xs bg-slate-900/10">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">TOTAL GENERAL</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-black text-emerald-950">{summary.totalGen?.c1}</td>
-              <td className="border-r border-slate-950 p-1 font-mono">
-                {isColVisible("c2") ? summary.totalGen?.c2 : "—"}
-              </td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono">
-                {isColVisible("c3") ? summary.totalGen?.c3 : "—"}
-              </td>
-              <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
-              <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
-              <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+              {isThreeCompos ? (
+                <>
+                  <td className="border-r border-slate-950 p-1 font-mono font-black text-emerald-950">{summary.totalGen?.c1}</td>
+                  <td className="border-r border-slate-950 p-1 font-mono font-black text-blue-950">{summary.totalGen?.c2}</td>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-black text-purple-950">{summary.totalGen?.c3}</td>
+                  <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
+                  <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
+                  <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+                </>
+              ) : isCompo1Only ? (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-black text-emerald-950">{summary.totalGen?.c1}</td>
+                  <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+                </>
+              ) : (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono font-black text-blue-950">{summary.totalGen?.c2}</td>
+                  <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+                </>
+              )}
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">المجموع العام</td>
             </tr>
 
             {/* MOYENNE GENERALE */}
             <tr className="border-b border-slate-950 font-black text-[10px] sm:text-xs bg-slate-900/5">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">MOYENNE GENERAL</td>
-              <td className="border-r border-slate-950 p-1 font-mono text-emerald-950 font-black bg-emerald-600/15">
-                {summary.moyGen?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span>
-              </td>
-              <td className="border-r border-slate-950 p-1 font-mono text-emerald-950 font-black">
-                {isColVisible("c2") ? <>{summary.moyGen?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
-              </td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono text-emerald-950 font-black">
-                {isColVisible("c3") ? <>{summary.moyGen?.c3} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
-              </td>
-              <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
-              <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
-              <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+              {isThreeCompos ? (
+                <>
+                  <td className="border-r border-slate-950 p-1 font-mono text-emerald-950 font-black bg-emerald-600/15">{summary.moyGen?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r border-slate-950 p-1 font-mono text-emerald-950 font-black bg-blue-600/15">{summary.moyGen?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono text-emerald-950 font-black bg-purple-600/15">{summary.moyGen?.c3} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
+                  <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
+                  <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+                </>
+              ) : isCompo1Only ? (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono text-emerald-950 font-black bg-emerald-600/15">{summary.moyGen?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+                </>
+              ) : (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-mono text-emerald-950 font-black bg-blue-600/15">{summary.moyGen?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></td>
+                  <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+                </>
+              )}
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">المعدل العام</td>
             </tr>
 
             {/* RANG GENERAL */}
             <tr className="border-b-2 border-slate-950 font-bold text-[10px] sm:text-xs">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">RANG GENERAL</td>
-              <td className="border-r border-slate-950 p-1 font-black">{summary.rankGen?.c1}ème Élèves</td>
-              <td className="border-r border-slate-950 p-1">
-                {isColVisible("c2") ? `${summary.rankGen?.c2}ème Élèves` : "—"}
-              </td>
-              <td className="border-r-2 border-slate-950 p-1">
-                {isColVisible("c3") ? `${summary.rankGen?.c3}ème Élèves` : "—"}
-              </td>
-              <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
-              <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
-              <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+              {isThreeCompos ? (
+                <>
+                  <td className="border-r border-slate-950 p-1 font-black">{summary.rankGen?.c1}ème Élèves</td>
+                  <td className="border-r border-slate-950 p-1 font-black">{summary.rankGen?.c2}ème Élèves</td>
+                  <td className="border-r-2 border-slate-950 p-1 font-black">{summary.rankGen?.c3}ème Élèves</td>
+                  <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
+                  <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
+                  <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+                </>
+              ) : isCompo1Only ? (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-black">{summary.rankGen?.c1}ème Élèves</td>
+                  <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+                </>
+              ) : (
+                <>
+                  <td className="border-r-2 border-slate-950 p-1 font-black">{summary.rankGen?.c2}ème Élèves</td>
+                  <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+                </>
+              )}
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">الترتيب العام</td>
             </tr>
 
@@ -617,159 +652,174 @@ const OfficialReportCard = ({
       </div>
 
       {/* 5. BILAN ANNUEL (BLOC DOUBLE : FRANÇAIS & ARABE) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3 mb-4 text-[10px] sm:text-xs font-sans">
-        
-        {/* Cartouche Gauche : Bilan Annuel Français */}
-        <div className="border-2 border-slate-950 p-2 sm:p-2.5 space-y-1 sm:space-y-1.5 bg-white/50">
-          <div className="flex justify-between border-b border-slate-800 pb-1">
-            <span className="font-extrabold uppercase">TOTAL ANNUELLE :</span>
-            <span className="font-mono font-black text-xs sm:text-sm">
-              {isAnnualVisible ? `${summary.annual?.totalPts} pts` : "—"}
-            </span>
-          </div>
-          <div className="flex justify-between border-b border-slate-800 pb-1">
-            <span className="font-extrabold uppercase">MOY. ANNUELLE :</span>
-            <span className="font-mono font-black text-xs sm:text-sm text-emerald-950">
-              {isAnnualVisible ? `${summary.annual?.moyenne} / 10` : "—"}
-            </span>
-          </div>
-          <div className="flex justify-between border-b border-slate-800 pb-1">
-            <span className="font-extrabold uppercase">RANG ANNUELLE :</span>
-            <span className="font-black">
-              {isAnnualVisible ? `${summary.annual?.rank}ème Élèves` : "—"}
-            </span>
-          </div>
-          <div className="flex justify-between border-b border-slate-800 pb-1">
-            <span className="font-extrabold uppercase">Appréciations :</span>
-            <span className="font-bold italic">
-              {isAnnualVisible 
-                ? (summary.annual?.appreciation || "Travail passable") 
-                : (highlightPeriod === "TRIMESTRE_1" ? "Résultats de la 1ère composition" : "Résultats de la 2ème composition")}
-            </span>
-          </div>
-          <div className="pt-1 flex items-center justify-between font-bold">
-            <span className="uppercase font-black text-[10px] sm:text-[11px]">
-              Décision du conseil {isAnnualVisible ? ":" : "(fin d'année) :"}
-            </span>
-            <div className="flex items-center gap-3 sm:gap-4">
-              <label 
-                className={cn(
-                  "flex items-center gap-1.5", 
-                  isEditing && isAnnualVisible ? "cursor-pointer" : "cursor-default"
-                )}
-                onClick={() => {
-                  if (isEditing && isAnnualVisible) {
-                    onDecisionChange?.("Passe");
-                  }
-                }}
-              >
-                <span className={cn(
-                  "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
-                  (isAnnualVisible && summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
-                )}>
-                  {isAnnualVisible && summary.annual?.isPassing ? "✓" : ""}
-                </span>
-                <span>Passe</span>
-              </label>
-              <label 
-                className={cn(
-                  "flex items-center gap-1.5", 
-                  isEditing && isAnnualVisible ? "cursor-pointer" : "cursor-default"
-                )}
-                onClick={() => {
-                  if (isEditing && isAnnualVisible) {
-                    onDecisionChange?.("Redouble");
-                  }
-                }}
-              >
-                <span className={cn(
-                  "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
-                  (isAnnualVisible && !summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
-                )}>
-                  {isAnnualVisible && !summary.annual?.isPassing ? "✓" : ""}
-                </span>
-                <span>Redouble</span>
-              </label>
+      {/* SEULE LA 3ÈME COMPOSITION (FIN D'ANNÉE) AFFICHE CE BILAN GÉNÉRAL */}
+      {isThreeCompos ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3 mb-4 text-[10px] sm:text-xs font-sans">
+          
+          {/* Cartouche Gauche : Bilan Annuel Français */}
+          <div className="border-2 border-slate-950 p-2 sm:p-2.5 space-y-1 sm:space-y-1.5 bg-white/50">
+            <div className="flex justify-between border-b border-slate-800 pb-1">
+              <span className="font-extrabold uppercase">TOTAL ANNUELLE :</span>
+              <span className="font-mono font-black text-xs sm:text-sm">
+                {summary.annual?.totalPts} pts
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-1">
+              <span className="font-extrabold uppercase">MOY. ANNUELLE :</span>
+              <span className="font-mono font-black text-xs sm:text-sm text-emerald-950">
+                {summary.annual?.moyenne} / 10
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-1">
+              <span className="font-extrabold uppercase">RANG ANNUELLE :</span>
+              <span className="font-black">
+                {summary.annual?.rank}ème Élèves
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-1">
+              <span className="font-extrabold uppercase">Appréciations :</span>
+              <span className="font-bold italic">
+                {summary.annual?.appreciation || "Travail passable"}
+              </span>
+            </div>
+            <div className="pt-1 flex items-center justify-between font-bold">
+              <span className="uppercase font-black text-[10px] sm:text-[11px]">
+                Décision du conseil :
+              </span>
+              <div className="flex items-center gap-3 sm:gap-4">
+                <label 
+                  className={cn(
+                    "flex items-center gap-1.5", 
+                    isEditing ? "cursor-pointer" : "cursor-default"
+                  )}
+                  onClick={() => {
+                    if (isEditing) {
+                      onDecisionChange?.("Passe");
+                    }
+                  }}
+                >
+                  <span className={cn(
+                    "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
+                    summary.annual?.isPassing ? "bg-slate-950 text-white" : "bg-white text-transparent"
+                  )}>
+                    {summary.annual?.isPassing ? "✓" : ""}
+                  </span>
+                  <span>Passe</span>
+                </label>
+                <label 
+                  className={cn(
+                    "flex items-center gap-1.5", 
+                    isEditing ? "cursor-pointer" : "cursor-default"
+                  )}
+                  onClick={() => {
+                    if (isEditing) {
+                      onDecisionChange?.("Redouble");
+                    }
+                  }}
+                >
+                  <span className={cn(
+                    "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
+                    !summary.annual?.isPassing ? "bg-slate-950 text-white" : "bg-white text-transparent"
+                  )}>
+                    {!summary.annual?.isPassing ? "✓" : ""}
+                  </span>
+                  <span>Redouble</span>
+                </label>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Cartouche Droite : Bilan Annuel Arabe */}
-        <div className="border-2 border-slate-950 p-2 sm:p-2.5 space-y-1 sm:space-y-1.5 dir-rtl font-arabic bg-white/50">
-          <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
-            <span>المجموع السنوي :</span>
-            <span className="font-mono font-black text-xs sm:text-sm font-sans">
-              {isAnnualVisible ? `${summary.annual?.totalAr} / ${summary.maxTotalAr * 3}` : "—"}
-            </span>
-          </div>
-          <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
-            <span>المعدل السنوي :</span>
-            <span className="font-mono font-black text-xs sm:text-sm text-emerald-950 font-sans">
-              {isAnnualVisible ? `${summary.annual?.moyAr} / 10` : "—"}
-            </span>
-          </div>
-          <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
-            <span>الترتيب السنوي :</span>
-            <span>
-              {isAnnualVisible ? `${summary.annual?.rank} تلميذاً` : "—"}
-            </span>
-          </div>
-          <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
-            <span>التقديرات :</span>
-            <span className="font-bold">
-              {isAnnualVisible 
-                ? (summary.annual?.appreciationAr || "مستوى مقبول") 
-                : (highlightPeriod === "TRIMESTRE_1" ? "نتائج الفصل الأول" : "نتائج الفصل الثاني")}
-            </span>
-          </div>
-          <div className="pt-1 flex items-center justify-between font-bold">
-            <span className="font-black text-[11px] sm:text-[12px]">
-              قرار مجلس المعلمين {isAnnualVisible ? ":" : "(نهاية السنة) :"}
-            </span>
-            <div className="flex items-center gap-3 sm:gap-4 font-sans text-xs">
-              <label 
-                className={cn(
-                  "flex items-center gap-1.5", 
-                  isEditing && isAnnualVisible ? "cursor-pointer" : "cursor-default"
-                )}
-                onClick={() => {
-                  if (isEditing && isAnnualVisible) {
-                    onDecisionChange?.("Passe");
-                  }
-                }}
-              >
-                <span className={cn(
-                  "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
-                  (isAnnualVisible && summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
-                )}>
-                  {isAnnualVisible && summary.annual?.isPassing ? "✓" : ""}
-                </span>
-                <span className="font-arabic">ناجح(ة)</span>
-              </label>
-              <label 
-                className={cn(
-                  "flex items-center gap-1.5", 
-                  isEditing && isAnnualVisible ? "cursor-pointer" : "cursor-default"
-                )}
-                onClick={() => {
-                  if (isEditing && isAnnualVisible) {
-                    onDecisionChange?.("Redouble");
-                  }
-                }}
-              >
-                <span className={cn(
-                  "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
-                  (isAnnualVisible && !summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
-                )}>
-                  {isAnnualVisible && !summary.annual?.isPassing ? "✓" : ""}
-                </span>
-                <span className="font-arabic">راسب(ة)</span>
-              </label>
+          {/* Cartouche Droite : Bilan Annuel Arabe */}
+          <div className="border-2 border-slate-950 p-2 sm:p-2.5 space-y-1 sm:space-y-1.5 dir-rtl font-arabic bg-white/50">
+            <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
+              <span>المجموع السنوي :</span>
+              <span className="font-mono font-black text-xs sm:text-sm font-sans">
+                {summary.annual?.totalAr} / {summary.maxTotalAr * 3}
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
+              <span>المعدل السنوي :</span>
+              <span className="font-mono font-black text-xs sm:text-sm text-emerald-950 font-sans">
+                {summary.annual?.moyAr} / 10
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
+              <span>الترتيب السنوي :</span>
+              <span>
+                {summary.annual?.rank} تلميذاً
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
+              <span>التقديرات :</span>
+              <span className="font-bold">
+                {summary.annual?.appreciationAr || "مستوى مقبول"}
+              </span>
+            </div>
+            <div className="pt-1 flex items-center justify-between font-bold">
+              <span className="font-black text-[11px] sm:text-[12px]">
+                قرار مجلس المعلمين :
+              </span>
+              <div className="flex items-center gap-3 sm:gap-4 font-sans text-xs">
+                <label 
+                  className={cn(
+                    "flex items-center gap-1.5", 
+                    isEditing ? "cursor-pointer" : "cursor-default"
+                  )}
+                  onClick={() => {
+                    if (isEditing) {
+                      onDecisionChange?.("Passe");
+                    }
+                  }}
+                >
+                  <span className={cn(
+                    "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
+                    summary.annual?.isPassing ? "bg-slate-950 text-white" : "bg-white text-transparent"
+                  )}>
+                    {summary.annual?.isPassing ? "✓" : ""}
+                  </span>
+                  <span className="font-arabic">ناجح(ة)</span>
+                </label>
+                <label 
+                  className={cn(
+                    "flex items-center gap-1.5", 
+                    isEditing ? "cursor-pointer" : "cursor-default"
+                  )}
+                  onClick={() => {
+                    if (isEditing) {
+                      onDecisionChange?.("Redouble");
+                    }
+                  }}
+                >
+                  <span className={cn(
+                    "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
+                    !summary.annual?.isPassing ? "bg-slate-950 text-white" : "bg-white text-transparent"
+                  )}>
+                    {!summary.annual?.isPassing ? "✓" : ""}
+                  </span>
+                  <span className="font-arabic">راسب(ة)</span>
+                </label>
+              </div>
             </div>
           </div>
-        </div>
 
-      </div>
+        </div>
+      ) : (
+        /* Pour la 1ère et 2ème composition : cartouche simple des appréciations trimestrielles */
+        <div className="border-2 border-slate-950 p-2.5 sm:p-3 mb-4 bg-white/50 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <span className="font-extrabold uppercase text-[11px] text-slate-800">Appréciations du Maître : </span>
+            <span className="font-bold italic text-slate-950">
+              {isCompo1Only 
+                ? (summary.moyGen?.c1 >= 5 ? "Bon travail au 1er trimestre, continue ainsi." : "Travail à intensifier au 2ème trimestre.")
+                : (summary.moyGen?.c2 >= 5 ? "Résultats satisfaisants au 2ème trimestre." : "Efforts nécessaires pour la 3ème composition.")}
+            </span>
+          </div>
+          <div className="text-right font-arabic font-bold text-slate-950 dir-rtl text-xs">
+            <span>ملاحظات المعلم : </span>
+            <span>{isCompo1Only ? "عمل جيد في الفصل الأول، واصل على هذا المنوال" : "نتائج مرضية في الفصل الثاني"}</span>
+          </div>
+        </div>
+      )}
 
       {/* 6. SIGNATURES OFFICIELLES (LE MAÎTRE / LE DIRECTEUR / LE PARENT) */}
       <div className="grid grid-cols-3 gap-1 sm:gap-2 text-center text-[9px] sm:text-xs pt-2 border-t-2 border-slate-950">
@@ -1106,7 +1156,7 @@ export function GradesClient({
             <span>Bulletin de Notes & كشف الدرجات</span>
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Gestion progressive des compositions : 1ère Compo, 2ème Compo, et Bilan Général réservé à la 3ème Compo.
+            Affichage dédié par période : 1ère Compo, 2ème Compo, ou les 3 Compositions avec Bilan Général Annuel.
           </p>
         </div>
 
@@ -1197,10 +1247,10 @@ export function GradesClient({
                 </select>
               </div>
 
-              {/* Sélecteur de Période (1, 2, 3 ou Annuelle) */}
+              {/* Sélecteur de Période (1, 2, ou 3 & Bilan Général) */}
               <div className="lg:col-span-3">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">
-                  Période du Bulletin
+                  Composition Active
                 </label>
                 <select
                   value={reportPeriod}
@@ -1358,7 +1408,7 @@ export function GradesClient({
               <div className="flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-amber-600 animate-pulse shrink-0" />
                 <span className="font-bold text-[11px] sm:text-xs leading-tight">
-                  Mode Saisie Directe actif : Les totaux et moyennes se recalculent en temps réel !
+                  Mode Saisie Directe actif : Modifiez les notes ci-dessous, totaux et moyennes se recalculent en temps réel !
                 </span>
               </div>
               <button
