@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { DAARA_STAFF_ROLES, getActiveSpace } from "@/lib/action-context";
 
 // 11 Rows strictly matching the official Senegalese Franco-Arab Primary School Report Card
-export const OFFICIAL_FRANCO_ARAB_GRID_DEF = [
+const OFFICIAL_FRANCO_ARAB_GRID_DEF = [
   // Langue et Communication / Français (Left) | اللغة والتواصل (Right)
   {
     domainFr: "Langue et Communication",
