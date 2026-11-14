@@ -41,10 +41,10 @@ interface GradesClientProps {
 }
 
 const TERMS = [
-  { value: "ALL", labelFr: "Toutes les Compositions (Vue Annuelle)", labelAr: "كل الفصول (عرض سنوي)", compoKey: "all" },
   { value: "TRIMESTRE_1", labelFr: "1ère Composition (Trimestre 1)", labelAr: "الاختبار 1 (الفصل الأول)", compoKey: "c1" },
   { value: "TRIMESTRE_2", labelFr: "2ème Composition (Trimestre 2)", labelAr: "الاختبار 2 (الفصل الثاني)", compoKey: "c2" },
-  { value: "TRIMESTRE_3", labelFr: "3ème Composition (Trimestre 3)", labelAr: "الاختبار 3 (الفصل الثالث)", compoKey: "c3" },
+  { value: "TRIMESTRE_3", labelFr: "3ème Composition & Bilan Général", labelAr: "الاختبار 3 والتقرير العام", compoKey: "c3" },
+  { value: "ALL", labelFr: "Toutes les Compositions (Vue Complète)", labelAr: "كل الفصول (عرض سنوي)", compoKey: "all" },
 ];
 
 const SUBJECT_OPTIONS = [
@@ -164,8 +164,9 @@ const OfficialReportCard = ({
   reportClass,
   isGreenPaper = true,
   isEditing = false,
-  highlightPeriod = "ALL",
+  highlightPeriod = "TRIMESTRE_1",
   onNoteChange,
+  onDecisionChange,
 }: { 
   data: any; 
   schoolName: string; 
@@ -174,6 +175,7 @@ const OfficialReportCard = ({
   isEditing?: boolean;
   highlightPeriod?: string;
   onNoteChange?: (rowIndex: number, field: "notesFr" | "notesAr", compo: "c1" | "c2" | "c3", val: number) => void;
+  onDecisionChange?: (decision: "Passe" | "Redouble") => void;
 }) => {
   if (!data?.rows) return null;
 
@@ -182,22 +184,29 @@ const OfficialReportCard = ({
   const student = data.student || {};
   const className = student.class?.name || reportClass?.name || "CE1";
 
-  const isColActive = (colKey: string) => {
-    if (highlightPeriod === "ALL") return true;
-    if (highlightPeriod === "TRIMESTRE_1" && colKey === "c1") return true;
-    if (highlightPeriod === "TRIMESTRE_2" && colKey === "c2") return true;
-    if (highlightPeriod === "TRIMESTRE_3" && colKey === "c3") return true;
-    return false;
+  // Check if each column is visible depending on the selected composition
+  const isColVisible = (compo: "c1" | "c2" | "c3") => {
+    if (highlightPeriod === "TRIMESTRE_1") return compo === "c1";
+    if (highlightPeriod === "TRIMESTRE_2") return compo === "c1" || compo === "c2";
+    // For TRIMESTRE_3 or ALL
+    return true;
   };
+
+  // Only the 3rd composition or full annual view includes the General Annual Report
+  const isAnnualVisible = highlightPeriod === "TRIMESTRE_3" || highlightPeriod === "ALL";
 
   const renderCell = (rIdx: number, field: "notesFr" | "notesAr", compo: "c1" | "c2" | "c3", max: number, hasVal: boolean) => {
     if (!hasVal) {
       return <span className="text-slate-400 font-bold">—</span>;
     }
-    const currentVal = data.rows[rIdx]?.[field]?.[compo] ?? 0;
-    const active = isColActive(compo);
 
-    if (isEditing && active) {
+    if (!isColVisible(compo)) {
+      return <span className="text-slate-400 font-bold">—</span>;
+    }
+
+    const currentVal = data.rows[rIdx]?.[field]?.[compo] ?? 0;
+
+    if (isEditing) {
       return (
         <div className="flex items-center justify-center gap-0.5">
           <input
@@ -218,10 +227,7 @@ const OfficialReportCard = ({
     }
 
     return (
-      <span className={cn(
-        "font-mono font-bold transition-all",
-        active ? "text-slate-950" : "opacity-60"
-      )}>
+      <span className="font-mono font-bold text-slate-950 transition-all">
         {currentVal} <span className="text-[9px] text-slate-600 font-normal">/{max}</span>
       </span>
     );
@@ -247,9 +253,26 @@ const OfficialReportCard = ({
 
       {/* 2. TITRE DU DOCUMENT */}
       <div className="flex items-center justify-between border-b-2 border-slate-900 pb-1 mb-2">
-        <h1 className="text-base sm:text-lg font-black uppercase tracking-wider text-slate-950">
-          BULLETIN DE NOTES
-        </h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-base sm:text-lg font-black uppercase tracking-wider text-slate-950">
+            BULLETIN DE NOTES
+          </h1>
+          {highlightPeriod === "TRIMESTRE_1" && (
+            <span className="text-[10px] font-black bg-emerald-800 text-white px-2 py-0.5 rounded uppercase">
+              1ère Composition
+            </span>
+          )}
+          {highlightPeriod === "TRIMESTRE_2" && (
+            <span className="text-[10px] font-black bg-blue-800 text-white px-2 py-0.5 rounded uppercase">
+              2ème Composition
+            </span>
+          )}
+          {highlightPeriod === "TRIMESTRE_3" && (
+            <span className="text-[10px] font-black bg-purple-800 text-white px-2 py-0.5 rounded uppercase">
+              3ème Composition & Bilan Général
+            </span>
+          )}
+        </div>
         <h1 className="text-base sm:text-lg font-black font-arabic tracking-wider text-slate-950 dir-rtl">
           كشف الدرجات
         </h1>
@@ -297,12 +320,12 @@ const OfficialReportCard = ({
             </tr>
             {/* Ligne d'en-tête 2 */}
             <tr className="border-b-2 border-slate-950 font-bold text-[9px] sm:text-[10px]">
-              <th className={cn("border-r border-slate-950 p-1 w-12", isColActive("c1") && "bg-emerald-700/10 font-black")}>1e Compo</th>
-              <th className={cn("border-r border-slate-950 p-1 w-12", isColActive("c2") && "bg-blue-700/10 font-black")}>2è Compo</th>
-              <th className={cn("border-r-2 border-slate-950 p-1 w-12", isColActive("c3") && "bg-purple-700/10 font-black")}>3è Compo</th>
-              <th className={cn("border-r border-slate-950 p-1 w-12 font-arabic", isColActive("c1") && "bg-emerald-700/10 font-black")}>الاختبار 1</th>
-              <th className={cn("border-r border-slate-950 p-1 w-12 font-arabic", isColActive("c2") && "bg-blue-700/10 font-black")}>الاختبار 2</th>
-              <th className={cn("border-r-2 border-slate-950 p-1 w-12 font-arabic", isColActive("c3") && "bg-purple-700/10 font-black")}>الاختبار 3</th>
+              <th className="border-r border-slate-950 p-1 w-12 bg-slate-900/5 font-black">1e Compo</th>
+              <th className={cn("border-r border-slate-950 p-1 w-12", isColVisible("c2") ? "font-black" : "opacity-50")}>2è Compo</th>
+              <th className={cn("border-r-2 border-slate-950 p-1 w-12", isColVisible("c3") ? "font-black" : "opacity-50")}>3è Compo</th>
+              <th className="border-r border-slate-950 p-1 w-12 font-arabic bg-slate-900/5 font-black">الاختبار 1</th>
+              <th className={cn("border-r border-slate-950 p-1 w-12 font-arabic", isColVisible("c2") ? "font-black" : "opacity-50")}>الاختبار 2</th>
+              <th className={cn("border-r-2 border-slate-950 p-1 w-12 font-arabic", isColVisible("c3") ? "font-black" : "opacity-50")}>الاختبار 3</th>
             </tr>
           </thead>
           <tbody>
@@ -467,24 +490,48 @@ const OfficialReportCard = ({
             {/* TOTAL */}
             <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/10">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">TOTAL</td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c1") && "font-black text-emerald-950")}>{summary.totalFr?.c1} / {summary.maxTotalFr}</td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c2") && "font-black text-blue-950")}>{summary.totalFr?.c2} / {summary.maxTotalFr}</td>
-              <td className={cn("border-r-2 border-slate-950 p-1 font-mono", isColActive("c3") && "font-black text-purple-950")}>{summary.totalFr?.c3} / {summary.maxTotalFr}</td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c1") && "font-black text-emerald-950")}>{summary.totalAr?.c1} / {summary.maxTotalAr}</td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c2") && "font-black text-blue-950")}>{summary.totalAr?.c2} / {summary.maxTotalAr}</td>
-              <td className={cn("border-r-2 border-slate-950 p-1 font-mono", isColActive("c3") && "font-black text-purple-950")}>{summary.totalAr?.c3} / {summary.maxTotalAr}</td>
+              <td className="border-r border-slate-950 p-1 font-mono font-black text-emerald-950">
+                {summary.totalFr?.c1} / {summary.maxTotalFr}
+              </td>
+              <td className="border-r border-slate-950 p-1 font-mono">
+                {isColVisible("c2") ? `${summary.totalFr?.c2} / ${summary.maxTotalFr}` : "—"}
+              </td>
+              <td className="border-r-2 border-slate-950 p-1 font-mono">
+                {isColVisible("c3") ? `${summary.totalFr?.c3} / ${summary.maxTotalFr}` : "—"}
+              </td>
+              <td className="border-r border-slate-950 p-1 font-mono font-black text-emerald-950">
+                {summary.totalAr?.c1} / {summary.maxTotalAr}
+              </td>
+              <td className="border-r border-slate-950 p-1 font-mono">
+                {isColVisible("c2") ? `${summary.totalAr?.c2} / ${summary.maxTotalAr}` : "—"}
+              </td>
+              <td className="border-r-2 border-slate-950 p-1 font-mono">
+                {isColVisible("c3") ? `${summary.totalAr?.c3} / ${summary.maxTotalAr}` : "—"}
+              </td>
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">المجموع</td>
             </tr>
 
             {/* MOYENNE */}
             <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/5">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">MOYENNE</td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono font-bold", isColActive("c1") && "text-emerald-900 font-black")}>{summary.moyFr?.c1} <span className="text-[9px]">/ 10</span></td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono font-bold", isColActive("c2") && "text-blue-900 font-black")}>{summary.moyFr?.c2} <span className="text-[9px]">/ 10</span></td>
-              <td className={cn("border-r-2 border-slate-950 p-1 font-mono font-bold", isColActive("c3") && "text-purple-900 font-black")}>{summary.moyFr?.c3} <span className="text-[9px]">/ 10</span></td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono font-bold", isColActive("c1") && "text-emerald-900 font-black")}>{summary.moyAr?.c1} <span className="text-[9px]">/ 10</span></td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono font-bold", isColActive("c2") && "text-blue-900 font-black")}>{summary.moyAr?.c2} <span className="text-[9px]">/ 10</span></td>
-              <td className={cn("border-r-2 border-slate-950 p-1 font-mono font-bold", isColActive("c3") && "text-purple-900 font-black")}>{summary.moyAr?.c3} <span className="text-[9px]">/ 10</span></td>
+              <td className="border-r border-slate-950 p-1 font-mono font-bold text-emerald-900">
+                {summary.moyFr?.c1} <span className="text-[9px]">/ 10</span>
+              </td>
+              <td className="border-r border-slate-950 p-1 font-mono font-bold">
+                {isColVisible("c2") ? <>{summary.moyFr?.c2} <span className="text-[9px]">/ 10</span></> : "—"}
+              </td>
+              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">
+                {isColVisible("c3") ? <>{summary.moyFr?.c3} <span className="text-[9px]">/ 10</span></> : "—"}
+              </td>
+              <td className="border-r border-slate-950 p-1 font-mono font-bold text-emerald-900">
+                {summary.moyAr?.c1} <span className="text-[9px]">/ 10</span>
+              </td>
+              <td className="border-r border-slate-950 p-1 font-mono font-bold">
+                {isColVisible("c2") ? <>{summary.moyAr?.c2} <span className="text-[9px]">/ 10</span></> : "—"}
+              </td>
+              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">
+                {isColVisible("c3") ? <>{summary.moyAr?.c3} <span className="text-[9px]">/ 10</span></> : "—"}
+              </td>
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">المعدل</td>
             </tr>
 
@@ -492,20 +539,32 @@ const OfficialReportCard = ({
             <tr className="border-b-2 border-slate-950 font-bold text-xs">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">RANG</td>
               <td className="border-r border-slate-950 p-1">{summary.rankFr?.c1}ème Élèves</td>
-              <td className="border-r border-slate-950 p-1">{summary.rankFr?.c2}ème Élèves</td>
-              <td className="border-r-2 border-slate-950 p-1">{summary.rankFr?.c3}ème Élèves</td>
+              <td className="border-r border-slate-950 p-1">
+                {isColVisible("c2") ? `${summary.rankFr?.c2}ème Élèves` : "—"}
+              </td>
+              <td className="border-r-2 border-slate-950 p-1">
+                {isColVisible("c3") ? `${summary.rankFr?.c3}ème Élèves` : "—"}
+              </td>
               <td className="border-r border-slate-950 p-1 font-arabic">{summary.rankAr?.c1} تلميذاً</td>
-              <td className="border-r border-slate-950 p-1 font-arabic">{summary.rankAr?.c2} تلميذاً</td>
-              <td className="border-r-2 border-slate-950 p-1 font-arabic">{summary.rankAr?.c3} تلميذاً</td>
+              <td className="border-r border-slate-950 p-1 font-arabic">
+                {isColVisible("c2") ? `${summary.rankAr?.c2} تلميذاً` : "—"}
+              </td>
+              <td className="border-r-2 border-slate-950 p-1 font-arabic">
+                {isColVisible("c3") ? `${summary.rankAr?.c3} تلميذاً` : "—"}
+              </td>
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">الترتيب</td>
             </tr>
 
             {/* TOTAL GENERAL */}
             <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/10">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">TOTAL GENERAL</td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c1") && "font-black text-emerald-950")}>{summary.totalGen?.c1}</td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c2") && "font-black text-blue-950")}>{summary.totalGen?.c2}</td>
-              <td className={cn("border-r-2 border-slate-950 p-1 font-mono", isColActive("c3") && "font-black text-purple-950")}>{summary.totalGen?.c3}</td>
+              <td className="border-r border-slate-950 p-1 font-mono font-black text-emerald-950">{summary.totalGen?.c1}</td>
+              <td className="border-r border-slate-950 p-1 font-mono">
+                {isColVisible("c2") ? summary.totalGen?.c2 : "—"}
+              </td>
+              <td className="border-r-2 border-slate-950 p-1 font-mono">
+                {isColVisible("c3") ? summary.totalGen?.c3 : "—"}
+              </td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
               <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
@@ -515,9 +574,15 @@ const OfficialReportCard = ({
             {/* MOYENNE GENERALE */}
             <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/5">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">MOYENNE GENERAL</td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono text-emerald-950 font-black", isColActive("c1") && "bg-emerald-600/20 text-emerald-950")}>{summary.moyGen?.c1} <span className="text-[9px]">/ 10</span></td>
-              <td className={cn("border-r border-slate-950 p-1 font-mono text-emerald-950 font-black", isColActive("c2") && "bg-blue-600/20 text-blue-950")}>{summary.moyGen?.c2} <span className="text-[9px]">/ 10</span></td>
-              <td className={cn("border-r-2 border-slate-950 p-1 font-mono text-emerald-950 font-black", isColActive("c3") && "bg-purple-600/20 text-purple-950")}>{summary.moyGen?.c3} <span className="text-[9px]">/ 10</span></td>
+              <td className="border-r border-slate-950 p-1 font-mono text-emerald-950 font-black bg-emerald-600/15">
+                {summary.moyGen?.c1} <span className="text-[9px]">/ 10</span>
+              </td>
+              <td className="border-r border-slate-950 p-1 font-mono text-emerald-950 font-black">
+                {isColVisible("c2") ? <>{summary.moyGen?.c2} <span className="text-[9px]">/ 10</span></> : "—"}
+              </td>
+              <td className="border-r-2 border-slate-950 p-1 font-mono text-emerald-950 font-black">
+                {isColVisible("c3") ? <>{summary.moyGen?.c3} <span className="text-[9px]">/ 10</span></> : "—"}
+              </td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
               <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
@@ -527,9 +592,13 @@ const OfficialReportCard = ({
             {/* RANG GENERAL */}
             <tr className="border-b-2 border-slate-950 font-bold text-xs">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">RANG GENERAL</td>
-              <td className="border-r border-slate-950 p-1">{summary.rankGen?.c1}ème Élèves</td>
-              <td className="border-r border-slate-950 p-1">{summary.rankGen?.c2}ème Élèves</td>
-              <td className="border-r-2 border-slate-950 p-1">{summary.rankGen?.c3}ème Élèves</td>
+              <td className="border-r border-slate-950 p-1 font-black">{summary.rankGen?.c1}ème Élèves</td>
+              <td className="border-r border-slate-950 p-1">
+                {isColVisible("c2") ? `${summary.rankGen?.c2}ème Élèves` : "—"}
+              </td>
+              <td className="border-r-2 border-slate-950 p-1">
+                {isColVisible("c3") ? `${summary.rankGen?.c3}ème Élèves` : "—"}
+              </td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
               <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
@@ -541,44 +610,77 @@ const OfficialReportCard = ({
       </div>
 
       {/* 5. BILAN ANNUEL (BLOC DOUBLE : FRANÇAIS & ARABE) */}
+      {/* Seule la 3ème composition (ou vue annuelle complète) affiche les calculs et décisions du bilan général */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 text-xs font-sans">
         
         {/* Cartouche Gauche : Bilan Annuel Français */}
         <div className="border-2 border-slate-950 p-2.5 space-y-1.5 bg-white/50">
           <div className="flex justify-between border-b border-slate-800 pb-1">
             <span className="font-extrabold uppercase">TOTAL ANNUELLE :</span>
-            <span className="font-mono font-black text-sm">{summary.annual?.totalPts} pts</span>
+            <span className="font-mono font-black text-sm">
+              {isAnnualVisible ? `${summary.annual?.totalPts} pts` : "—"}
+            </span>
           </div>
           <div className="flex justify-between border-b border-slate-800 pb-1">
             <span className="font-extrabold uppercase">MOY. ANNUELLE :</span>
-            <span className="font-mono font-black text-sm text-emerald-950">{summary.annual?.moyenne} / 10</span>
+            <span className="font-mono font-black text-sm text-emerald-950">
+              {isAnnualVisible ? `${summary.annual?.moyenne} / 10` : "—"}
+            </span>
           </div>
           <div className="flex justify-between border-b border-slate-800 pb-1">
             <span className="font-extrabold uppercase">RANG ANNUELLE :</span>
-            <span className="font-black">{summary.annual?.rank}ème Élèves</span>
+            <span className="font-black">
+              {isAnnualVisible ? `${summary.annual?.rank}ème Élèves` : "—"}
+            </span>
           </div>
           <div className="flex justify-between border-b border-slate-800 pb-1">
             <span className="font-extrabold uppercase">Appréciations :</span>
-            <span className="font-bold italic">{summary.annual?.appreciation}</span>
+            <span className="font-bold italic">
+              {isAnnualVisible 
+                ? (summary.annual?.appreciation || "Travail passable") 
+                : (highlightPeriod === "TRIMESTRE_1" ? "Résultats de la 1ère composition" : "Résultats de la 2ème composition")}
+            </span>
           </div>
           <div className="pt-1 flex items-center justify-between font-bold">
-            <span className="uppercase font-black text-[11px]">Décision du conseil :</span>
+            <span className="uppercase font-black text-[11px]">
+              Décision du conseil {isAnnualVisible ? ":" : "(fin d'année) :"}
+            </span>
             <div className="flex items-center gap-4">
-              <label className="flex items-center gap-1.5 cursor-pointer">
+              <label 
+                className={cn(
+                  "flex items-center gap-1.5", 
+                  isEditing && isAnnualVisible ? "cursor-pointer" : "cursor-default"
+                )}
+                onClick={() => {
+                  if (isEditing && isAnnualVisible) {
+                    onDecisionChange?.("Passe");
+                  }
+                }}
+              >
                 <span className={cn(
                   "w-4 h-4 border border-slate-950 flex items-center justify-center font-bold text-[10px]",
-                  summary.annual?.isPassing ? "bg-slate-950 text-white" : "bg-white"
+                  (isAnnualVisible && summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
                 )}>
-                  {summary.annual?.isPassing ? "✓" : ""}
+                  {isAnnualVisible && summary.annual?.isPassing ? "✓" : ""}
                 </span>
                 <span>Passe</span>
               </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
+              <label 
+                className={cn(
+                  "flex items-center gap-1.5", 
+                  isEditing && isAnnualVisible ? "cursor-pointer" : "cursor-default"
+                )}
+                onClick={() => {
+                  if (isEditing && isAnnualVisible) {
+                    onDecisionChange?.("Redouble");
+                  }
+                }}
+              >
                 <span className={cn(
                   "w-4 h-4 border border-slate-950 flex items-center justify-center font-bold text-[10px]",
-                  !summary.annual?.isPassing ? "bg-slate-950 text-white" : "bg-white"
+                  (isAnnualVisible && !summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
                 )}>
-                  {!summary.annual?.isPassing ? "✓" : ""}
+                  {isAnnualVisible && !summary.annual?.isPassing ? "✓" : ""}
                 </span>
                 <span>Redouble</span>
               </label>
@@ -590,38 +692,70 @@ const OfficialReportCard = ({
         <div className="border-2 border-slate-950 p-2.5 space-y-1.5 dir-rtl font-arabic bg-white/50">
           <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
             <span>المجموع السنوي :</span>
-            <span className="font-mono font-black text-sm font-sans">{summary.annual?.totalAr} / {summary.maxTotalAr * 3}</span>
+            <span className="font-mono font-black text-sm font-sans">
+              {isAnnualVisible ? `${summary.annual?.totalAr} / ${summary.maxTotalAr * 3}` : "—"}
+            </span>
           </div>
           <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
             <span>المعدل السنوي :</span>
-            <span className="font-mono font-black text-sm text-emerald-950 font-sans">{summary.annual?.moyAr} / 10</span>
+            <span className="font-mono font-black text-sm text-emerald-950 font-sans">
+              {isAnnualVisible ? `${summary.annual?.moyAr} / 10` : "—"}
+            </span>
           </div>
           <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
             <span>الترتيب السنوي :</span>
-            <span>{summary.annual?.rank} تلميذاً</span>
+            <span>
+              {isAnnualVisible ? `${summary.annual?.rank} تلميذاً` : "—"}
+            </span>
           </div>
           <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
             <span>التقديرات :</span>
-            <span className="font-bold">{summary.annual?.appreciationAr}</span>
+            <span className="font-bold">
+              {isAnnualVisible 
+                ? (summary.annual?.appreciationAr || "مستوى مقبول") 
+                : (highlightPeriod === "TRIMESTRE_1" ? "نتائج الفصل الأول" : "نتائج الفصل الثاني")}
+            </span>
           </div>
           <div className="pt-1 flex items-center justify-between font-bold">
-            <span className="font-black text-[12px]">قرار مجلس المعلمين :</span>
+            <span className="font-black text-[12px]">
+              قرار مجلس المعلمين {isAnnualVisible ? ":" : "(نهاية السنة) :"}
+            </span>
             <div className="flex items-center gap-4 font-sans text-xs">
-              <label className="flex items-center gap-1.5 cursor-pointer">
+              <label 
+                className={cn(
+                  "flex items-center gap-1.5", 
+                  isEditing && isAnnualVisible ? "cursor-pointer" : "cursor-default"
+                )}
+                onClick={() => {
+                  if (isEditing && isAnnualVisible) {
+                    onDecisionChange?.("Passe");
+                  }
+                }}
+              >
                 <span className={cn(
                   "w-4 h-4 border border-slate-950 flex items-center justify-center font-bold text-[10px]",
-                  summary.annual?.isPassing ? "bg-slate-950 text-white" : "bg-white"
+                  (isAnnualVisible && summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
                 )}>
-                  {summary.annual?.isPassing ? "✓" : ""}
+                  {isAnnualVisible && summary.annual?.isPassing ? "✓" : ""}
                 </span>
                 <span className="font-arabic">ناجح(ة)</span>
               </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
+              <label 
+                className={cn(
+                  "flex items-center gap-1.5", 
+                  isEditing && isAnnualVisible ? "cursor-pointer" : "cursor-default"
+                )}
+                onClick={() => {
+                  if (isEditing && isAnnualVisible) {
+                    onDecisionChange?.("Redouble");
+                  }
+                }}
+              >
                 <span className={cn(
                   "w-4 h-4 border border-slate-950 flex items-center justify-center font-bold text-[10px]",
-                  !summary.annual?.isPassing ? "bg-slate-950 text-white" : "bg-white"
+                  (isAnnualVisible && !summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
                 )}>
-                  {!summary.annual?.isPassing ? "✓" : ""}
+                  {isAnnualVisible && !summary.annual?.isPassing ? "✓" : ""}
                 </span>
                 <span className="font-arabic">راسب(ة)</span>
               </label>
@@ -694,7 +828,7 @@ export function GradesClient({
   // Bulletin state
   const [reportClassId, setReportClassId] = useState(classes[0]?.id || "");
   const [reportStudentId, setReportStudentId] = useState(classes[0]?.students?.[0]?.id || "");
-  const [reportPeriod, setReportPeriod] = useState("ALL"); // ALL | TRIMESTRE_1 | TRIMESTRE_2 | TRIMESTRE_3
+  const [reportPeriod, setReportPeriod] = useState("TRIMESTRE_1"); // Par défaut : 1ère composition uniquement
   const [isGenerating, setIsGenerating] = useState(false);
   const [reportData, setReportData] = useState<any | null>(null);
   const [isClassReport, setIsClassReport] = useState(false);
@@ -742,7 +876,7 @@ export function GradesClient({
   const handleStudentSwitch = async (sid: string) => {
     setReportStudentId(sid);
     setIsGenerating(true);
-    const res = await getStudentReportCard(sid, "TRIMESTRE_1");
+    const res = await getStudentReportCard(sid, reportPeriod);
     if (!res.error) {
       setReportData(res);
       setIsClassReport(false);
@@ -771,7 +905,7 @@ export function GradesClient({
     }
     setIsGenerating(true);
     toast.loading("Chargement du bulletin officiel...");
-    const res = await getStudentReportCard(reportStudentId, "TRIMESTRE_1");
+    const res = await getStudentReportCard(reportStudentId, reportPeriod);
     toast.dismiss();
 
     if (res.error) {
@@ -792,7 +926,7 @@ export function GradesClient({
 
     setIsGenerating(true);
     toast.loading("Génération des bulletins de la classe entière...");
-    const res = await getClassReportCards(reportClassId, "TRIMESTRE_1");
+    const res = await getClassReportCards(reportClassId, reportPeriod);
     toast.dismiss();
 
     if (res.error) {
@@ -832,11 +966,32 @@ export function GradesClient({
     });
   };
 
+  // Allow manual toggle of decision (Passe / Redouble) in Mode Saisie for 3ème composition
+  const handleDecisionChange = (decision: "Passe" | "Redouble") => {
+    if (!reportData || !reportData.summary) return;
+    setReportData({
+      ...reportData,
+      summary: {
+        ...reportData.summary,
+        annual: {
+          ...reportData.summary.annual,
+          isPassing: decision === "Passe",
+          decisionFr: decision,
+          decisionAr: decision === "Passe" ? "ناجح(ة)" : "راسب(ة)",
+        }
+      }
+    });
+  };
+
   const handleSaveStudentNotes = async () => {
     if (!reportStudentId || !reportData?.rows) return;
     setIsSavingReport(true);
     toast.loading("Enregistrement des notes...");
-    const res = await saveStudentReportCard(reportStudentId, reportData.rows);
+    const res = await saveStudentReportCard(reportStudentId, reportData.rows, {
+      decision: reportData.summary?.annual?.decisionFr,
+      appreciation: reportData.summary?.annual?.appreciation,
+      appreciationAr: reportData.summary?.annual?.appreciationAr,
+    });
     toast.dismiss();
 
     if (res.error) {
@@ -945,7 +1100,7 @@ export function GradesClient({
             <span>Bulletin de Notes & كشف الدرجات</span>
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Gestion complète et fonctionnelle des compositions 1, 2 et 3, calcul des moyennes et bilan annuel officiel.
+            Gestion progressive des compositions : 1ère Compo, 2ème Compo, et Bilan Général réservé à la 3ème Compo.
           </p>
         </div>
 
@@ -1039,12 +1194,12 @@ export function GradesClient({
               {/* Sélecteur de Période (1, 2, 3 ou Annuelle) */}
               <div className="lg:col-span-3">
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">
-                  Période / Compositions
+                  Période du Bulletin
                 </label>
                 <select
                   value={reportPeriod}
                   onChange={(e) => setReportPeriod(e.target.value)}
-                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-emerald-900 dark:text-emerald-300"
                 >
                   {TERMS.map((t) => (
                     <option key={t.value} value={t.value}>
@@ -1197,7 +1352,7 @@ export function GradesClient({
               <div className="flex items-center gap-2">
                 <Edit3 className="w-4 h-4 text-amber-600 animate-pulse" />
                 <span className="font-bold">
-                  Mode Saisie Directe actif : Modifiez n'importe quelle note dans le tableau ci-dessous, les totaux et moyennes se recalculent automatiquement !
+                  Mode Saisie Directe actif : Modifiez n'importe quelle note, les totaux et moyennes se recalculent automatiquement !
                 </span>
               </div>
               <button
@@ -1250,6 +1405,7 @@ export function GradesClient({
                         isEditing={isEditingReport}
                         highlightPeriod={reportPeriod}
                         onNoteChange={handleNoteChange}
+                        onDecisionChange={handleDecisionChange}
                       />
                     </div>
                   )}
