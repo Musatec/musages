@@ -18,7 +18,8 @@ import {
   Save,
   RotateCcw,
   Sparkles,
-  Users
+  Users,
+  MoveHorizontal
 } from "lucide-react";
 import { 
   getStudentReportCard, 
@@ -219,122 +220,128 @@ const OfficialReportCard = ({
               const num = Math.max(0, Math.min(max, Number(e.target.value) || 0));
               onNoteChange?.(rIdx, field, compo, num);
             }}
-            className="w-10 px-1 py-0.5 text-center font-mono font-bold bg-white text-slate-950 border border-slate-700 rounded shadow-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none text-[11px]"
+            className="w-10 sm:w-11 px-1 py-0.5 text-center font-mono font-bold bg-white text-slate-950 border border-slate-700 rounded shadow-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none text-[10px] sm:text-[11px]"
           />
-          <span className="text-[9px] text-slate-600 font-bold">/{max}</span>
+          <span className="text-[8px] sm:text-[9px] text-slate-600 font-bold">/{max}</span>
         </div>
       );
     }
 
     return (
-      <span className="font-mono font-bold text-slate-950 transition-all">
-        {currentVal} <span className="text-[9px] text-slate-600 font-normal">/{max}</span>
+      <span className="font-mono font-bold text-slate-950 transition-all text-[10px] sm:text-[11px]">
+        {currentVal} <span className="text-[8px] sm:text-[9px] text-slate-600 font-normal">/{max}</span>
       </span>
     );
   };
 
   return (
     <div className={cn(
-      "p-6 md:p-8 rounded-xl shadow-xl mx-auto w-full max-w-[950px] border border-slate-400 font-sans relative text-slate-950 print:border-none print:shadow-none print:p-2 print:max-w-none print:m-0",
+      "p-3 sm:p-5 md:p-8 rounded-xl sm:rounded-2xl shadow-xl mx-auto w-full max-w-[950px] border border-slate-400 font-sans relative text-slate-950 print:border-none print:shadow-none print:p-2 print:max-w-none print:m-0",
       isGreenPaper ? "bg-[#cbf3d2] text-[#051c0d]" : "bg-white text-slate-950"
     )}>
       
       {/* 1. EN-TÊTE OFFICIEL BILINGUE */}
-      <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-2 text-xs font-bold leading-tight uppercase">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-1.5 sm:gap-2 mb-2 text-[10px] sm:text-xs font-bold leading-tight uppercase">
         <div className="space-y-0.5">
           <p className="tracking-wide">IA: {data.ia || "PIKINE-GUEDIAWAYE"}</p>
           <p className="tracking-wide">IEF: {data.ief || "KEUR MASSAR"} ECOLE FRANCO ARABE: {schoolName?.toUpperCase() || "PATHÉ POGNE"}</p>
         </div>
         <div className="sm:text-right space-y-0.5 font-bold">
           <p className="tracking-wide">ANNÉE SCOLAIRE : {data.schoolYear || "2025.../2026..."}</p>
-          <p className="tracking-wide">CLASSE : .........<span className="font-black text-sm underline">{className}</span>.........</p>
+          <p className="tracking-wide">CLASSE : .........<span className="font-black text-xs sm:text-sm underline">{className}</span>.........</p>
         </div>
       </div>
 
       {/* 2. TITRE DU DOCUMENT */}
-      <div className="flex items-center justify-between border-b-2 border-slate-900 pb-1 mb-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-base sm:text-lg font-black uppercase tracking-wider text-slate-950">
+      <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between border-b-2 border-slate-900 pb-1 mb-2 gap-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h1 className="text-sm sm:text-base md:text-lg font-black uppercase tracking-wider text-slate-950">
             BULLETIN DE NOTES
           </h1>
           {highlightPeriod === "TRIMESTRE_1" && (
-            <span className="text-[10px] font-black bg-emerald-800 text-white px-2 py-0.5 rounded uppercase">
+            <span className="text-[9px] sm:text-[10px] font-black bg-emerald-800 text-white px-2 py-0.5 rounded uppercase">
               1ère Composition
             </span>
           )}
           {highlightPeriod === "TRIMESTRE_2" && (
-            <span className="text-[10px] font-black bg-blue-800 text-white px-2 py-0.5 rounded uppercase">
+            <span className="text-[9px] sm:text-[10px] font-black bg-blue-800 text-white px-2 py-0.5 rounded uppercase">
               2ème Composition
             </span>
           )}
           {highlightPeriod === "TRIMESTRE_3" && (
-            <span className="text-[10px] font-black bg-purple-800 text-white px-2 py-0.5 rounded uppercase">
+            <span className="text-[9px] sm:text-[10px] font-black bg-purple-800 text-white px-2 py-0.5 rounded uppercase">
               3ème Composition & Bilan Général
             </span>
           )}
         </div>
-        <h1 className="text-base sm:text-lg font-black font-arabic tracking-wider text-slate-950 dir-rtl">
+        <h1 className="text-sm sm:text-base md:text-lg font-black font-arabic tracking-wider text-slate-950 dir-rtl self-end xs:self-auto">
           كشف الدرجات
         </h1>
       </div>
 
       {/* 3. LIGNE DU NOM ET PRÉNOM DE L'ÉLÈVE */}
-      <div className="flex items-center justify-between mb-3 text-xs sm:text-sm font-bold border-b border-slate-800 pb-2">
+      <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between mb-3 text-xs sm:text-sm font-bold border-b border-slate-800 pb-2 gap-1.5">
         <div>
           <span>PRÉNOMS : </span>
-          <span className="font-black underline text-sm sm:text-base uppercase tracking-wide">
+          <span className="font-black underline text-xs sm:text-base uppercase tracking-wide">
             {student.firstName || "عائشة"}
           </span>
         </div>
-        <div className="text-right flex items-center gap-2">
+        <div className="text-left xs:text-right flex items-center gap-2">
           <span>NOM : </span>
-          <span className="font-black underline text-sm sm:text-base uppercase tracking-wide">
+          <span className="font-black underline text-xs sm:text-base uppercase tracking-wide">
             {student.lastName || "فال"}
           </span>
           {student.matricule && (
-            <span className="font-mono text-[10px] text-slate-700 bg-white/60 px-2 py-0.5 rounded border border-slate-400">
+            <span className="font-mono text-[9px] sm:text-[10px] text-slate-700 bg-white/60 px-1.5 py-0.5 rounded border border-slate-400">
               {student.matricule}
             </span>
           )}
         </div>
       </div>
 
+      {/* Indication de défilement horizontal pour mobile */}
+      <div className="flex items-center justify-end text-[10px] text-slate-700 sm:hidden mb-1 font-semibold italic gap-1 print:hidden">
+        <MoveHorizontal className="w-3 h-3 text-emerald-800 animate-pulse" />
+        <span>Défiler le tableau horizontalement ↔️</span>
+      </div>
+
       {/* 4. LA GRANDE GRILLE BILINGUE FRANÇAIS / ARABE (10 COLONNES) */}
-      <div className="w-full overflow-x-auto border-2 border-slate-950 mb-3 bg-white/40">
-        <table className="w-full min-w-[760px] border-collapse text-center text-[11px] leading-tight font-sans">
+      <div className="w-full overflow-x-auto touch-pan-x -webkit-overflow-scrolling-touch border-2 border-slate-950 mb-3 bg-white/40 shadow-inner">
+        <table className="w-full min-w-[700px] border-collapse text-center text-[10px] sm:text-[11px] leading-tight font-sans">
           <thead>
             {/* Ligne d'en-tête 1 */}
-            <tr className="border-b-2 border-slate-950 font-black uppercase text-[10px] sm:text-[11px]">
-              <th rowSpan={2} className="border-r-2 border-slate-950 p-1 w-28 bg-slate-900/5">Domaine</th>
-              <th rowSpan={2} className="border-r-2 border-slate-950 p-1 w-24 bg-slate-900/5">Discipline</th>
+            <tr className="border-b-2 border-slate-950 font-black uppercase text-[9px] sm:text-[11px]">
+              <th rowSpan={2} className="border-r-2 border-slate-950 p-1 w-24 sm:w-28 bg-slate-900/5">Domaine</th>
+              <th rowSpan={2} className="border-r-2 border-slate-950 p-1 w-20 sm:w-24 bg-slate-900/5">Discipline</th>
               <th colSpan={3} className="border-r-2 border-slate-950 p-1 bg-slate-900/5">Notes</th>
               <th colSpan={3} className="border-r-2 border-slate-950 p-1 font-arabic bg-slate-900/5">الدرجات</th>
-              <th rowSpan={2} className="border-r-2 border-slate-950 p-1 w-20 font-arabic bg-slate-900/5">
+              <th rowSpan={2} className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 font-arabic bg-slate-900/5">
                 <div>المجال</div>
-                <div className="font-sans text-[9px] font-bold">Domaine</div>
+                <div className="font-sans text-[8px] sm:text-[9px] font-bold">Domaine</div>
               </th>
-              <th rowSpan={2} className="p-1 w-28 font-arabic bg-slate-900/5">
+              <th rowSpan={2} className="p-1 w-24 sm:w-28 font-arabic bg-slate-900/5">
                 <div>المواد</div>
-                <div className="font-sans text-[9px] font-bold">Disciplines</div>
+                <div className="font-sans text-[8px] sm:text-[9px] font-bold">Disciplines</div>
               </th>
             </tr>
             {/* Ligne d'en-tête 2 */}
-            <tr className="border-b-2 border-slate-950 font-bold text-[9px] sm:text-[10px]">
-              <th className="border-r border-slate-950 p-1 w-12 bg-slate-900/5 font-black">1e Compo</th>
-              <th className={cn("border-r border-slate-950 p-1 w-12", isColVisible("c2") ? "font-black" : "opacity-50")}>2è Compo</th>
-              <th className={cn("border-r-2 border-slate-950 p-1 w-12", isColVisible("c3") ? "font-black" : "opacity-50")}>3è Compo</th>
-              <th className="border-r border-slate-950 p-1 w-12 font-arabic bg-slate-900/5 font-black">الاختبار 1</th>
-              <th className={cn("border-r border-slate-950 p-1 w-12 font-arabic", isColVisible("c2") ? "font-black" : "opacity-50")}>الاختبار 2</th>
-              <th className={cn("border-r-2 border-slate-950 p-1 w-12 font-arabic", isColVisible("c3") ? "font-black" : "opacity-50")}>الاختبار 3</th>
+            <tr className="border-b-2 border-slate-950 font-bold text-[8px] sm:text-[10px]">
+              <th className="border-r border-slate-950 p-1 w-11 sm:w-12 bg-slate-900/5 font-black">1e Compo</th>
+              <th className={cn("border-r border-slate-950 p-1 w-11 sm:w-12", isColVisible("c2") ? "font-black" : "opacity-50")}>2è Compo</th>
+              <th className={cn("border-r-2 border-slate-950 p-1 w-11 sm:w-12", isColVisible("c3") ? "font-black" : "opacity-50")}>3è Compo</th>
+              <th className="border-r border-slate-950 p-1 w-11 sm:w-12 font-arabic bg-slate-900/5 font-black">الاختبار 1</th>
+              <th className={cn("border-r border-slate-950 p-1 w-11 sm:w-12 font-arabic", isColVisible("c2") ? "font-black" : "opacity-50")}>الاختبار 2</th>
+              <th className={cn("border-r-2 border-slate-950 p-1 w-11 sm:w-12 font-arabic", isColVisible("c3") ? "font-black" : "opacity-50")}>الاختبار 3</th>
             </tr>
           </thead>
           <tbody>
             {/* Row 0: Langue et Communication / Lecture */}
             <tr className="border-b border-slate-950">
-              <td rowSpan={3} className="border-r-2 border-slate-950 p-1 font-extrabold text-left align-middle pl-2 bg-slate-900/5">
+              <td rowSpan={3} className="border-r-2 border-slate-950 p-1 font-extrabold text-left align-middle pl-1.5 sm:pl-2 bg-slate-900/5">
                 Langue et<br />Communication
               </td>
-              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Lecture</td>
+              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Lecture</td>
               <td className="border-r border-slate-950 p-1">{renderCell(0, "notesFr", "c1", rows[0]?.maxFr, true)}</td>
               <td className="border-r border-slate-950 p-1">{renderCell(0, "notesFr", "c2", rows[0]?.maxFr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1">{renderCell(0, "notesFr", "c3", rows[0]?.maxFr, true)}</td>
@@ -343,14 +350,14 @@ const OfficialReportCard = ({
               <td className="border-r-2 border-slate-950 p-1">{renderCell(0, "notesAr", "c3", rows[0]?.maxAr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الموارد</td>
               <td rowSpan={4} className="p-1 font-bold align-middle bg-slate-900/5 leading-snug">
-                <div className="font-arabic text-sm text-slate-950">اللغة والتواصل</div>
-                <div className="text-[9px] font-sans text-slate-800">Langue et Communication</div>
+                <div className="font-arabic text-xs sm:text-sm text-slate-950">اللغة والتواصل</div>
+                <div className="text-[8px] sm:text-[9px] font-sans text-slate-800">Langue et Communication</div>
               </td>
             </tr>
 
             {/* Row 1: Ressources */}
             <tr className="border-b border-slate-950">
-              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Ressources</td>
+              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Ressources</td>
               <td className="border-r border-slate-950 p-1">{renderCell(1, "notesFr", "c1", rows[1]?.maxFr, true)}</td>
               <td className="border-r border-slate-950 p-1">{renderCell(1, "notesFr", "c2", rows[1]?.maxFr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1">{renderCell(1, "notesFr", "c3", rows[1]?.maxFr, true)}</td>
@@ -362,7 +369,7 @@ const OfficialReportCard = ({
 
             {/* Row 2: Compétence */}
             <tr className="border-b-2 border-slate-950">
-              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Compétence</td>
+              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Compétence</td>
               <td className="border-r border-slate-950 p-1">{renderCell(2, "notesFr", "c1", rows[2]?.maxFr, true)}</td>
               <td className="border-r border-slate-950 p-1">{renderCell(2, "notesFr", "c2", rows[2]?.maxFr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1">{renderCell(2, "notesFr", "c3", rows[2]?.maxFr, true)}</td>
@@ -374,10 +381,10 @@ const OfficialReportCard = ({
 
             {/* Row 3: Mathématiques / Ressources */}
             <tr className="border-b border-slate-950">
-              <td rowSpan={2} className="border-r-2 border-slate-950 p-1 font-extrabold text-left align-middle pl-2 bg-slate-900/5">
+              <td rowSpan={2} className="border-r-2 border-slate-950 p-1 font-extrabold text-left align-middle pl-1.5 sm:pl-2 bg-slate-900/5">
                 Mathématiques
               </td>
-              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Ressources</td>
+              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Ressources</td>
               <td className="border-r border-slate-950 p-1">{renderCell(3, "notesFr", "c1", rows[3]?.maxFr, true)}</td>
               <td className="border-r border-slate-950 p-1">{renderCell(3, "notesFr", "c2", rows[3]?.maxFr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1">{renderCell(3, "notesFr", "c3", rows[3]?.maxFr, true)}</td>
@@ -389,7 +396,7 @@ const OfficialReportCard = ({
 
             {/* Row 4: Mathématiques / Compétence */}
             <tr className="border-b-2 border-slate-950">
-              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Compétence</td>
+              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Compétence</td>
               <td className="border-r border-slate-950 p-1">{renderCell(4, "notesFr", "c1", rows[4]?.maxFr, true)}</td>
               <td className="border-r border-slate-950 p-1">{renderCell(4, "notesFr", "c2", rows[4]?.maxFr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1">{renderCell(4, "notesFr", "c3", rows[4]?.maxFr, true)}</td>
@@ -402,10 +409,10 @@ const OfficialReportCard = ({
 
             {/* Row 5: Découverte du Monde / Ressources */}
             <tr className="border-b border-slate-950">
-              <td rowSpan={2} className="border-r-2 border-slate-950 p-1 font-extrabold text-left align-middle pl-2 bg-slate-900/5">
+              <td rowSpan={2} className="border-r-2 border-slate-950 p-1 font-extrabold text-left align-middle pl-1.5 sm:pl-2 bg-slate-900/5">
                 Découverte du<br />Monde
               </td>
-              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Ressources</td>
+              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Ressources</td>
               <td className="border-r border-slate-950 p-1">{renderCell(5, "notesFr", "c1", rows[5]?.maxFr, true)}</td>
               <td className="border-r border-slate-950 p-1">{renderCell(5, "notesFr", "c2", rows[5]?.maxFr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1">{renderCell(5, "notesFr", "c3", rows[5]?.maxFr, true)}</td>
@@ -414,14 +421,14 @@ const OfficialReportCard = ({
               <td className="border-r-2 border-slate-950 p-1">{renderCell(5, "notesAr", "c3", rows[5]?.maxAr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الموارد</td>
               <td rowSpan={4} className="p-1 font-bold align-middle bg-slate-900/5 leading-snug">
-                <div className="font-arabic text-sm text-slate-950">التربية الدينية</div>
-                <div className="text-[9px] font-sans text-slate-800">Éducation Religieuse</div>
+                <div className="font-arabic text-xs sm:text-sm text-slate-950">التربية الدينية</div>
+                <div className="text-[8px] sm:text-[9px] font-sans text-slate-800">Éducation Religieuse</div>
               </td>
             </tr>
 
             {/* Row 6: Compétence */}
             <tr className="border-b-2 border-slate-950">
-              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Compétence</td>
+              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Compétence</td>
               <td className="border-r border-slate-950 p-1">{renderCell(6, "notesFr", "c1", rows[6]?.maxFr, true)}</td>
               <td className="border-r border-slate-950 p-1">{renderCell(6, "notesFr", "c2", rows[6]?.maxFr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1">{renderCell(6, "notesFr", "c3", rows[6]?.maxFr, true)}</td>
@@ -433,10 +440,10 @@ const OfficialReportCard = ({
 
             {/* Row 7: Développement durable / Ressources */}
             <tr className="border-b border-slate-950">
-              <td rowSpan={2} className="border-r-2 border-slate-950 p-1 font-extrabold text-left align-middle pl-2 bg-slate-900/5">
+              <td rowSpan={2} className="border-r-2 border-slate-950 p-1 font-extrabold text-left align-middle pl-1.5 sm:pl-2 bg-slate-900/5">
                 Développement<br />durable
               </td>
-              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Ressources</td>
+              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Ressources</td>
               <td className="border-r border-slate-950 p-1">{renderCell(7, "notesFr", "c1", rows[7]?.maxFr, true)}</td>
               <td className="border-r border-slate-950 p-1">{renderCell(7, "notesFr", "c2", rows[7]?.maxFr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1">{renderCell(7, "notesFr", "c3", rows[7]?.maxFr, true)}</td>
@@ -448,7 +455,7 @@ const OfficialReportCard = ({
 
             {/* Row 8: Compétence */}
             <tr className="border-b-2 border-slate-950">
-              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Compétence</td>
+              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Compétence</td>
               <td className="border-r border-slate-950 p-1">{renderCell(8, "notesFr", "c1", rows[8]?.maxFr, true)}</td>
               <td className="border-r border-slate-950 p-1">{renderCell(8, "notesFr", "c2", rows[8]?.maxFr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1">{renderCell(8, "notesFr", "c3", rows[8]?.maxFr, true)}</td>
@@ -460,10 +467,10 @@ const OfficialReportCard = ({
 
             {/* Row 9: EPSA / Art Plastique */}
             <tr className="border-b border-slate-950">
-              <td rowSpan={2} className="border-r-2 border-slate-950 p-1 font-extrabold text-left align-middle pl-2 bg-slate-900/5">
+              <td rowSpan={2} className="border-r-2 border-slate-950 p-1 font-extrabold text-left align-middle pl-1.5 sm:pl-2 bg-slate-900/5">
                 EPSA
               </td>
-              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Art Plastique</td>
+              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Art Plastique</td>
               <td className="border-r border-slate-950 p-1">{renderCell(9, "notesFr", "c1", rows[9]?.maxFr, true)}</td>
               <td className="border-r border-slate-950 p-1">{renderCell(9, "notesFr", "c2", rows[9]?.maxFr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1">{renderCell(9, "notesFr", "c3", rows[9]?.maxFr, true)}</td>
@@ -476,7 +483,7 @@ const OfficialReportCard = ({
 
             {/* Row 10: Edu. Musicale */}
             <tr className="border-b-2 border-slate-950">
-              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Edu. Musicale</td>
+              <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-1.5 sm:pl-2">Edu. Musicale</td>
               <td className="border-r border-slate-950 p-1">{renderCell(10, "notesFr", "c1", rows[10]?.maxFr, true)}</td>
               <td className="border-r border-slate-950 p-1">{renderCell(10, "notesFr", "c2", rows[10]?.maxFr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1">{renderCell(10, "notesFr", "c3", rows[10]?.maxFr, true)}</td>
@@ -488,7 +495,7 @@ const OfficialReportCard = ({
             </tr>
 
             {/* TOTAL */}
-            <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/10">
+            <tr className="border-b border-slate-950 font-black text-[10px] sm:text-xs bg-slate-900/10">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">TOTAL</td>
               <td className="border-r border-slate-950 p-1 font-mono font-black text-emerald-950">
                 {summary.totalFr?.c1} / {summary.maxTotalFr}
@@ -512,31 +519,31 @@ const OfficialReportCard = ({
             </tr>
 
             {/* MOYENNE */}
-            <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/5">
+            <tr className="border-b border-slate-950 font-black text-[10px] sm:text-xs bg-slate-900/5">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">MOYENNE</td>
               <td className="border-r border-slate-950 p-1 font-mono font-bold text-emerald-900">
-                {summary.moyFr?.c1} <span className="text-[9px]">/ 10</span>
+                {summary.moyFr?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span>
               </td>
               <td className="border-r border-slate-950 p-1 font-mono font-bold">
-                {isColVisible("c2") ? <>{summary.moyFr?.c2} <span className="text-[9px]">/ 10</span></> : "—"}
+                {isColVisible("c2") ? <>{summary.moyFr?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">
-                {isColVisible("c3") ? <>{summary.moyFr?.c3} <span className="text-[9px]">/ 10</span></> : "—"}
+                {isColVisible("c3") ? <>{summary.moyFr?.c3} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
               </td>
               <td className="border-r border-slate-950 p-1 font-mono font-bold text-emerald-900">
-                {summary.moyAr?.c1} <span className="text-[9px]">/ 10</span>
+                {summary.moyAr?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span>
               </td>
               <td className="border-r border-slate-950 p-1 font-mono font-bold">
-                {isColVisible("c2") ? <>{summary.moyAr?.c2} <span className="text-[9px]">/ 10</span></> : "—"}
+                {isColVisible("c2") ? <>{summary.moyAr?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">
-                {isColVisible("c3") ? <>{summary.moyAr?.c3} <span className="text-[9px]">/ 10</span></> : "—"}
+                {isColVisible("c3") ? <>{summary.moyAr?.c3} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
               </td>
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">المعدل</td>
             </tr>
 
             {/* RANG */}
-            <tr className="border-b-2 border-slate-950 font-bold text-xs">
+            <tr className="border-b-2 border-slate-950 font-bold text-[10px] sm:text-xs">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">RANG</td>
               <td className="border-r border-slate-950 p-1">{summary.rankFr?.c1}ème Élèves</td>
               <td className="border-r border-slate-950 p-1">
@@ -556,7 +563,7 @@ const OfficialReportCard = ({
             </tr>
 
             {/* TOTAL GENERAL */}
-            <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/10">
+            <tr className="border-b border-slate-950 font-black text-[10px] sm:text-xs bg-slate-900/10">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">TOTAL GENERAL</td>
               <td className="border-r border-slate-950 p-1 font-mono font-black text-emerald-950">{summary.totalGen?.c1}</td>
               <td className="border-r border-slate-950 p-1 font-mono">
@@ -572,16 +579,16 @@ const OfficialReportCard = ({
             </tr>
 
             {/* MOYENNE GENERALE */}
-            <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/5">
+            <tr className="border-b border-slate-950 font-black text-[10px] sm:text-xs bg-slate-900/5">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">MOYENNE GENERAL</td>
               <td className="border-r border-slate-950 p-1 font-mono text-emerald-950 font-black bg-emerald-600/15">
-                {summary.moyGen?.c1} <span className="text-[9px]">/ 10</span>
+                {summary.moyGen?.c1} <span className="text-[8px] sm:text-[9px]">/ 10</span>
               </td>
               <td className="border-r border-slate-950 p-1 font-mono text-emerald-950 font-black">
-                {isColVisible("c2") ? <>{summary.moyGen?.c2} <span className="text-[9px]">/ 10</span></> : "—"}
+                {isColVisible("c2") ? <>{summary.moyGen?.c2} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-mono text-emerald-950 font-black">
-                {isColVisible("c3") ? <>{summary.moyGen?.c3} <span className="text-[9px]">/ 10</span></> : "—"}
+                {isColVisible("c3") ? <>{summary.moyGen?.c3} <span className="text-[8px] sm:text-[9px]">/ 10</span></> : "—"}
               </td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
@@ -590,7 +597,7 @@ const OfficialReportCard = ({
             </tr>
 
             {/* RANG GENERAL */}
-            <tr className="border-b-2 border-slate-950 font-bold text-xs">
+            <tr className="border-b-2 border-slate-950 font-bold text-[10px] sm:text-xs">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">RANG GENERAL</td>
               <td className="border-r border-slate-950 p-1 font-black">{summary.rankGen?.c1}ème Élèves</td>
               <td className="border-r border-slate-950 p-1">
@@ -610,20 +617,19 @@ const OfficialReportCard = ({
       </div>
 
       {/* 5. BILAN ANNUEL (BLOC DOUBLE : FRANÇAIS & ARABE) */}
-      {/* Seule la 3ème composition (ou vue annuelle complète) affiche les calculs et décisions du bilan général */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 text-xs font-sans">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3 mb-4 text-[10px] sm:text-xs font-sans">
         
         {/* Cartouche Gauche : Bilan Annuel Français */}
-        <div className="border-2 border-slate-950 p-2.5 space-y-1.5 bg-white/50">
+        <div className="border-2 border-slate-950 p-2 sm:p-2.5 space-y-1 sm:space-y-1.5 bg-white/50">
           <div className="flex justify-between border-b border-slate-800 pb-1">
             <span className="font-extrabold uppercase">TOTAL ANNUELLE :</span>
-            <span className="font-mono font-black text-sm">
+            <span className="font-mono font-black text-xs sm:text-sm">
               {isAnnualVisible ? `${summary.annual?.totalPts} pts` : "—"}
             </span>
           </div>
           <div className="flex justify-between border-b border-slate-800 pb-1">
             <span className="font-extrabold uppercase">MOY. ANNUELLE :</span>
-            <span className="font-mono font-black text-sm text-emerald-950">
+            <span className="font-mono font-black text-xs sm:text-sm text-emerald-950">
               {isAnnualVisible ? `${summary.annual?.moyenne} / 10` : "—"}
             </span>
           </div>
@@ -642,10 +648,10 @@ const OfficialReportCard = ({
             </span>
           </div>
           <div className="pt-1 flex items-center justify-between font-bold">
-            <span className="uppercase font-black text-[11px]">
+            <span className="uppercase font-black text-[10px] sm:text-[11px]">
               Décision du conseil {isAnnualVisible ? ":" : "(fin d'année) :"}
             </span>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <label 
                 className={cn(
                   "flex items-center gap-1.5", 
@@ -658,7 +664,7 @@ const OfficialReportCard = ({
                 }}
               >
                 <span className={cn(
-                  "w-4 h-4 border border-slate-950 flex items-center justify-center font-bold text-[10px]",
+                  "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
                   (isAnnualVisible && summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
                 )}>
                   {isAnnualVisible && summary.annual?.isPassing ? "✓" : ""}
@@ -677,7 +683,7 @@ const OfficialReportCard = ({
                 }}
               >
                 <span className={cn(
-                  "w-4 h-4 border border-slate-950 flex items-center justify-center font-bold text-[10px]",
+                  "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
                   (isAnnualVisible && !summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
                 )}>
                   {isAnnualVisible && !summary.annual?.isPassing ? "✓" : ""}
@@ -689,16 +695,16 @@ const OfficialReportCard = ({
         </div>
 
         {/* Cartouche Droite : Bilan Annuel Arabe */}
-        <div className="border-2 border-slate-950 p-2.5 space-y-1.5 dir-rtl font-arabic bg-white/50">
+        <div className="border-2 border-slate-950 p-2 sm:p-2.5 space-y-1 sm:space-y-1.5 dir-rtl font-arabic bg-white/50">
           <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
             <span>المجموع السنوي :</span>
-            <span className="font-mono font-black text-sm font-sans">
+            <span className="font-mono font-black text-xs sm:text-sm font-sans">
               {isAnnualVisible ? `${summary.annual?.totalAr} / ${summary.maxTotalAr * 3}` : "—"}
             </span>
           </div>
           <div className="flex justify-between border-b border-slate-800 pb-1 font-bold">
             <span>المعدل السنوي :</span>
-            <span className="font-mono font-black text-sm text-emerald-950 font-sans">
+            <span className="font-mono font-black text-xs sm:text-sm text-emerald-950 font-sans">
               {isAnnualVisible ? `${summary.annual?.moyAr} / 10` : "—"}
             </span>
           </div>
@@ -717,10 +723,10 @@ const OfficialReportCard = ({
             </span>
           </div>
           <div className="pt-1 flex items-center justify-between font-bold">
-            <span className="font-black text-[12px]">
+            <span className="font-black text-[11px] sm:text-[12px]">
               قرار مجلس المعلمين {isAnnualVisible ? ":" : "(نهاية السنة) :"}
             </span>
-            <div className="flex items-center gap-4 font-sans text-xs">
+            <div className="flex items-center gap-3 sm:gap-4 font-sans text-xs">
               <label 
                 className={cn(
                   "flex items-center gap-1.5", 
@@ -733,7 +739,7 @@ const OfficialReportCard = ({
                 }}
               >
                 <span className={cn(
-                  "w-4 h-4 border border-slate-950 flex items-center justify-center font-bold text-[10px]",
+                  "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
                   (isAnnualVisible && summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
                 )}>
                   {isAnnualVisible && summary.annual?.isPassing ? "✓" : ""}
@@ -752,7 +758,7 @@ const OfficialReportCard = ({
                 }}
               >
                 <span className={cn(
-                  "w-4 h-4 border border-slate-950 flex items-center justify-center font-bold text-[10px]",
+                  "w-3.5 h-3.5 sm:w-4 sm:h-4 border border-slate-950 flex items-center justify-center font-bold text-[9px] sm:text-[10px]",
                   (isAnnualVisible && !summary.annual?.isPassing) ? "bg-slate-950 text-white" : "bg-white text-transparent"
                 )}>
                   {isAnnualVisible && !summary.annual?.isPassing ? "✓" : ""}
@@ -766,42 +772,42 @@ const OfficialReportCard = ({
       </div>
 
       {/* 6. SIGNATURES OFFICIELLES (LE MAÎTRE / LE DIRECTEUR / LE PARENT) */}
-      <div className="grid grid-cols-3 gap-2 text-center text-xs pt-2 border-t-2 border-slate-950">
+      <div className="grid grid-cols-3 gap-1 sm:gap-2 text-center text-[9px] sm:text-xs pt-2 border-t-2 border-slate-950">
         
         {/* Le Maître / المعلم */}
-        <div className="flex flex-col items-center justify-between h-20">
-          <div className="font-black uppercase tracking-wider text-[11px]">
+        <div className="flex flex-col items-center justify-between min-h-[4.5rem] sm:min-h-[5rem]">
+          <div className="font-black uppercase tracking-wider text-[9px] sm:text-[11px] leading-tight">
             <span>Le Maître</span> / <span className="font-arabic">المعلم</span>
           </div>
-          <div className="font-serif italic text-slate-800 text-xs border-b border-dotted border-slate-700 w-32 pb-1">
+          <div className="font-serif italic text-slate-800 text-[10px] sm:text-xs border-b border-dotted border-slate-700 w-20 sm:w-32 pb-0.5 sm:pb-1">
             M. Ndiaye
           </div>
         </div>
 
         {/* Le Directeur / المدير avec Cachet Officiel Pathé Pogne */}
-        <div className="flex flex-col items-center justify-between h-20 relative">
-          <div className="font-black uppercase tracking-wider text-[11px]">
+        <div className="flex flex-col items-center justify-between min-h-[4.5rem] sm:min-h-[5rem] relative">
+          <div className="font-black uppercase tracking-wider text-[9px] sm:text-[11px] leading-tight">
             <span>Le Directeur</span> / <span className="font-arabic">المدير</span>
           </div>
           
           {/* Cachet circulaire officiel rouge/bleu Pathé Pogne */}
-          <div className="w-16 h-16 rounded-full border border-dashed border-blue-800/80 p-0.5 flex flex-col items-center justify-center text-blue-900 rotate-[-10deg] select-none opacity-85 my-auto">
-            <span className="text-[6px] font-black uppercase tracking-tighter leading-none">ÉCOLE FRANCO ARABE</span>
-            <span className="text-[7px] font-black uppercase tracking-tight text-center">PATHÉ POGNE</span>
-            <span className="text-[5px] font-bold uppercase tracking-widest text-center">DIRECTION</span>
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border border-dashed border-blue-800/80 p-0.5 flex flex-col items-center justify-center text-blue-900 rotate-[-10deg] select-none opacity-85 my-auto">
+            <span className="text-[5px] sm:text-[6px] font-black uppercase tracking-tighter leading-none">ÉCOLE FRANCO ARABE</span>
+            <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tight text-center">PATHÉ POGNE</span>
+            <span className="text-[4px] sm:text-[5px] font-bold uppercase tracking-widest text-center">DIRECTION</span>
           </div>
 
-          <div className="text-[10px] text-slate-700 font-semibold">
+          <div className="text-[8px] sm:text-[10px] text-slate-700 font-semibold">
             Visa & Cachet
           </div>
         </div>
 
         {/* Le Parent / الولي */}
-        <div className="flex flex-col items-center justify-between h-20">
-          <div className="font-black uppercase tracking-wider text-[11px]">
+        <div className="flex flex-col items-center justify-between min-h-[4.5rem] sm:min-h-[5rem]">
+          <div className="font-black uppercase tracking-wider text-[9px] sm:text-[11px] leading-tight">
             <span>Le parent</span> / <span className="font-arabic">الولي</span>
           </div>
-          <div className="text-[10px] italic text-slate-600 border-b border-dotted border-slate-700 w-32 pb-1">
+          <div className="text-[8px] sm:text-[10px] italic text-slate-600 border-b border-dotted border-slate-700 w-20 sm:w-32 pb-0.5 sm:pb-1">
             Signature du parent
           </div>
         </div>
@@ -1084,19 +1090,19 @@ export function GradesClient({
   };
 
   return (
-    <div className="space-y-6 w-full max-w-full">
+    <div className="space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
       
       {/* EN-TÊTE DE LA SECTION DE GESTION */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 border-b border-border/40 pb-4 sm:pb-5">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
               Espace École Pathé Pogne
             </span>
-            <span className="text-xs text-muted-foreground">• Format Officiel Bilingue (Français & Arabe)</span>
+            <span className="text-[11px] sm:text-xs text-muted-foreground">• Format Officiel Bilingue (Français & Arabe)</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground flex items-center gap-2.5">
-            <FileText className="w-7 h-7 text-emerald-600" />
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
+            <FileText className="w-5 h-5 sm:w-7 sm:h-7 text-emerald-600 shrink-0" />
             <span>Bulletin de Notes & كشف الدرجات</span>
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
@@ -1105,36 +1111,36 @@ export function GradesClient({
         </div>
 
         {/* Onglets Principaux */}
-        <div className="flex bg-card p-1 rounded-2xl border border-border/60 shadow-xs overflow-x-auto shrink-0">
+        <div className="flex bg-card p-1 rounded-xl sm:rounded-2xl border border-border/60 shadow-xs overflow-x-auto shrink-0 w-full md:w-auto">
           <button 
             onClick={() => setActiveTab("BULLETINS")}
             className={cn(
-              "px-4 sm:px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shrink-0 flex items-center gap-2",
+              "px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest transition-all shrink-0 flex items-center gap-1.5 flex-1 md:flex-none justify-center",
               activeTab === "BULLETINS" ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 font-black" : "text-muted-foreground hover:bg-muted/50"
             )}
           >
             <FileText className="w-3.5 h-3.5" />
-            <span>Bulletin Officiel</span>
+            <span>Bulletin</span>
           </button>
           <button 
             onClick={() => setActiveTab("SAISIE")}
             className={cn(
-              "px-4 sm:px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shrink-0 flex items-center gap-2",
+              "px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest transition-all shrink-0 flex items-center gap-1.5 flex-1 md:flex-none justify-center",
               activeTab === "SAISIE" ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 font-black" : "text-muted-foreground hover:bg-muted/50"
             )}
           >
             <BookOpen className="w-3.5 h-3.5" />
-            <span>Saisie par Classe (1, 2, 3)</span>
+            <span>Saisie</span>
           </button>
           <button 
             onClick={() => { setActiveTab("RAPPORTS"); setSynthesisData(null); }}
             className={cn(
-              "px-4 sm:px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shrink-0 flex items-center gap-2",
+              "px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest transition-all shrink-0 flex items-center gap-1.5 flex-1 md:flex-none justify-center",
               activeTab === "RAPPORTS" ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 font-black" : "text-muted-foreground hover:bg-muted/50"
             )}
           >
             <Award className="w-3.5 h-3.5" />
-            <span>Rapports & Synthèse</span>
+            <span>Rapports</span>
           </button>
         </div>
       </div>
@@ -1144,8 +1150,8 @@ export function GradesClient({
         <div className="space-y-4">
           
           {/* Barre de Contrôle Supérieure */}
-          <div className="bg-card border border-border/70 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+          <div className="bg-card border border-border/70 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-xs space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3 items-end">
               
               {/* Sélecteur de Classe */}
               <div className="lg:col-span-3">
@@ -1162,7 +1168,7 @@ export function GradesClient({
                       handleStudentSwitch(c.students[0].id);
                     }
                   }}
-                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                 >
                   {classes.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -1181,7 +1187,7 @@ export function GradesClient({
                   value={reportStudentId}
                   onChange={(e) => handleStudentSwitch(e.target.value)}
                   disabled={!reportClass?.students?.length}
-                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
+                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
                 >
                   {reportClass?.students?.map((s: any) => (
                     <option key={s.id} value={s.id}>
@@ -1199,7 +1205,7 @@ export function GradesClient({
                 <select
                   value={reportPeriod}
                   onChange={(e) => setReportPeriod(e.target.value)}
-                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-emerald-900 dark:text-emerald-300"
+                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 text-emerald-900 dark:text-emerald-300"
                 >
                   {TERMS.map((t) => (
                     <option key={t.value} value={t.value}>
@@ -1210,11 +1216,11 @@ export function GradesClient({
               </div>
 
               {/* Bouton Afficher / Toute la classe */}
-              <div className="lg:col-span-2 flex items-center gap-2">
+              <div className="lg:col-span-2 flex items-center gap-2 w-full">
                 <button 
                   onClick={handleGenerateReport}
                   disabled={!reportStudentId || isGenerating}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-wider text-[11px] py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-wider text-[11px] py-2 sm:py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
                 >
                   {isGenerating && !isClassReport ? <Clock className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
                   <span>Afficher</span>
@@ -1223,7 +1229,7 @@ export function GradesClient({
                   onClick={handleGenerateClassReports}
                   disabled={!reportClassId || isGenerating}
                   title="Générer les bulletins de tous les élèves de la classe"
-                  className="bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-wider text-[11px] py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-wider text-[11px] py-2 sm:py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
                 >
                   {isGenerating && isClassReport ? <Clock className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
                   <span>Classe</span>
@@ -1233,24 +1239,24 @@ export function GradesClient({
             </div>
 
             {/* Barre d'outils secondaire : Mode Saisie Directe, Sauvegarde, Impression */}
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-3 border-t border-border/40 gap-3 text-xs">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-3 border-t border-border/40 gap-2.5 sm:gap-3 text-xs">
               
               {/* Outils d'Édition directe */}
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 {!isClassReport && (
                   <>
                     <button
                       type="button"
                       onClick={() => setIsEditingReport(!isEditingReport)}
                       className={cn(
-                        "px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border",
+                        "px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border",
                         isEditingReport 
                           ? "bg-amber-500 text-white border-amber-600 shadow-md ring-2 ring-amber-400/40" 
                           : "bg-background text-foreground border-border hover:bg-muted"
                       )}
                     >
                       <Edit3 className="w-3.5 h-3.5" />
-                      <span>{isEditingReport ? "Mode Saisie Actif ✏️" : "Modifier les Notes ✏️"}</span>
+                      <span>{isEditingReport ? "Mode Saisie Actif ✏️" : "Modifier Notes ✏️"}</span>
                     </button>
 
                     {isEditingReport && (
@@ -1258,10 +1264,10 @@ export function GradesClient({
                         type="button"
                         onClick={handleSaveStudentNotes}
                         disabled={isSavingReport}
-                        className="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+                        className="px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black uppercase tracking-wider transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
                       >
                         {isSavingReport ? <Clock className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                        <span>Enregistrer les Notes</span>
+                        <span>Enregistrer</span>
                       </button>
                     )}
 
@@ -1269,34 +1275,34 @@ export function GradesClient({
                       type="button"
                       onClick={handleResetStudentNotes}
                       title="Réinitialiser les notes aux valeurs initiales"
-                      className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors flex items-center gap-1"
+                      className="px-2 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors flex items-center gap-1"
                     >
                       <RotateCcw className="w-3 h-3" />
-                      <span>Réinitialiser</span>
+                      <span>Reset</span>
                     </button>
                   </>
                 )}
 
                 {/* Couleur Papier */}
-                <div className="flex items-center gap-1.5 ml-1 border-l pl-3 border-border/60">
+                <div className="flex items-center gap-1 ml-auto sm:ml-1 border-l pl-2 sm:pl-3 border-border/60">
                   <span className="text-[10px] font-bold text-muted-foreground hidden lg:inline">Papier :</span>
                   <button
                     type="button"
                     onClick={() => setIsGreenPaper(true)}
                     className={cn(
-                      "px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border",
+                      "px-2 py-1 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border",
                       isGreenPaper 
                         ? "bg-[#cbf3d2] text-[#051c0d] border-emerald-600 shadow-xs" 
                         : "bg-muted text-muted-foreground border-border"
                     )}
                   >
-                    🟢 Vert Officiel
+                    🟢 Vert
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsGreenPaper(false)}
                     className={cn(
-                      "px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border",
+                      "px-2 py-1 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border",
                       !isGreenPaper 
                         ? "bg-white text-slate-900 border-slate-400 shadow-xs" 
                         : "bg-muted text-muted-foreground border-border"
@@ -1308,26 +1314,26 @@ export function GradesClient({
               </div>
 
               {/* Navigation Élèves & Impression */}
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center justify-between sm:justify-end gap-2 flex-wrap">
                 {!isClassReport && reportData && currentStudents.length > 1 && (
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={handlePreviousStudent}
                       disabled={currentStudentIndex <= 0 || isGenerating}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border hover:bg-muted font-bold disabled:opacity-40 transition-colors text-[11px]"
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg border border-border hover:bg-muted font-bold disabled:opacity-40 transition-colors text-[10px] sm:text-[11px]"
                     >
                       <ChevronLeft className="w-3 h-3" />
-                      <span>Précédent</span>
+                      <span className="hidden xs:inline">Précédent</span>
                     </button>
-                    <span className="font-bold text-muted-foreground text-[11px] px-1">
+                    <span className="font-bold text-muted-foreground text-[10px] sm:text-[11px] px-1 whitespace-nowrap">
                       {currentStudentIndex + 1} / {currentStudents.length}
                     </span>
                     <button
                       onClick={handleNextStudent}
                       disabled={currentStudentIndex >= currentStudents.length - 1 || isGenerating}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border hover:bg-muted font-bold disabled:opacity-40 transition-colors text-[11px]"
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg border border-border hover:bg-muted font-bold disabled:opacity-40 transition-colors text-[10px] sm:text-[11px]"
                     >
-                      <span>Suivant</span>
+                      <span className="hidden xs:inline">Suivant</span>
                       <ChevronRight className="w-3 h-3" />
                     </button>
                   </div>
@@ -1336,7 +1342,7 @@ export function GradesClient({
                 {/* Impression Directe */}
                 <button 
                   onClick={() => window.print()} 
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-1.5 rounded-xl flex items-center gap-2 shadow-xs transition-all active:scale-95"
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] sm:text-xs px-3 sm:px-4 py-1.5 rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Imprimer (A4)</span>
@@ -1348,17 +1354,17 @@ export function GradesClient({
 
           {/* Bannière Mode Saisie */}
           {isEditingReport && !isClassReport && (
-            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 flex items-center justify-between text-xs text-amber-900 dark:text-amber-200">
+            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-2.5 sm:p-3 flex flex-col xs:flex-row items-start xs:items-center justify-between text-xs text-amber-900 dark:text-amber-200 gap-2">
               <div className="flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-amber-600 animate-pulse" />
-                <span className="font-bold">
-                  Mode Saisie Directe actif : Modifiez n'importe quelle note, les totaux et moyennes se recalculent automatiquement !
+                <Edit3 className="w-4 h-4 text-amber-600 animate-pulse shrink-0" />
+                <span className="font-bold text-[11px] sm:text-xs leading-tight">
+                  Mode Saisie Directe actif : Les totaux et moyennes se recalculent en temps réel !
                 </span>
               </div>
               <button
                 onClick={handleSaveStudentNotes}
                 disabled={isSavingReport}
-                className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg font-black uppercase text-[10px] tracking-wider transition-all shrink-0"
+                className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg font-black uppercase text-[10px] tracking-wider transition-all self-end xs:self-auto shrink-0"
               >
                 Sauvegarder
               </button>
@@ -1368,7 +1374,7 @@ export function GradesClient({
           {/* APERÇU OFFICIEL DU BULLETIN */}
           <AnimatePresence>
             {reportData && (
-              <div className="w-full relative mt-4">
+              <div className="w-full relative mt-3 sm:mt-4">
                 <style>{`
                   @media print {
                     @page { size: A4 portrait; margin: 8mm; }
@@ -1381,11 +1387,11 @@ export function GradesClient({
                 <motion.div 
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="w-full space-y-8"
+                  className="w-full space-y-6 sm:space-y-8"
                 >
                   {isClassReport ? (
                     (reportData as any[]).map((r, i) => (
-                      <div key={i} className="w-full print:break-after mb-8 print:mb-0">
+                      <div key={i} className="w-full print:break-after mb-6 sm:mb-8 print:mb-0">
                         <OfficialReportCard 
                           data={r} 
                           schoolName={schoolName} 
@@ -1416,11 +1422,11 @@ export function GradesClient({
 
           {/* État vide si aucune donnée */}
           {!reportData && !isGenerating && (
-            <div className="p-12 text-center bg-card border border-border/50 rounded-2xl space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto">
-                <FileText className="w-6 h-6" />
+            <div className="p-8 sm:p-12 text-center bg-card border border-border/50 rounded-2xl space-y-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto">
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h3 className="text-base font-bold text-foreground">Aucun bulletin affiché</h3>
+              <h3 className="text-sm sm:text-base font-bold text-foreground">Aucun bulletin affiché</h3>
               <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                 Sélectionnez une classe et un élève ci-dessus puis cliquez sur "Afficher" pour visualiser le relevé officiel.
               </p>
@@ -1431,20 +1437,20 @@ export function GradesClient({
 
       {/* 2. ONGLET SAISIE RAPIDE PAR CLASSE (1, 2, 3) */}
       {activeTab === "SAISIE" && (
-        <div className="space-y-6">
-          <div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-card border border-border/70 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-xs space-y-3 sm:space-y-4">
             <div>
-              <h2 className="text-base font-bold flex items-center gap-2">
-                <Users className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-sm sm:text-base font-bold flex items-center gap-2">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
                 <span>Saisie Rapide par Classe — Compositions 1, 2 et 3</span>
               </h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] sm:text-xs text-muted-foreground">
                 Saisissez les notes de toute la classe en une seule fois pour une matière et une composition donnée.
               </p>
             </div>
 
             {/* Sélecteurs de Saisie Groupée */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
               <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">Classe / الصف</label>
                 <select 
@@ -1497,39 +1503,39 @@ export function GradesClient({
 
           {/* Grille de Saisie de Tous les Élèves */}
           <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-            <div className="bg-slate-100 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+            <div className="bg-slate-100 dark:bg-slate-800 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-200 dark:border-slate-700 flex flex-col xs:flex-row items-start xs:items-center justify-between text-xs select-none gap-2">
               <div>
-                <span className="font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-                  Classe : {batchClass?.name} • {activeSubjectOption.label} • {batchTerm.toUpperCase()}
+                <span className="font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-wide text-[11px] sm:text-xs">
+                  {batchClass?.name} • {activeSubjectOption.label} • {batchTerm.toUpperCase()}
                 </span>
-                <span className="ml-3 font-mono text-[11px] text-muted-foreground">
-                  Barème maximum : {activeSubjectOption.max} pts
+                <span className="block xs:inline xs:ml-3 font-mono text-[10px] sm:text-[11px] text-muted-foreground">
+                  Barème max : {activeSubjectOption.max} pts
                 </span>
               </div>
               <button 
                 onClick={handleSaveBatchGrades}
                 disabled={isSavingBatch || !batchClass?.students?.length}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[11px] tracking-wider px-4 py-1.5 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[10px] sm:text-[11px] tracking-wider px-3.5 py-1.5 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5 self-end xs:self-auto"
               >
                 {isSavingBatch ? <Clock className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                 <span>Enregistrer la Classe</span>
               </button>
             </div>
 
-            <div className="w-full overflow-x-auto">
-              <table className="w-full min-w-[550px] border-collapse text-left text-xs">
+            <div className="w-full overflow-x-auto touch-pan-x -webkit-overflow-scrolling-touch">
+              <table className="w-full min-w-[500px] border-collapse text-left text-xs">
                 <thead>
-                  <tr className="bg-emerald-800 text-white select-none">
-                    <th className="w-12 text-center p-2.5 border-r border-emerald-700">N°</th>
-                    <th className="p-2.5 border-r border-emerald-700">Matricule</th>
-                    <th className="p-2.5 border-r border-emerald-700">Nom & Prénom de l'Élève</th>
-                    <th className="p-2.5 text-center w-48">Note / Barème ({activeSubjectOption.max} pts)</th>
+                  <tr className="bg-emerald-800 text-white select-none text-[11px] sm:text-xs">
+                    <th className="w-10 sm:w-12 text-center p-2 sm:p-2.5 border-r border-emerald-700">N°</th>
+                    <th className="p-2 sm:p-2.5 border-r border-emerald-700">Matricule</th>
+                    <th className="p-2 sm:p-2.5 border-r border-emerald-700">Nom & Prénom</th>
+                    <th className="p-2 sm:p-2.5 text-center w-36 sm:w-48">Note / {activeSubjectOption.max} pts</th>
                   </tr>
                 </thead>
                 <tbody>
                   {!batchClass?.students?.length ? (
                     <tr>
-                      <td colSpan={4} className="p-8 text-center text-muted-foreground italic">
+                      <td colSpan={4} className="p-6 sm:p-8 text-center text-muted-foreground italic text-xs">
                         Aucun élève inscrit dans cette classe.
                       </td>
                     </tr>
@@ -1538,13 +1544,13 @@ export function GradesClient({
                       const val = batchGrades[st.id] !== undefined ? batchGrades[st.id] : "";
                       return (
                         <tr key={st.id} className={idx % 2 === 1 ? "bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200" : "bg-white dark:bg-slate-900 border-b border-slate-200"}>
-                          <td className="text-center p-2.5 font-mono font-bold text-slate-400 border-r border-slate-200">{idx + 1}</td>
-                          <td className="p-2.5 font-mono text-[11px] font-semibold text-slate-600 border-r border-slate-200">{st.matricule || "—"}</td>
-                          <td className="p-2.5 font-bold text-slate-900 dark:text-slate-100 border-r border-slate-200">
+                          <td className="text-center p-2 sm:p-2.5 font-mono font-bold text-slate-400 border-r border-slate-200 text-[11px]">{idx + 1}</td>
+                          <td className="p-2 sm:p-2.5 font-mono text-[10px] sm:text-[11px] font-semibold text-slate-600 border-r border-slate-200">{st.matricule || "—"}</td>
+                          <td className="p-2 sm:p-2.5 font-bold text-slate-900 dark:text-slate-100 border-r border-slate-200 text-xs">
                             {st.lastName?.toUpperCase()} {st.firstName}
                           </td>
-                          <td className="p-2.5 text-center">
-                            <div className="inline-flex items-center gap-1.5">
+                          <td className="p-2 sm:p-2.5 text-center">
+                            <div className="inline-flex items-center gap-1 sm:gap-1.5">
                               <input 
                                 type="number"
                                 min={0}
@@ -1556,9 +1562,9 @@ export function GradesClient({
                                   const num = Math.max(0, Math.min(activeSubjectOption.max, Number(e.target.value) || 0));
                                   setBatchGrades(prev => ({ ...prev, [st.id]: num }));
                                 }}
-                                className="w-20 px-2.5 py-1 text-center font-mono font-black text-sm bg-background border border-border/80 rounded-lg shadow-2xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                                className="w-16 sm:w-20 px-2 py-1 text-center font-mono font-black text-xs sm:text-sm bg-background border border-border/80 rounded-lg shadow-2xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                               />
-                              <span className="font-bold text-xs text-muted-foreground">/ {activeSubjectOption.max}</span>
+                              <span className="font-bold text-[10px] sm:text-xs text-muted-foreground">/ {activeSubjectOption.max}</span>
                             </div>
                           </td>
                         </tr>
@@ -1570,14 +1576,14 @@ export function GradesClient({
             </div>
 
             {batchClass?.students?.length > 0 && (
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+              <div className="p-2.5 sm:p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 flex justify-end">
                 <button 
                   onClick={handleSaveBatchGrades}
                   disabled={isSavingBatch}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-xs tracking-wider px-5 py-2 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[11px] sm:text-xs tracking-wider px-4 sm:px-5 py-1.5 sm:py-2 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  {isSavingBatch ? <Clock className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  <span>Enregistrer les notes saisies</span>
+                  {isSavingBatch ? <Clock className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                  <span>Enregistrer les notes</span>
                 </button>
               </div>
             )}
@@ -1588,7 +1594,7 @@ export function GradesClient({
       {/* 3. ONGLET RAPPORTS DE SYNTHÈSE */}
       {activeTab === "RAPPORTS" && (
         <div className="space-y-4">
-          <div className="bg-card border border-border/60 p-4 rounded-xl shadow-xs grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <div className="bg-card border border-border/60 p-3 sm:p-4 rounded-xl shadow-xs grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 items-end">
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">Période</label>
               <select 
@@ -1617,57 +1623,59 @@ export function GradesClient({
             <button 
               onClick={handleGenerateSynthesisReport}
               disabled={!synthesisClassId || isGeneratingSynthesis}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 sm:py-2.5 px-4 rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {isGeneratingSynthesis ? <Clock className="w-4 h-4 animate-spin" /> : <Award className="w-4 h-4" />}
+              {isGeneratingSynthesis ? <Clock className="w-3.5 h-3.5 animate-spin" /> : <Award className="w-3.5 h-3.5" />}
               <span>Générer Synthèse</span>
             </button>
           </div>
 
           {synthesisData && (
-            <div className="bg-white text-slate-900 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b pb-3">
+            <div className="bg-white text-slate-900 border border-slate-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm space-y-3 sm:space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 gap-2">
                 <div>
-                  <h3 className="font-black text-sm uppercase">Tableau de Synthèse des Résultats</h3>
-                  <p className="text-xs text-slate-500">
+                  <h3 className="font-black text-xs sm:text-sm uppercase">Tableau de Synthèse des Résultats</h3>
+                  <p className="text-[11px] sm:text-xs text-slate-500">
                     Effectif : {synthesisData.totalStudents} élèves • Taux de passage : {synthesisData.passingRate || "N/A"}
                   </p>
                 </div>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 self-start sm:self-auto">
                   Moyenne Classe : {synthesisData.classAverage} / 10
                 </span>
               </div>
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-slate-100 text-slate-700 font-bold">
-                    <th className="p-2 text-center w-12">Rang</th>
-                    <th className="p-2">Élève</th>
-                    <th className="p-2 text-center">Matricule</th>
-                    <th className="p-2 text-right">Moyenne / 10</th>
-                    <th className="p-2 text-center">Appréciation</th>
-                    <th className="p-2 text-center">Décision</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {synthesisData.ranking?.map((r: any, idx: number) => (
-                    <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="p-2 text-center font-black font-mono">{r.rank}</td>
-                      <td className="p-2 font-bold">{r.studentName}</td>
-                      <td className="p-2 text-center font-mono text-slate-500">{r.matricule || "—"}</td>
-                      <td className="p-2 text-right font-black font-mono text-emerald-800">{r.average} / 10</td>
-                      <td className="p-2 text-center italic text-slate-600">{r.appreciation || r.mention || "—"}</td>
-                      <td className="p-2 text-center font-bold">
-                        <span className={cn(
-                          "px-2 py-0.5 rounded text-[10px]",
-                          (r.decision === "Passe" || r.annualDecision === "Passe") ? "bg-emerald-100 text-emerald-800 font-black" : "bg-rose-100 text-rose-800 font-black"
-                        )}>
-                          {r.decision || r.annualDecision}
-                        </span>
-                      </td>
+              <div className="w-full overflow-x-auto touch-pan-x -webkit-overflow-scrolling-touch">
+                <table className="w-full min-w-[500px] text-xs">
+                  <thead>
+                    <tr className="bg-slate-100 text-slate-700 font-bold">
+                      <th className="p-2 text-center w-12">Rang</th>
+                      <th className="p-2">Élève</th>
+                      <th className="p-2 text-center">Matricule</th>
+                      <th className="p-2 text-right">Moyenne / 10</th>
+                      <th className="p-2 text-center">Appréciation</th>
+                      <th className="p-2 text-center">Décision</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {synthesisData.ranking?.map((r: any, idx: number) => (
+                      <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="p-2 text-center font-black font-mono">{r.rank}</td>
+                        <td className="p-2 font-bold">{r.studentName}</td>
+                        <td className="p-2 text-center font-mono text-slate-500">{r.matricule || "—"}</td>
+                        <td className="p-2 text-right font-black font-mono text-emerald-800">{r.average} / 10</td>
+                        <td className="p-2 text-center italic text-slate-600">{r.appreciation || r.mention || "—"}</td>
+                        <td className="p-2 text-center font-bold">
+                          <span className={cn(
+                            "px-2 py-0.5 rounded text-[10px]",
+                            (r.decision === "Passe" || r.annualDecision === "Passe") ? "bg-emerald-100 text-emerald-800 font-black" : "bg-rose-100 text-rose-800 font-black"
+                          )}>
+                            {r.decision || r.annualDecision}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
