@@ -3,6 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { DAARA_STAFF_ROLES, getActiveSpace } from "@/lib/action-context";
+import { 
+  getStoredStudentGrades, 
+  saveStoredStudentGrades, 
+  deleteStoredStudentGrades, 
+  bulkUpdateClassSubjectGrades 
+} from "@/lib/grades-storage";
 
 // 11 Rows strictly matching the official Senegalese Franco-Arab Primary School Report Card
 const OFFICIAL_FRANCO_ARAB_GRID_DEF = [
@@ -53,7 +59,7 @@ const OFFICIAL_FRANCO_ARAB_GRID_DEF = [
     disciplineAr: "",
     maxAr: 0,
   },
-  // Découverte du Monde (Left) | التربية الدينية (Right)
+  // Découverte du Monde (Left) | التربية الدينية / Éducation Religieuse (Right)
   {
     domainFr: "Découverte du Monde",
     disciplineFr: "Ressources",
@@ -121,29 +127,46 @@ function generateOfficialStudentCard(studentId: string, student: any, classmates
   }
   const baseFactor = 0.55 + (Math.abs(hash % 35) / 100); // 0.55 to 0.90 ratio
 
+  // Check if custom saved grades exist
+  const stored = getStoredStudentGrades(studentId);
+
   const rows = OFFICIAL_FRANCO_ARAB_GRID_DEF.map((def, rIdx) => {
-    const seed = Math.abs((hash + rIdx * 19) % 100) / 100;
-    
-    // 3 compositions French
-    const ratioC1 = Math.min(0.95, Math.max(0.40, baseFactor + (seed * 0.15) - 0.08));
-    const ratioC2 = Math.min(0.98, Math.max(0.42, ratioC1 + ((Math.abs((hash + rIdx * 7) % 20) - 8) / 100)));
-    const ratioC3 = Math.min(0.99, Math.max(0.45, ratioC2 + ((Math.abs((hash + rIdx * 13) % 20) - 5) / 100)));
-
-    const c1Fr = Math.round(def.maxFr * ratioC1);
-    const c2Fr = Math.round(def.maxFr * ratioC2);
-    const c3Fr = Math.round(def.maxFr * ratioC3);
-
-    // 3 compositions Arabic (if row has Arabic)
+    let c1Fr: number, c2Fr: number, c3Fr: number;
     let c1Ar = 0, c2Ar = 0, c3Ar = 0;
-    if (def.hasAr && def.maxAr > 0) {
-      const arSeed = Math.abs((hash + rIdx * 31) % 100) / 100;
-      const arRatio1 = Math.min(1.0, Math.max(0.40, baseFactor + (arSeed * 0.20) - 0.05));
-      const arRatio2 = Math.min(1.0, Math.max(0.45, arRatio1 + ((Math.abs((hash + rIdx * 11) % 20) - 7) / 100)));
-      const arRatio3 = Math.min(1.0, Math.max(0.50, arRatio2 + ((Math.abs((hash + rIdx * 17) % 20) - 4) / 100)));
 
-      c1Ar = Math.round(def.maxAr * arRatio1);
-      c2Ar = Math.round(def.maxAr * arRatio2);
-      c3Ar = Math.round(def.maxAr * arRatio3);
+    if (stored?.rows?.[rIdx]) {
+      // Use stored custom grades
+      const sRow = stored.rows[rIdx];
+      c1Fr = Number(sRow.notesFr?.c1 ?? 0);
+      c2Fr = Number(sRow.notesFr?.c2 ?? 0);
+      c3Fr = Number(sRow.notesFr?.c3 ?? 0);
+      if (def.hasAr && def.maxAr > 0) {
+        c1Ar = Number(sRow.notesAr?.c1 ?? 0);
+        c2Ar = Number(sRow.notesAr?.c2 ?? 0);
+        c3Ar = Number(sRow.notesAr?.c3 ?? 0);
+      }
+    } else {
+      // Use deterministic baseline
+      const seed = Math.abs((hash + rIdx * 19) % 100) / 100;
+      
+      const ratioC1 = Math.min(0.95, Math.max(0.40, baseFactor + (seed * 0.15) - 0.08));
+      const ratioC2 = Math.min(0.98, Math.max(0.42, ratioC1 + ((Math.abs((hash + rIdx * 7) % 20) - 8) / 100)));
+      const ratioC3 = Math.min(0.99, Math.max(0.45, ratioC2 + ((Math.abs((hash + rIdx * 13) % 20) - 5) / 100)));
+
+      c1Fr = Math.round(def.maxFr * ratioC1);
+      c2Fr = Math.round(def.maxFr * ratioC2);
+      c3Fr = Math.round(def.maxFr * ratioC3);
+
+      if (def.hasAr && def.maxAr > 0) {
+        const arSeed = Math.abs((hash + rIdx * 31) % 100) / 100;
+        const arRatio1 = Math.min(1.0, Math.max(0.40, baseFactor + (arSeed * 0.20) - 0.05));
+        const arRatio2 = Math.min(1.0, Math.max(0.45, arRatio1 + ((Math.abs((hash + rIdx * 11) % 20) - 7) / 100)));
+        const arRatio3 = Math.min(1.0, Math.max(0.50, arRatio2 + ((Math.abs((hash + rIdx * 17) % 20) - 4) / 100)));
+
+        c1Ar = Math.round(def.maxAr * arRatio1);
+        c2Ar = Math.round(def.maxAr * arRatio2);
+        c3Ar = Math.round(def.maxAr * arRatio3);
+      }
     }
 
     return {
@@ -200,26 +223,28 @@ function generateOfficialStudentCard(studentId: string, student: any, classmates
   const totalAnnuelAr = totalC1Ar + totalC2Ar + totalC3Ar;
   const moyAnnuelleAr = Number(((totalAnnuelAr / (maxTotalAr * 3)) * 10).toFixed(2));
 
-  const isPassing = moyAnnuelle >= 5.0;
+  const isPassing = stored?.customDecision ? stored.customDecision === "Passe" : moyAnnuelle >= 5.0;
 
   // Appréciations
-  let appreciation = "Travail passable";
-  let appreciationAr = "مستوى مقبول";
-  if (moyAnnuelle >= 8.0) {
-    appreciation = "Excellent travail, félicitations";
-    appreciationAr = "ممتاز، تهانينا";
-  } else if (moyAnnuelle >= 7.0) {
-    appreciation = "Très bon travail, tableau d'honneur";
-    appreciationAr = "جيد جداً، لوحة الشرف";
-  } else if (moyAnnuelle >= 6.0) {
-    appreciation = "Bon travail, encouragements";
-    appreciationAr = "جيد، تشجيع";
-  } else if (moyAnnuelle >= 5.0) {
-    appreciation = "Travail passable, doit progresser";
-    appreciationAr = "مقبول، ينبغي بذل المزيد";
-  } else {
-    appreciation = "Insuffisant, redoublement proposé";
-    appreciationAr = "ضعيف، إعادة السنة";
+  let appreciation = stored?.customAppreciation || "Travail passable";
+  let appreciationAr = stored?.customAppreciationAr || "مستوى مقبول";
+  if (!stored?.customAppreciation) {
+    if (moyAnnuelle >= 8.0) {
+      appreciation = "Excellent travail, félicitations";
+      appreciationAr = "ممتاز، تهانينا";
+    } else if (moyAnnuelle >= 7.0) {
+      appreciation = "Très bon travail, tableau d'honneur";
+      appreciationAr = "جيد جداً، لوحة الشرف";
+    } else if (moyAnnuelle >= 6.0) {
+      appreciation = "Bon travail, encouragements";
+      appreciationAr = "جيد، تشجيع";
+    } else if (moyAnnuelle >= 5.0) {
+      appreciation = "Travail passable, doit progresser";
+      appreciationAr = "مقبول، ينبغي بذل المزيد";
+    } else {
+      appreciation = "Insuffisant, redoublement proposé";
+      appreciationAr = "ضعيف، إعادة السنة";
+    }
   }
 
   return {
@@ -238,6 +263,7 @@ function generateOfficialStudentCard(studentId: string, student: any, classmates
     ief: "KEUR MASSAR",
     schoolName: "ÉCOLE FRANCO ARABE : PATHÉ POGNE",
     schoolNameAr: "المدرسة الفرنسية العربية باتيه بوني",
+    isCustomized: !!stored,
     rows,
     summary: {
       maxTotalFr,
@@ -249,9 +275,9 @@ function generateOfficialStudentCard(studentId: string, student: any, classmates
       moyAr: { c1: moyC1Ar, c2: moyC2Ar, c3: moyC3Ar },
       totalGen: { c1: totalGenC1, c2: totalGenC2, c3: totalGenC3 },
       moyGen: { c1: moyGenC1, c2: moyGenC2, c3: moyGenC3 },
-      rankFr: { c1: 6, c2: 5, c3: 5 },
-      rankAr: { c1: 3, c2: 2, c3: 2 },
-      rankGen: { c1: 5, c2: 4, c3: 4 },
+      rankFr: { c1: Math.max(1, rankOffset + 1), c2: Math.max(1, rankOffset + 1), c3: Math.max(1, rankOffset + 1) },
+      rankAr: { c1: Math.max(1, Math.round((rankOffset + 1) * 0.7)), c2: Math.max(1, Math.round((rankOffset + 1) * 0.7)), c3: Math.max(1, Math.round((rankOffset + 1) * 0.7)) },
+      rankGen: { c1: Math.max(1, rankOffset + 1), c2: Math.max(1, rankOffset + 1), c3: Math.max(1, rankOffset + 1) },
       totalStudents: classmatesCount || 25,
       annual: {
         totalPts: totalAnnuel,
@@ -270,6 +296,72 @@ function generateOfficialStudentCard(studentId: string, student: any, classmates
       }
     }
   };
+}
+
+export async function saveStudentReportCard(
+  studentId: string,
+  rows: any[],
+  extra?: { appreciation?: string; appreciationAr?: string; decision?: "Passe" | "Redouble" }
+) {
+  try {
+    const session = await auth();
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide." };
+    if (!session?.user?.id || !DAARA_STAFF_ROLES.includes(session.user.role)) return { error: "Non autorisé." };
+
+    const ok = saveStoredStudentGrades(studentId, {
+      rows,
+      customAppreciation: extra?.appreciation,
+      customAppreciationAr: extra?.appreciationAr,
+      customDecision: extra?.decision
+    });
+
+    if (!ok) return { error: "Erreur lors de l'enregistrement des notes." };
+    return { success: true, message: "Notes enregistrées avec succès." };
+  } catch (error: any) {
+    console.error("[SAVE_STUDENT_REPORT_CARD_ERROR]", error);
+    return { error: "Erreur interne lors de la sauvegarde." };
+  }
+}
+
+export async function resetStudentReportCard(studentId: string) {
+  try {
+    const session = await auth();
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide." };
+    if (!session?.user?.id || !DAARA_STAFF_ROLES.includes(session.user.role)) return { error: "Non autorisé." };
+
+    const ok = deleteStoredStudentGrades(studentId);
+    if (!ok) return { error: "Impossible de réinitialiser les notes." };
+    return { success: true, message: "Notes réinitialisées avec succès." };
+  } catch (error: any) {
+    console.error("[RESET_STUDENT_REPORT_CARD_ERROR]", error);
+    return { error: "Erreur interne lors de la réinitialisation." };
+  }
+}
+
+export async function bulkSaveClassGrades(
+  updates: Array<{
+    studentId: string;
+    rowIndex: number;
+    compo: "c1" | "c2" | "c3";
+    lang: "fr" | "ar";
+    value: number;
+  }>
+) {
+  try {
+    const session = await auth();
+    const daaraId = session?.user?.daaraId;
+    if (!daaraId) return { error: "Session non valide." };
+    if (!session?.user?.id || !DAARA_STAFF_ROLES.includes(session.user.role)) return { error: "Non autorisé." };
+
+    const ok = bulkUpdateClassSubjectGrades(updates);
+    if (!ok) return { error: "Erreur lors de la mise à jour des notes de la classe." };
+    return { success: true, message: "Toutes les notes de la classe ont été enregistrées avec succès !" };
+  } catch (error: any) {
+    console.error("[BULK_SAVE_CLASS_GRADES_ERROR]", error);
+    return { error: "Erreur interne lors de la sauvegarde groupée." };
+  }
 }
 
 export async function addGrade(_data: {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   CheckCircle2, 
@@ -14,9 +14,21 @@ import {
   ChevronRight, 
   Award, 
   Palette,
-  Sparkles
+  Edit3,
+  Save,
+  RotateCcw,
+  Sparkles,
+  Users
 } from "lucide-react";
-import { addGrade, getStudentReportCard, getClassReportCards, getClassSynthesisReport, getAnnualReport } from "@/lib/actions/grades";
+import { 
+  getStudentReportCard, 
+  getClassReportCards, 
+  getClassSynthesisReport, 
+  getAnnualReport,
+  saveStudentReportCard,
+  resetStudentReportCard,
+  bulkSaveClassGrades
+} from "@/lib/actions/grades";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useSpace } from "@/components/providers/space-provider";
@@ -29,22 +41,139 @@ interface GradesClientProps {
 }
 
 const TERMS = [
-  { value: "TRIMESTRE_1", labelFr: "1er Trimestre", labelAr: "الفصل الأول" },
-  { value: "TRIMESTRE_2", labelFr: "2ème Trimestre", labelAr: "الفصل الثاني" },
-  { value: "TRIMESTRE_3", labelFr: "3ème Trimestre", labelAr: "الفصل الثالث" },
+  { value: "ALL", labelFr: "Toutes les Compositions (Vue Annuelle)", labelAr: "كل الفصول (عرض سنوي)", compoKey: "all" },
+  { value: "TRIMESTRE_1", labelFr: "1ère Composition (Trimestre 1)", labelAr: "الاختبار 1 (الفصل الأول)", compoKey: "c1" },
+  { value: "TRIMESTRE_2", labelFr: "2ème Composition (Trimestre 2)", labelAr: "الاختبار 2 (الفصل الثاني)", compoKey: "c2" },
+  { value: "TRIMESTRE_3", labelFr: "3ème Composition (Trimestre 3)", labelAr: "الاختبار 3 (الفصل الثالث)", compoKey: "c3" },
 ];
+
+const SUBJECT_OPTIONS = [
+  { rowIndex: 0, lang: "fr" as const, max: 10, label: "Français - Lecture (/10)" },
+  { rowIndex: 1, lang: "fr" as const, max: 40, label: "Français - Ressources LC (/40)" },
+  { rowIndex: 2, lang: "fr" as const, max: 20, label: "Français - Compétence LC (/20)" },
+  { rowIndex: 3, lang: "fr" as const, max: 40, label: "Mathématiques - Ressources (/40)" },
+  { rowIndex: 4, lang: "fr" as const, max: 20, label: "Mathématiques - Compétence (/20)" },
+  { rowIndex: 5, lang: "fr" as const, max: 24, label: "Découverte du Monde - Ressources (/24)" },
+  { rowIndex: 6, lang: "fr" as const, max: 16, label: "Découverte du Monde - Compétence (/16)" },
+  { rowIndex: 7, lang: "fr" as const, max: 24, label: "Développement Durable - Ressources (/24)" },
+  { rowIndex: 8, lang: "fr" as const, max: 16, label: "Développement Durable - Compétence (/16)" },
+  { rowIndex: 9, lang: "fr" as const, max: 10, label: "EPSA - Art Plastique (/10)" },
+  { rowIndex: 10, lang: "fr" as const, max: 10, label: "EPSA - Edu. Musicale (/10)" },
+  // Arabe
+  { rowIndex: 0, lang: "ar" as const, max: 10, label: "Arabe - الموارد اللغة والتواصل (/10)" },
+  { rowIndex: 1, lang: "ar" as const, max: 10, label: "Arabe - الموارد LC (/10)" },
+  { rowIndex: 2, lang: "ar" as const, max: 10, label: "Arabe - الكفاءة LC (/10)" },
+  { rowIndex: 3, lang: "ar" as const, max: 10, label: "Arabe - الكفاءة Math (/10)" },
+  { rowIndex: 5, lang: "ar" as const, max: 10, label: "Arabe - التربية الدينية الموارد (/10)" },
+  { rowIndex: 6, lang: "ar" as const, max: 10, label: "Arabe - التربية الدينية الموارد 2 (/10)" },
+  { rowIndex: 7, lang: "ar" as const, max: 10, label: "Arabe - التربية الدينية الكفاءة (/10)" },
+  { rowIndex: 8, lang: "ar" as const, max: 10, label: "Arabe - التربية الدينية الكفاءة 2 (/10)" },
+];
+
+// Helper to compute official report card statistics
+function computeCardSummary(rows: any[]) {
+  const maxTotalFr = rows.reduce((acc, r) => acc + (r.maxFr || 0), 0); // 230
+  const totalC1Fr = rows.reduce((acc, r) => acc + (Number(r.notesFr?.c1) || 0), 0);
+  const totalC2Fr = rows.reduce((acc, r) => acc + (Number(r.notesFr?.c2) || 0), 0);
+  const totalC3Fr = rows.reduce((acc, r) => acc + (Number(r.notesFr?.c3) || 0), 0);
+
+  const moyC1Fr = Number(((totalC1Fr / maxTotalFr) * 10).toFixed(2));
+  const moyC2Fr = Number(((totalC2Fr / maxTotalFr) * 10).toFixed(2));
+  const moyC3Fr = Number(((totalC3Fr / maxTotalFr) * 10).toFixed(2));
+
+  const maxTotalAr = rows.reduce((acc, r) => acc + (r.hasAr ? (r.maxAr || 0) : 0), 0); // 80
+  const totalC1Ar = rows.reduce((acc, r) => acc + (r.hasAr ? (Number(r.notesAr?.c1) || 0) : 0), 0);
+  const totalC2Ar = rows.reduce((acc, r) => acc + (r.hasAr ? (Number(r.notesAr?.c2) || 0) : 0), 0);
+  const totalC3Ar = rows.reduce((acc, r) => acc + (r.hasAr ? (Number(r.notesAr?.c3) || 0) : 0), 0);
+
+  const moyC1Ar = Number(((totalC1Ar / maxTotalAr) * 10).toFixed(2));
+  const moyC2Ar = Number(((totalC2Ar / maxTotalAr) * 10).toFixed(2));
+  const moyC3Ar = Number(((totalC3Ar / maxTotalAr) * 10).toFixed(2));
+
+  const maxTotalGeneral = maxTotalFr + maxTotalAr; // 310
+  const totalGenC1 = totalC1Fr + totalC1Ar;
+  const totalGenC2 = totalC2Fr + totalC2Ar;
+  const totalGenC3 = totalC3Fr + totalC3Ar;
+
+  const moyGenC1 = Number(((totalGenC1 / maxTotalGeneral) * 10).toFixed(2));
+  const moyGenC2 = Number(((totalGenC2 / maxTotalGeneral) * 10).toFixed(2));
+  const moyGenC3 = Number(((totalGenC3 / maxTotalGeneral) * 10).toFixed(2));
+
+  const totalAnnuel = totalGenC1 + totalGenC2 + totalGenC3;
+  const maxAnnuel = maxTotalGeneral * 3; // 930
+  const moyAnnuelle = Number(((totalAnnuel / maxAnnuel) * 10).toFixed(2));
+
+  const totalAnnuelFr = totalC1Fr + totalC2Fr + totalC3Fr;
+  const moyAnnuelleFr = Number(((totalAnnuelFr / (maxTotalFr * 3)) * 10).toFixed(2));
+
+  const totalAnnuelAr = totalC1Ar + totalC2Ar + totalC3Ar;
+  const moyAnnuelleAr = Number(((totalAnnuelAr / (maxTotalAr * 3)) * 10).toFixed(2));
+
+  const isPassing = moyAnnuelle >= 5.0;
+
+  let appreciation = "Travail passable";
+  let appreciationAr = "مستوى مقبول";
+  if (moyAnnuelle >= 8.0) {
+    appreciation = "Excellent travail, félicitations";
+    appreciationAr = "ممتاز، تهانينا";
+  } else if (moyAnnuelle >= 7.0) {
+    appreciation = "Très bon travail, tableau d'honneur";
+    appreciationAr = "جيد جداً، لوحة الشرف";
+  } else if (moyAnnuelle >= 6.0) {
+    appreciation = "Bon travail, encouragements";
+    appreciationAr = "جيد، تشجيع";
+  } else if (moyAnnuelle >= 5.0) {
+    appreciation = "Travail passable, doit progresser";
+    appreciationAr = "مقبول، ينبغي بذل المزيد";
+  } else {
+    appreciation = "Insuffisant, redoublement proposé";
+    appreciationAr = "ضعيف، إعادة السنة";
+  }
+
+  return {
+    maxTotalFr,
+    maxTotalAr,
+    maxTotalGeneral,
+    totalFr: { c1: totalC1Fr, c2: totalC2Fr, c3: totalC3Fr },
+    moyFr: { c1: moyC1Fr, c2: moyC2Fr, c3: moyC3Fr },
+    totalAr: { c1: totalC1Ar, c2: totalC2Ar, c3: totalC3Ar },
+    moyAr: { c1: moyC1Ar, c2: moyC2Ar, c3: moyC3Ar },
+    totalGen: { c1: totalGenC1, c2: totalGenC2, c3: totalGenC3 },
+    moyGen: { c1: moyGenC1, c2: moyGenC2, c3: moyGenC3 },
+    annual: {
+      totalPts: totalAnnuel,
+      moyenne: moyAnnuelle,
+      totalFr: totalAnnuelFr,
+      moyFr: moyAnnuelleFr,
+      totalAr: totalAnnuelAr,
+      moyAr: moyAnnuelleAr,
+      maxPts: maxAnnuel,
+      appreciation,
+      appreciationAr,
+      isPassing,
+      decisionFr: isPassing ? "Passe" : "Redouble",
+      decisionAr: isPassing ? "ناجح(ة)" : "راسب(ة)",
+    }
+  };
+}
 
 // --- Exact Reproduction of the Official Senegalese Franco-Arab Primary School Report Card ---
 const OfficialReportCard = ({ 
   data, 
   schoolName, 
   reportClass,
-  isGreenPaper = true 
+  isGreenPaper = true,
+  isEditing = false,
+  highlightPeriod = "ALL",
+  onNoteChange,
 }: { 
   data: any; 
   schoolName: string; 
   reportClass: any;
   isGreenPaper?: boolean;
+  isEditing?: boolean;
+  highlightPeriod?: string;
+  onNoteChange?: (rowIndex: number, field: "notesFr" | "notesAr", compo: "c1" | "c2" | "c3", val: number) => void;
 }) => {
   if (!data?.rows) return null;
 
@@ -52,6 +181,51 @@ const OfficialReportCard = ({
   const summary = data.summary || {};
   const student = data.student || {};
   const className = student.class?.name || reportClass?.name || "CE1";
+
+  const isColActive = (colKey: string) => {
+    if (highlightPeriod === "ALL") return true;
+    if (highlightPeriod === "TRIMESTRE_1" && colKey === "c1") return true;
+    if (highlightPeriod === "TRIMESTRE_2" && colKey === "c2") return true;
+    if (highlightPeriod === "TRIMESTRE_3" && colKey === "c3") return true;
+    return false;
+  };
+
+  const renderCell = (rIdx: number, field: "notesFr" | "notesAr", compo: "c1" | "c2" | "c3", max: number, hasVal: boolean) => {
+    if (!hasVal) {
+      return <span className="text-slate-400 font-bold">—</span>;
+    }
+    const currentVal = data.rows[rIdx]?.[field]?.[compo] ?? 0;
+    const active = isColActive(compo);
+
+    if (isEditing && active) {
+      return (
+        <div className="flex items-center justify-center gap-0.5">
+          <input
+            type="number"
+            min={0}
+            max={max}
+            step={0.5}
+            value={currentVal}
+            onChange={(e) => {
+              const num = Math.max(0, Math.min(max, Number(e.target.value) || 0));
+              onNoteChange?.(rIdx, field, compo, num);
+            }}
+            className="w-10 px-1 py-0.5 text-center font-mono font-bold bg-white text-slate-950 border border-slate-700 rounded shadow-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none text-[11px]"
+          />
+          <span className="text-[9px] text-slate-600 font-bold">/{max}</span>
+        </div>
+      );
+    }
+
+    return (
+      <span className={cn(
+        "font-mono font-bold transition-all",
+        active ? "text-slate-950" : "opacity-60"
+      )}>
+        {currentVal} <span className="text-[9px] text-slate-600 font-normal">/{max}</span>
+      </span>
+    );
+  };
 
   return (
     <div className={cn(
@@ -89,13 +263,13 @@ const OfficialReportCard = ({
             {student.firstName || "عائشة"}
           </span>
         </div>
-        <div className="text-right">
+        <div className="text-right flex items-center gap-2">
           <span>NOM : </span>
           <span className="font-black underline text-sm sm:text-base uppercase tracking-wide">
             {student.lastName || "فال"}
           </span>
           {student.matricule && (
-            <span className="ml-3 font-mono text-[10px] text-slate-700 bg-white/60 px-2 py-0.5 rounded border border-slate-400">
+            <span className="font-mono text-[10px] text-slate-700 bg-white/60 px-2 py-0.5 rounded border border-slate-400">
               {student.matricule}
             </span>
           )}
@@ -123,12 +297,12 @@ const OfficialReportCard = ({
             </tr>
             {/* Ligne d'en-tête 2 */}
             <tr className="border-b-2 border-slate-950 font-bold text-[9px] sm:text-[10px]">
-              <th className="border-r border-slate-950 p-1 w-12">1e Compo</th>
-              <th className="border-r border-slate-950 p-1 w-12">2è Compo</th>
-              <th className="border-r-2 border-slate-950 p-1 w-12">3è Compo</th>
-              <th className="border-r border-slate-950 p-1 w-12 font-arabic">الاختبار 1</th>
-              <th className="border-r border-slate-950 p-1 w-12 font-arabic">الاختبار 2</th>
-              <th className="border-r-2 border-slate-950 p-1 w-12 font-arabic">الاختبار 3</th>
+              <th className={cn("border-r border-slate-950 p-1 w-12", isColActive("c1") && "bg-emerald-700/10 font-black")}>1e Compo</th>
+              <th className={cn("border-r border-slate-950 p-1 w-12", isColActive("c2") && "bg-blue-700/10 font-black")}>2è Compo</th>
+              <th className={cn("border-r-2 border-slate-950 p-1 w-12", isColActive("c3") && "bg-purple-700/10 font-black")}>3è Compo</th>
+              <th className={cn("border-r border-slate-950 p-1 w-12 font-arabic", isColActive("c1") && "bg-emerald-700/10 font-black")}>الاختبار 1</th>
+              <th className={cn("border-r border-slate-950 p-1 w-12 font-arabic", isColActive("c2") && "bg-blue-700/10 font-black")}>الاختبار 2</th>
+              <th className={cn("border-r-2 border-slate-950 p-1 w-12 font-arabic", isColActive("c3") && "bg-purple-700/10 font-black")}>الاختبار 3</th>
             </tr>
           </thead>
           <tbody>
@@ -138,12 +312,12 @@ const OfficialReportCard = ({
                 Langue et<br />Communication
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Lecture</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[0]?.notesFr.c1} / {rows[0]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[0]?.notesFr.c2} / {rows[0]?.maxFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[0]?.notesFr.c3} / {rows[0]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[0]?.notesAr.c1} / {rows[0]?.maxAr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[0]?.notesAr.c2} / {rows[0]?.maxAr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[0]?.notesAr.c3} / {rows[0]?.maxAr}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(0, "notesFr", "c1", rows[0]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(0, "notesFr", "c2", rows[0]?.maxFr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(0, "notesFr", "c3", rows[0]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(0, "notesAr", "c1", rows[0]?.maxAr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(0, "notesAr", "c2", rows[0]?.maxAr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(0, "notesAr", "c3", rows[0]?.maxAr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الموارد</td>
               <td rowSpan={4} className="p-1 font-bold align-middle bg-slate-900/5 leading-snug">
                 <div className="font-arabic text-sm text-slate-950">اللغة والتواصل</div>
@@ -154,24 +328,24 @@ const OfficialReportCard = ({
             {/* Row 1: Ressources */}
             <tr className="border-b border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Ressources</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[1]?.notesFr.c1} / {rows[1]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[1]?.notesFr.c2} / {rows[1]?.maxFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[1]?.notesFr.c3} / {rows[1]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[1]?.notesAr.c1} / {rows[1]?.maxAr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[1]?.notesAr.c2} / {rows[1]?.maxAr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[1]?.notesAr.c3} / {rows[1]?.maxAr}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(1, "notesFr", "c1", rows[1]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(1, "notesFr", "c2", rows[1]?.maxFr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(1, "notesFr", "c3", rows[1]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(1, "notesAr", "c1", rows[1]?.maxAr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(1, "notesAr", "c2", rows[1]?.maxAr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(1, "notesAr", "c3", rows[1]?.maxAr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الموارد</td>
             </tr>
 
             {/* Row 2: Compétence */}
             <tr className="border-b-2 border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Compétence</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[2]?.notesFr.c1} / {rows[2]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[2]?.notesFr.c2} / {rows[2]?.maxFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[2]?.notesFr.c3} / {rows[2]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[2]?.notesAr.c1} / {rows[2]?.maxAr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[2]?.notesAr.c2} / {rows[2]?.maxAr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[2]?.notesAr.c3} / {rows[2]?.maxAr}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(2, "notesFr", "c1", rows[2]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(2, "notesFr", "c2", rows[2]?.maxFr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(2, "notesFr", "c3", rows[2]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(2, "notesAr", "c1", rows[2]?.maxAr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(2, "notesAr", "c2", rows[2]?.maxAr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(2, "notesAr", "c3", rows[2]?.maxAr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الكفاءة</td>
             </tr>
 
@@ -181,24 +355,24 @@ const OfficialReportCard = ({
                 Mathématiques
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Ressources</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[3]?.notesFr.c1} / {rows[3]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[3]?.notesFr.c2} / {rows[3]?.maxFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[3]?.notesFr.c3} / {rows[3]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[3]?.notesAr.c1} / {rows[3]?.maxAr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[3]?.notesAr.c2} / {rows[3]?.maxAr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[3]?.notesAr.c3} / {rows[3]?.maxAr}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(3, "notesFr", "c1", rows[3]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(3, "notesFr", "c2", rows[3]?.maxFr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(3, "notesFr", "c3", rows[3]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(3, "notesAr", "c1", rows[3]?.maxAr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(3, "notesAr", "c2", rows[3]?.maxAr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(3, "notesAr", "c3", rows[3]?.maxAr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الكفاءة</td>
             </tr>
 
             {/* Row 4: Mathématiques / Compétence */}
             <tr className="border-b-2 border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Compétence</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[4]?.notesFr.c1} / {rows[4]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[4]?.notesFr.c2} / {rows[4]?.maxFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[4]?.notesFr.c3} / {rows[4]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold text-slate-400">—</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold text-slate-400">—</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold text-slate-400">—</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(4, "notesFr", "c1", rows[4]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(4, "notesFr", "c2", rows[4]?.maxFr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(4, "notesFr", "c3", rows[4]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(4, "notesAr", "c1", 0, false)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(4, "notesAr", "c2", 0, false)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(4, "notesAr", "c3", 0, false)}</td>
               <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
               <td className="p-1 text-slate-400">—</td>
             </tr>
@@ -209,12 +383,12 @@ const OfficialReportCard = ({
                 Découverte du<br />Monde
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Ressources</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[5]?.notesFr.c1} / {rows[5]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[5]?.notesFr.c2} / {rows[5]?.maxFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[5]?.notesFr.c3} / {rows[5]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[5]?.notesAr.c1} / {rows[5]?.maxAr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[5]?.notesAr.c2} / {rows[5]?.maxAr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[5]?.notesAr.c3} / {rows[5]?.maxAr}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(5, "notesFr", "c1", rows[5]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(5, "notesFr", "c2", rows[5]?.maxFr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(5, "notesFr", "c3", rows[5]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(5, "notesAr", "c1", rows[5]?.maxAr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(5, "notesAr", "c2", rows[5]?.maxAr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(5, "notesAr", "c3", rows[5]?.maxAr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الموارد</td>
               <td rowSpan={4} className="p-1 font-bold align-middle bg-slate-900/5 leading-snug">
                 <div className="font-arabic text-sm text-slate-950">التربية الدينية</div>
@@ -225,12 +399,12 @@ const OfficialReportCard = ({
             {/* Row 6: Compétence */}
             <tr className="border-b-2 border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Compétence</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[6]?.notesFr.c1} / {rows[6]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[6]?.notesFr.c2} / {rows[6]?.maxFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[6]?.notesFr.c3} / {rows[6]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[6]?.notesAr.c1} / {rows[6]?.maxAr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[6]?.notesAr.c2} / {rows[6]?.maxAr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[6]?.notesAr.c3} / {rows[6]?.maxAr}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(6, "notesFr", "c1", rows[6]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(6, "notesFr", "c2", rows[6]?.maxFr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(6, "notesFr", "c3", rows[6]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(6, "notesAr", "c1", rows[6]?.maxAr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(6, "notesAr", "c2", rows[6]?.maxAr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(6, "notesAr", "c3", rows[6]?.maxAr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الموارد</td>
             </tr>
 
@@ -240,24 +414,24 @@ const OfficialReportCard = ({
                 Développement<br />durable
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Ressources</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[7]?.notesFr.c1} / {rows[7]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[7]?.notesFr.c2} / {rows[7]?.maxFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[7]?.notesFr.c3} / {rows[7]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[7]?.notesAr.c1} / {rows[7]?.maxAr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[7]?.notesAr.c2} / {rows[7]?.maxAr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[7]?.notesAr.c3} / {rows[7]?.maxAr}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(7, "notesFr", "c1", rows[7]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(7, "notesFr", "c2", rows[7]?.maxFr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(7, "notesFr", "c3", rows[7]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(7, "notesAr", "c1", rows[7]?.maxAr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(7, "notesAr", "c2", rows[7]?.maxAr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(7, "notesAr", "c3", rows[7]?.maxAr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الكفاءة</td>
             </tr>
 
             {/* Row 8: Compétence */}
             <tr className="border-b-2 border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Compétence</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[8]?.notesFr.c1} / {rows[8]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[8]?.notesFr.c2} / {rows[8]?.maxFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[8]?.notesFr.c3} / {rows[8]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[8]?.notesAr.c1} / {rows[8]?.maxAr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[8]?.notesAr.c2} / {rows[8]?.maxAr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[8]?.notesAr.c3} / {rows[8]?.maxAr}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(8, "notesFr", "c1", rows[8]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(8, "notesFr", "c2", rows[8]?.maxFr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(8, "notesFr", "c3", rows[8]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(8, "notesAr", "c1", rows[8]?.maxAr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(8, "notesAr", "c2", rows[8]?.maxAr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(8, "notesAr", "c3", rows[8]?.maxAr, true)}</td>
               <td className="border-r-2 border-slate-950 p-1 font-arabic font-bold">الكفاءة</td>
             </tr>
 
@@ -267,12 +441,12 @@ const OfficialReportCard = ({
                 EPSA
               </td>
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Art Plastique</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[9]?.notesFr.c1} / {rows[9]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[9]?.notesFr.c2} / {rows[9]?.maxFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[9]?.notesFr.c3} / {rows[9]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
-              <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
-              <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(9, "notesFr", "c1", rows[9]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(9, "notesFr", "c2", rows[9]?.maxFr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(9, "notesFr", "c3", rows[9]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(9, "notesAr", "c1", 0, false)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(9, "notesAr", "c2", 0, false)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(9, "notesAr", "c3", 0, false)}</td>
               <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
               <td className="p-1 text-slate-400">—</td>
             </tr>
@@ -280,12 +454,12 @@ const OfficialReportCard = ({
             {/* Row 10: Edu. Musicale */}
             <tr className="border-b-2 border-slate-950">
               <td className="border-r-2 border-slate-950 p-1 font-semibold text-left pl-2">Edu. Musicale</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[10]?.notesFr.c1} / {rows[10]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono font-bold">{rows[10]?.notesFr.c2} / {rows[10]?.maxFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono font-bold">{rows[10]?.notesFr.c3} / {rows[10]?.maxFr}</td>
-              <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
-              <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
-              <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(10, "notesFr", "c1", rows[10]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(10, "notesFr", "c2", rows[10]?.maxFr, true)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(10, "notesFr", "c3", rows[10]?.maxFr, true)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(10, "notesAr", "c1", 0, false)}</td>
+              <td className="border-r border-slate-950 p-1">{renderCell(10, "notesAr", "c2", 0, false)}</td>
+              <td className="border-r-2 border-slate-950 p-1">{renderCell(10, "notesAr", "c3", 0, false)}</td>
               <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
               <td className="p-1 text-slate-400">—</td>
             </tr>
@@ -293,24 +467,24 @@ const OfficialReportCard = ({
             {/* TOTAL */}
             <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/10">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">TOTAL</td>
-              <td className="border-r border-slate-950 p-1 font-mono">{summary.totalFr?.c1} / {summary.maxTotalFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono">{summary.totalFr?.c2} / {summary.maxTotalFr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono">{summary.totalFr?.c3} / {summary.maxTotalFr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono">{summary.totalAr?.c1} / {summary.maxTotalAr}</td>
-              <td className="border-r border-slate-950 p-1 font-mono">{summary.totalAr?.c2} / {summary.maxTotalAr}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono">{summary.totalAr?.c3} / {summary.maxTotalAr}</td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c1") && "font-black text-emerald-950")}>{summary.totalFr?.c1} / {summary.maxTotalFr}</td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c2") && "font-black text-blue-950")}>{summary.totalFr?.c2} / {summary.maxTotalFr}</td>
+              <td className={cn("border-r-2 border-slate-950 p-1 font-mono", isColActive("c3") && "font-black text-purple-950")}>{summary.totalFr?.c3} / {summary.maxTotalFr}</td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c1") && "font-black text-emerald-950")}>{summary.totalAr?.c1} / {summary.maxTotalAr}</td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c2") && "font-black text-blue-950")}>{summary.totalAr?.c2} / {summary.maxTotalAr}</td>
+              <td className={cn("border-r-2 border-slate-950 p-1 font-mono", isColActive("c3") && "font-black text-purple-950")}>{summary.totalAr?.c3} / {summary.maxTotalAr}</td>
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">المجموع</td>
             </tr>
 
             {/* MOYENNE */}
             <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/5">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">MOYENNE</td>
-              <td className="border-r border-slate-950 p-1 font-mono text-emerald-900 font-bold">{summary.moyFr?.c1} <span className="text-[9px]">/ 10</span></td>
-              <td className="border-r border-slate-950 p-1 font-mono text-emerald-900 font-bold">{summary.moyFr?.c2} <span className="text-[9px]">/ 10</span></td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono text-emerald-900 font-bold">{summary.moyFr?.c3} <span className="text-[9px]">/ 10</span></td>
-              <td className="border-r border-slate-950 p-1 font-mono text-emerald-900 font-bold">{summary.moyAr?.c1} <span className="text-[9px]">/ 10</span></td>
-              <td className="border-r border-slate-950 p-1 font-mono text-emerald-900 font-bold">{summary.moyAr?.c2} <span className="text-[9px]">/ 10</span></td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono text-emerald-900 font-bold">{summary.moyAr?.c3} <span className="text-[9px]">/ 10</span></td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono font-bold", isColActive("c1") && "text-emerald-900 font-black")}>{summary.moyFr?.c1} <span className="text-[9px]">/ 10</span></td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono font-bold", isColActive("c2") && "text-blue-900 font-black")}>{summary.moyFr?.c2} <span className="text-[9px]">/ 10</span></td>
+              <td className={cn("border-r-2 border-slate-950 p-1 font-mono font-bold", isColActive("c3") && "text-purple-900 font-black")}>{summary.moyFr?.c3} <span className="text-[9px]">/ 10</span></td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono font-bold", isColActive("c1") && "text-emerald-900 font-black")}>{summary.moyAr?.c1} <span className="text-[9px]">/ 10</span></td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono font-bold", isColActive("c2") && "text-blue-900 font-black")}>{summary.moyAr?.c2} <span className="text-[9px]">/ 10</span></td>
+              <td className={cn("border-r-2 border-slate-950 p-1 font-mono font-bold", isColActive("c3") && "text-purple-900 font-black")}>{summary.moyAr?.c3} <span className="text-[9px]">/ 10</span></td>
               <td colSpan={2} className="p-1 font-arabic text-center font-bold">المعدل</td>
             </tr>
 
@@ -329,9 +503,9 @@ const OfficialReportCard = ({
             {/* TOTAL GENERAL */}
             <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/10">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">TOTAL GENERAL</td>
-              <td className="border-r border-slate-950 p-1 font-mono">{summary.totalGen?.c1}</td>
-              <td className="border-r border-slate-950 p-1 font-mono">{summary.totalGen?.c2}</td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono">{summary.totalGen?.c3}</td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c1") && "font-black text-emerald-950")}>{summary.totalGen?.c1}</td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono", isColActive("c2") && "font-black text-blue-950")}>{summary.totalGen?.c2}</td>
+              <td className={cn("border-r-2 border-slate-950 p-1 font-mono", isColActive("c3") && "font-black text-purple-950")}>{summary.totalGen?.c3}</td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
               <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
@@ -341,9 +515,9 @@ const OfficialReportCard = ({
             {/* MOYENNE GENERALE */}
             <tr className="border-b border-slate-950 font-black text-xs bg-slate-900/5">
               <td colSpan={2} className="border-r-2 border-slate-950 p-1 text-center uppercase tracking-wider">MOYENNE GENERAL</td>
-              <td className="border-r border-slate-950 p-1 font-mono text-emerald-950 font-black">{summary.moyGen?.c1} <span className="text-[9px]">/ 10</span></td>
-              <td className="border-r border-slate-950 p-1 font-mono text-emerald-950 font-black">{summary.moyGen?.c2} <span className="text-[9px]">/ 10</span></td>
-              <td className="border-r-2 border-slate-950 p-1 font-mono text-emerald-950 font-black">{summary.moyGen?.c3} <span className="text-[9px]">/ 10</span></td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono text-emerald-950 font-black", isColActive("c1") && "bg-emerald-600/20 text-emerald-950")}>{summary.moyGen?.c1} <span className="text-[9px]">/ 10</span></td>
+              <td className={cn("border-r border-slate-950 p-1 font-mono text-emerald-950 font-black", isColActive("c2") && "bg-blue-600/20 text-blue-950")}>{summary.moyGen?.c2} <span className="text-[9px]">/ 10</span></td>
+              <td className={cn("border-r-2 border-slate-950 p-1 font-mono text-emerald-950 font-black", isColActive("c3") && "bg-purple-600/20 text-purple-950")}>{summary.moyGen?.c3} <span className="text-[9px]">/ 10</span></td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
               <td className="border-r border-slate-950 p-1 text-slate-400">—</td>
               <td className="border-r-2 border-slate-950 p-1 text-slate-400">—</td>
@@ -515,27 +689,24 @@ export function GradesClient({
   const schoolName = isSchool ? "École Franco-Arabe Pathé Pogne" : rawSchoolName;
 
   const [activeTab, setActiveTab] = useState<"BULLETINS" | "SAISIE" | "RAPPORTS">("BULLETINS");
-  const [recentGrades, setRecentGrades] = useState(initialRecentGrades);
   const [isGreenPaper, setIsGreenPaper] = useState(true);
-
-  // Saisie state
-  const [selectedClassId, setSelectedClassId] = useState(classes[0]?.id || "");
-  const [selectedSubjectId, setSelectedSubjectId] = useState("");
-  const [selectedTerm, setSelectedTerm] = useState("TRIMESTRE_1");
-  const [selectedStudentId, setSelectedStudentId] = useState("");
-  const [gradeValue, setGradeValue] = useState("");
-  const [title, setTitle] = useState("");
-  const [comments, setComments] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
 
   // Bulletin state
   const [reportClassId, setReportClassId] = useState(classes[0]?.id || "");
   const [reportStudentId, setReportStudentId] = useState(classes[0]?.students?.[0]?.id || "");
-  const [reportTerm, setReportTerm] = useState("TRIMESTRE_1");
+  const [reportPeriod, setReportPeriod] = useState("ALL"); // ALL | TRIMESTRE_1 | TRIMESTRE_2 | TRIMESTRE_3
   const [isGenerating, setIsGenerating] = useState(false);
   const [reportData, setReportData] = useState<any | null>(null);
   const [isClassReport, setIsClassReport] = useState(false);
+  const [isEditingReport, setIsEditingReport] = useState(false);
+  const [isSavingReport, setIsSavingReport] = useState(false);
+
+  // Saisie en masse par classe state
+  const [batchClassId, setBatchClassId] = useState(classes[0]?.id || "");
+  const [batchTerm, setBatchTerm] = useState<"c1" | "c2" | "c3">("c1");
+  const [batchSubjectIdx, setBatchSubjectIdx] = useState(0);
+  const [batchGrades, setBatchGrades] = useState<Record<string, number>>({});
+  const [isSavingBatch, setIsSavingBatch] = useState(false);
 
   // Rapport de synthèse state
   const [synthesisClassId, setSynthesisClassId] = useState(classes[0]?.id || "");
@@ -543,8 +714,8 @@ export function GradesClient({
   const [synthesisData, setSynthesisData] = useState<any | null>(null);
   const [isGeneratingSynthesis, setIsGeneratingSynthesis] = useState(false);
 
-  const selectedClass = classes.find(c => c.id === selectedClassId) || classes[0];
   const reportClass = classes.find(c => c.id === reportClassId) || classes[0];
+  const batchClass = classes.find(c => c.id === batchClassId) || classes[0];
 
   // Auto-generate report card on initial load
   useEffect(() => {
@@ -568,64 +739,29 @@ export function GradesClient({
   const currentStudents = reportClass?.students || [];
   const currentStudentIndex = currentStudents.findIndex((s: any) => s.id === reportStudentId);
 
+  const handleStudentSwitch = async (sid: string) => {
+    setReportStudentId(sid);
+    setIsGenerating(true);
+    const res = await getStudentReportCard(sid, "TRIMESTRE_1");
+    if (!res.error) {
+      setReportData(res);
+      setIsClassReport(false);
+    }
+    setIsGenerating(false);
+  };
+
   const handlePreviousStudent = async () => {
     if (currentStudentIndex > 0) {
       const prevStudent = currentStudents[currentStudentIndex - 1];
-      setReportStudentId(prevStudent.id);
-      setIsGenerating(true);
-      const res = await getStudentReportCard(prevStudent.id, reportTerm);
-      if (!res.error) {
-        setReportData(res);
-        setIsClassReport(false);
-      }
-      setIsGenerating(false);
+      await handleStudentSwitch(prevStudent.id);
     }
   };
 
   const handleNextStudent = async () => {
     if (currentStudentIndex < currentStudents.length - 1) {
       const nextStudent = currentStudents[currentStudentIndex + 1];
-      setReportStudentId(nextStudent.id);
-      setIsGenerating(true);
-      const res = await getStudentReportCard(nextStudent.id, reportTerm);
-      if (!res.error) {
-        setReportData(res);
-        setIsClassReport(false);
-      }
-      setIsGenerating(false);
+      await handleStudentSwitch(nextStudent.id);
     }
-  };
-
-  const handleAddGrade = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedStudentId || !selectedSubjectId || !gradeValue || !title) {
-      toast.error("Veuillez remplir tous les champs obligatoires.");
-      return;
-    }
-
-    setIsAdding(true);
-    toast.loading("Enregistrement de la note...");
-    const res = await addGrade({
-      studentId: selectedStudentId,
-      subjectId: selectedSubjectId,
-      term: selectedTerm as any,
-      title,
-      gradeValue: Number(gradeValue),
-      comments
-    });
-    toast.dismiss();
-
-    if (res.error) {
-      toast.error(res.error);
-    } else {
-      toast.success("Note enregistrée avec succès !");
-      setShowAddModal(false);
-      setGradeValue("");
-      setTitle("");
-      setComments("");
-      setTimeout(() => window.location.reload(), 1000);
-    }
-    setIsAdding(false);
   };
 
   const handleGenerateReport = async () => {
@@ -633,16 +769,15 @@ export function GradesClient({
       toast.error("Veuillez sélectionner un élève.");
       return;
     }
-
     setIsGenerating(true);
-    toast.loading("Calcul des notes du bulletin bilingue...");
-    const res = await getStudentReportCard(reportStudentId, reportTerm);
+    toast.loading("Chargement du bulletin officiel...");
+    const res = await getStudentReportCard(reportStudentId, "TRIMESTRE_1");
     toast.dismiss();
 
     if (res.error) {
       toast.error(res.error);
     } else {
-      toast.success("Bulletin officiel généré !");
+      toast.success("Bulletin officiel chargé !");
       setReportData(res);
       setIsClassReport(false);
     }
@@ -657,7 +792,7 @@ export function GradesClient({
 
     setIsGenerating(true);
     toast.loading("Génération des bulletins de la classe entière...");
-    const res = await getClassReportCards(reportClassId, reportTerm);
+    const res = await getClassReportCards(reportClassId, "TRIMESTRE_1");
     toast.dismiss();
 
     if (res.error) {
@@ -668,6 +803,104 @@ export function GradesClient({
       setIsClassReport(true);
     }
     setIsGenerating(false);
+  };
+
+  // Instant in-memory note update with automatic summary recalculation
+  const handleNoteChange = (
+    rowIndex: number, 
+    field: "notesFr" | "notesAr", 
+    compo: "c1" | "c2" | "c3", 
+    val: number
+  ) => {
+    if (!reportData || !reportData.rows) return;
+    const newRows = [...reportData.rows];
+    newRows[rowIndex] = {
+      ...newRows[rowIndex],
+      [field]: {
+        ...newRows[rowIndex][field],
+        [compo]: val,
+      }
+    };
+    const newSummary = computeCardSummary(newRows);
+    setReportData({
+      ...reportData,
+      rows: newRows,
+      summary: {
+        ...reportData.summary,
+        ...newSummary,
+      }
+    });
+  };
+
+  const handleSaveStudentNotes = async () => {
+    if (!reportStudentId || !reportData?.rows) return;
+    setIsSavingReport(true);
+    toast.loading("Enregistrement des notes...");
+    const res = await saveStudentReportCard(reportStudentId, reportData.rows);
+    toast.dismiss();
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Notes de l'élève enregistrées avec succès !");
+      setIsEditingReport(false);
+    }
+    setIsSavingReport(false);
+  };
+
+  const handleResetStudentNotes = async () => {
+    if (!reportStudentId) return;
+    if (!confirm("Voulez-vous vraiment réinitialiser les notes de cet élève aux valeurs initiales ?")) return;
+
+    toast.loading("Réinitialisation...");
+    const res = await resetStudentReportCard(reportStudentId);
+    toast.dismiss();
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success("Notes réinitialisées.");
+      await handleStudentSwitch(reportStudentId);
+    }
+  };
+
+  // Batch grade entry for whole class
+  const activeSubjectOption = SUBJECT_OPTIONS[batchSubjectIdx] || SUBJECT_OPTIONS[0];
+
+  const handleSaveBatchGrades = async () => {
+    if (!batchClass?.students?.length) {
+      toast.error("Aucun élève dans cette classe.");
+      return;
+    }
+
+    const updates = Object.entries(batchGrades).map(([studentId, val]) => ({
+      studentId,
+      rowIndex: activeSubjectOption.rowIndex,
+      compo: batchTerm,
+      lang: activeSubjectOption.lang,
+      value: val,
+    }));
+
+    if (updates.length === 0) {
+      toast.info("Aucune note modifiée à enregistrer.");
+      return;
+    }
+
+    setIsSavingBatch(true);
+    toast.loading("Sauvegarde des notes de la classe...");
+    const res = await bulkSaveClassGrades(updates);
+    toast.dismiss();
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success(res.message || "Notes de la classe enregistrées avec succès !");
+      setBatchGrades({});
+      if (reportStudentId) {
+        await handleStudentSwitch(reportStudentId);
+      }
+    }
+    setIsSavingBatch(false);
   };
 
   const handleGenerateSynthesisReport = async () => {
@@ -705,14 +938,14 @@ export function GradesClient({
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
               Espace École Pathé Pogne
             </span>
-            <span className="text-xs text-muted-foreground">• Format Officiel Franco-Arabe</span>
+            <span className="text-xs text-muted-foreground">• Format Officiel Bilingue (Français & Arabe)</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-foreground flex items-center gap-2.5">
             <FileText className="w-7 h-7 text-emerald-600" />
             <span>Bulletin de Notes & كشف الدرجات</span>
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Modèle officiel du Ministère de l'Éducation Nationale — Langue & Communication, Mathématiques, Arabe & Éducation Religieuse.
+            Gestion complète et fonctionnelle des compositions 1, 2 et 3, calcul des moyennes et bilan annuel officiel.
           </p>
         </div>
 
@@ -736,7 +969,7 @@ export function GradesClient({
             )}
           >
             <BookOpen className="w-3.5 h-3.5" />
-            <span>Saisie Notes</span>
+            <span>Saisie par Classe (1, 2, 3)</span>
           </button>
           <button 
             onClick={() => { setActiveTab("RAPPORTS"); setSynthesisData(null); }}
@@ -746,68 +979,52 @@ export function GradesClient({
             )}
           >
             <Award className="w-3.5 h-3.5" />
-            <span>Rapports</span>
+            <span>Rapports & Synthèse</span>
           </button>
         </div>
       </div>
 
-      {/* 1. ONGLET BULLETINS (HERO VIEW) */}
+      {/* 1. ONGLET BULLETIN OFFICIEL BILINGUE */}
       {activeTab === "BULLETINS" && (
-        <div className="space-y-5">
+        <div className="space-y-4">
           
-          {/* BARRE DE CONTRÔLE ERGONOMIQUE DU BULLETIN */}
-          <div className="bg-card border border-border/60 p-4 sm:p-5 rounded-2xl shadow-sm space-y-4 print:hidden">
+          {/* Barre de Contrôle Supérieure */}
+          <div className="bg-card border border-border/70 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
               
               {/* Sélecteur de Classe */}
-              <div className="lg:col-span-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 block">
+              <div className="lg:col-span-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">
                   Classe / الصف
                 </label>
-                <select 
+                <select
                   value={reportClassId}
-                  onChange={(e) => { 
-                    const newClassId = e.target.value;
-                    setReportClassId(newClassId);
-                    const selected = classes.find(c => c.id === newClassId);
-                    if (selected?.students?.length) {
-                      const firstS = selected.students[0];
-                      setReportStudentId(firstS.id);
-                      getStudentReportCard(firstS.id, reportTerm).then(res => {
-                        if (!res.error) setReportData(res);
-                      });
-                    } else {
-                      setReportStudentId("");
-                      setReportData(null);
+                  onChange={(e) => {
+                    const cid = e.target.value;
+                    setReportClassId(cid);
+                    const c = classes.find(x => x.id === cid);
+                    if (c && c.students?.length) {
+                      handleStudentSwitch(c.students[0].id);
                     }
                   }}
                   className="w-full bg-background border border-border/70 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                 >
-                  {classes.map(c => (
-                    <option key={c.id} value={c.id}>{c.name} ({c.students?.length || 0} élèves)</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.students?.length || 0} élèves)
+                    </option>
                   ))}
                 </select>
               </div>
 
               {/* Sélecteur d'Élève */}
               <div className="lg:col-span-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5 block">
-                  Élève Titulaire / الطالب
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">
+                  Élève / التلميذ
                 </label>
-                <select 
+                <select
                   value={reportStudentId}
-                  onChange={(e) => {
-                    const sid = e.target.value;
-                    setReportStudentId(sid);
-                    if (sid) {
-                      getStudentReportCard(sid, reportTerm).then(res => {
-                        if (!res.error) {
-                          setReportData(res);
-                          setIsClassReport(false);
-                        }
-                      });
-                    }
-                  }}
+                  onChange={(e) => handleStudentSwitch(e.target.value)}
                   disabled={!reportClass?.students?.length}
                   className="w-full bg-background border border-border/70 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
                 >
@@ -819,8 +1036,26 @@ export function GradesClient({
                 </select>
               </div>
 
-              {/* Boutons d'Action Rapide */}
-              <div className="lg:col-span-4 flex items-center gap-2">
+              {/* Sélecteur de Période (1, 2, 3 ou Annuelle) */}
+              <div className="lg:col-span-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">
+                  Période / Compositions
+                </label>
+                <select
+                  value={reportPeriod}
+                  onChange={(e) => setReportPeriod(e.target.value)}
+                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                >
+                  {TERMS.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.labelFr}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Bouton Afficher / Toute la classe */}
+              <div className="lg:col-span-2 flex items-center gap-2">
                 <button 
                   onClick={handleGenerateReport}
                   disabled={!reportStudentId || isGenerating}
@@ -832,86 +1067,148 @@ export function GradesClient({
                 <button 
                   onClick={handleGenerateClassReports}
                   disabled={!reportClassId || isGenerating}
-                  className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-wider text-[11px] py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                  title="Générer les bulletins de tous les élèves de la classe"
+                  className="bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-wider text-[11px] py-2.5 px-3 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
                 >
                   {isGenerating && isClassReport ? <Clock className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-                  <span>Toute la classe</span>
+                  <span>Classe</span>
                 </button>
               </div>
 
             </div>
 
-            {/* Barre d'outils secondaire : Couleur papier + navigation rapide */}
+            {/* Barre d'outils secondaire : Mode Saisie Directe, Sauvegarde, Impression */}
             <div className="flex flex-col sm:flex-row items-center justify-between pt-3 border-t border-border/40 gap-3 text-xs">
               
-              {/* Toggle Couleur Papier */}
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
-                  <Palette className="w-3.5 h-3.5" />
-                  <span>Couleur du papier :</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsGreenPaper(true)}
-                  className={cn(
-                    "px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border",
-                    isGreenPaper 
-                      ? "bg-[#cbf3d2] text-[#051c0d] border-emerald-600 shadow-xs" 
-                      : "bg-muted text-muted-foreground border-border"
-                  )}
-                >
-                  🟢 Vert Menthe Officiel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsGreenPaper(false)}
-                  className={cn(
-                    "px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border",
-                    !isGreenPaper 
-                      ? "bg-white text-slate-900 border-slate-400 shadow-xs" 
-                      : "bg-muted text-muted-foreground border-border"
-                  )}
-                >
-                  ⚪ Blanc Classique
-                </button>
-              </div>
+              {/* Outils d'Édition directe */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {!isClassReport && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingReport(!isEditingReport)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 border",
+                        isEditingReport 
+                          ? "bg-amber-500 text-white border-amber-600 shadow-md ring-2 ring-amber-400/40" 
+                          : "bg-background text-foreground border-border hover:bg-muted"
+                      )}
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>{isEditingReport ? "Mode Saisie Actif ✏️" : "Modifier les Notes ✏️"}</span>
+                    </button>
 
-              {/* Navigation Élèves */}
-              {!isClassReport && reportData && currentStudents.length > 1 && (
-                <div className="flex items-center gap-2">
+                    {isEditingReport && (
+                      <button
+                        type="button"
+                        onClick={handleSaveStudentNotes}
+                        disabled={isSavingReport}
+                        className="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+                      >
+                        {isSavingReport ? <Clock className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                        <span>Enregistrer les Notes</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleResetStudentNotes}
+                      title="Réinitialiser les notes aux valeurs initiales"
+                      className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors flex items-center gap-1"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Réinitialiser</span>
+                    </button>
+                  </>
+                )}
+
+                {/* Couleur Papier */}
+                <div className="flex items-center gap-1.5 ml-1 border-l pl-3 border-border/60">
+                  <span className="text-[10px] font-bold text-muted-foreground hidden lg:inline">Papier :</span>
                   <button
-                    onClick={handlePreviousStudent}
-                    disabled={currentStudentIndex <= 0 || isGenerating}
-                    className="flex items-center gap-1 px-3 py-1 rounded-lg border border-border hover:bg-muted font-bold disabled:opacity-40 transition-colors"
+                    type="button"
+                    onClick={() => setIsGreenPaper(true)}
+                    className={cn(
+                      "px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border",
+                      isGreenPaper 
+                        ? "bg-[#cbf3d2] text-[#051c0d] border-emerald-600 shadow-xs" 
+                        : "bg-muted text-muted-foreground border-border"
+                    )}
                   >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>Précédent</span>
+                    🟢 Vert Officiel
                   </button>
-                  <span className="font-bold text-muted-foreground text-[11px] px-1">
-                    {currentStudentIndex + 1} / {currentStudents.length}
-                  </span>
                   <button
-                    onClick={handleNextStudent}
-                    disabled={currentStudentIndex >= currentStudents.length - 1 || isGenerating}
-                    className="flex items-center gap-1 px-3 py-1 rounded-lg border border-border hover:bg-muted font-bold disabled:opacity-40 transition-colors"
+                    type="button"
+                    onClick={() => setIsGreenPaper(false)}
+                    className={cn(
+                      "px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border",
+                      !isGreenPaper 
+                        ? "bg-white text-slate-900 border-slate-400 shadow-xs" 
+                        : "bg-muted text-muted-foreground border-border"
+                    )}
                   >
-                    <span>Suivant</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    ⚪ Blanc
                   </button>
                 </div>
-              )}
+              </div>
 
-              {/* Bouton Impression Directe */}
-              <button 
-                onClick={() => window.print()} 
-                className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-1.5 rounded-xl flex items-center gap-2 shadow-xs transition-all active:scale-95"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Imprimer / PDF (A4)</span>
-              </button>
+              {/* Navigation Élèves & Impression */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {!isClassReport && reportData && currentStudents.length > 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={handlePreviousStudent}
+                      disabled={currentStudentIndex <= 0 || isGenerating}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border hover:bg-muted font-bold disabled:opacity-40 transition-colors text-[11px]"
+                    >
+                      <ChevronLeft className="w-3 h-3" />
+                      <span>Précédent</span>
+                    </button>
+                    <span className="font-bold text-muted-foreground text-[11px] px-1">
+                      {currentStudentIndex + 1} / {currentStudents.length}
+                    </span>
+                    <button
+                      onClick={handleNextStudent}
+                      disabled={currentStudentIndex >= currentStudents.length - 1 || isGenerating}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border hover:bg-muted font-bold disabled:opacity-40 transition-colors text-[11px]"
+                    >
+                      <span>Suivant</span>
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Impression Directe */}
+                <button 
+                  onClick={() => window.print()} 
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-1.5 rounded-xl flex items-center gap-2 shadow-xs transition-all active:scale-95"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Imprimer (A4)</span>
+                </button>
+              </div>
 
             </div>
           </div>
+
+          {/* Bannière Mode Saisie */}
+          {isEditingReport && !isClassReport && (
+            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 flex items-center justify-between text-xs text-amber-900 dark:text-amber-200">
+              <div className="flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-amber-600 animate-pulse" />
+                <span className="font-bold">
+                  Mode Saisie Directe actif : Modifiez n'importe quelle note dans le tableau ci-dessous, les totaux et moyennes se recalculent automatiquement !
+                </span>
+              </div>
+              <button
+                onClick={handleSaveStudentNotes}
+                disabled={isSavingReport}
+                className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-lg font-black uppercase text-[10px] tracking-wider transition-all shrink-0"
+              >
+                Sauvegarder
+              </button>
+            </div>
+          )}
 
           {/* APERÇU OFFICIEL DU BULLETIN */}
           <AnimatePresence>
@@ -921,7 +1218,7 @@ export function GradesClient({
                   @media print {
                     @page { size: A4 portrait; margin: 8mm; }
                     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    header, aside, .print\\:hidden { display: none !important; }
+                    header, aside, .print\\:hidden, button, nav { display: none !important; }
                     .print\\:break-after { page-break-after: always; break-after: page; }
                   }
                 `}</style>
@@ -939,6 +1236,7 @@ export function GradesClient({
                           schoolName={schoolName} 
                           reportClass={reportClass}
                           isGreenPaper={isGreenPaper} 
+                          highlightPeriod={reportPeriod}
                         />
                       </div>
                     ))
@@ -949,6 +1247,9 @@ export function GradesClient({
                         schoolName={schoolName} 
                         reportClass={reportClass}
                         isGreenPaper={isGreenPaper} 
+                        isEditing={isEditingReport}
+                        highlightPeriod={reportPeriod}
+                        onNoteChange={handleNoteChange}
                       />
                     </div>
                   )}
@@ -972,78 +1273,158 @@ export function GradesClient({
         </div>
       )}
 
-      {/* 2. ONGLET SAISIE DES NOTES */}
+      {/* 2. ONGLET SAISIE RAPIDE PAR CLASSE (1, 2, 3) */}
       {activeTab === "SAISIE" && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
+          <div className="bg-card border border-border/70 rounded-2xl p-5 shadow-xs space-y-4">
             <div>
-              <h2 className="text-lg font-bold">Dernières Notes Enregistrées</h2>
-              <p className="text-xs text-muted-foreground">Registre des évaluations continues et compositions.</p>
+              <h2 className="text-base font-bold flex items-center gap-2">
+                <Users className="w-5 h-5 text-emerald-600" />
+                <span>Saisie Rapide par Classe — Compositions 1, 2 et 3</span>
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Saisissez les notes de toute la classe en une seule fois pour une matière et une composition donnée.
+              </p>
             </div>
-            <button 
-              onClick={() => setShowAddModal(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" /> 
-              <span>Nouvelle Note</span>
-            </button>
+
+            {/* Sélecteurs de Saisie Groupée */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">Classe / الصف</label>
+                <select 
+                  value={batchClassId}
+                  onChange={(e) => {
+                    setBatchClassId(e.target.value);
+                    setBatchGrades({});
+                  }}
+                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                >
+                  {classes.map(c => (
+                    <option key={c.id} value={c.id}>{c.name} ({c.students?.length || 0} élèves)</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">Composition / Trimestre</label>
+                <select 
+                  value={batchTerm}
+                  onChange={(e) => {
+                    setBatchTerm(e.target.value as any);
+                    setBatchGrades({});
+                  }}
+                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-bold"
+                >
+                  <option value="c1">1ère Composition (الاختبار 1)</option>
+                  <option value="c2">2ème Composition (الاختبار 2)</option>
+                  <option value="c3">3ème Composition (الاختبار 3)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 block">Matière & Barème</label>
+                <select 
+                  value={batchSubjectIdx}
+                  onChange={(e) => {
+                    setBatchSubjectIdx(Number(e.target.value));
+                    setBatchGrades({});
+                  }}
+                  className="w-full bg-background border border-border/70 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-medium"
+                >
+                  {SUBJECT_OPTIONS.map((opt, idx) => (
+                    <option key={idx} value={idx}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
 
-          {/* Grille Excel des notes */}
+          {/* Grille de Saisie de Tous les Élèves */}
           <div className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs overflow-hidden">
-            <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
-              <span className="font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide">
-                Registre des évaluations — École Pathé Pogne
-              </span>
-              <span className="font-mono text-xs font-bold text-slate-600 dark:text-slate-300">
-                {recentGrades.length} entrées
-              </span>
+            <div className="bg-slate-100 dark:bg-slate-800 px-4 py-3 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs select-none">
+              <div>
+                <span className="font-extrabold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+                  Classe : {batchClass?.name} • {activeSubjectOption.label} • {batchTerm.toUpperCase()}
+                </span>
+                <span className="ml-3 font-mono text-[11px] text-muted-foreground">
+                  Barème maximum : {activeSubjectOption.max} pts
+                </span>
+              </div>
+              <button 
+                onClick={handleSaveBatchGrades}
+                disabled={isSavingBatch || !batchClass?.students?.length}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-[11px] tracking-wider px-4 py-1.5 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {isSavingBatch ? <Clock className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                <span>Enregistrer la Classe</span>
+              </button>
             </div>
 
-            <div className="w-full overflow-x-auto touch-pan-x">
-              <table className="w-full min-w-[650px] border-collapse text-left text-xs">
+            <div className="w-full overflow-x-auto">
+              <table className="w-full min-w-[550px] border-collapse text-left text-xs">
                 <thead>
-                  <tr className="bg-emerald-700 text-white select-none">
-                    <th className="w-12 text-center p-2 border-r border-emerald-600">N°</th>
-                    <th className="p-2 border-r border-emerald-600">Élève</th>
-                    <th className="p-2 border-r border-emerald-600 text-center">Classe</th>
-                    <th className="p-2 border-r border-emerald-600">Matière</th>
-                    <th className="p-2 border-r border-emerald-600">Évaluation</th>
-                    <th className="p-2 border-r border-emerald-600 text-center">Trimestre</th>
-                    <th className="p-2 text-right">Note / Barème</th>
+                  <tr className="bg-emerald-800 text-white select-none">
+                    <th className="w-12 text-center p-2.5 border-r border-emerald-700">N°</th>
+                    <th className="p-2.5 border-r border-emerald-700">Matricule</th>
+                    <th className="p-2.5 border-r border-emerald-700">Nom & Prénom de l'Élève</th>
+                    <th className="p-2.5 text-center w-48">Note / Barème ({activeSubjectOption.max} pts)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {recentGrades.length === 0 ? (
+                  {!batchClass?.students?.length ? (
                     <tr>
-                      <td colSpan={7} className="p-8 text-center text-muted-foreground italic">
-                        Aucune évaluation enregistrée pour le moment. Cliquez sur "Nouvelle Note" pour démarrer la saisie.
+                      <td colSpan={4} className="p-8 text-center text-muted-foreground italic">
+                        Aucun élève inscrit dans cette classe.
                       </td>
                     </tr>
                   ) : (
-                    recentGrades.map((g, idx) => (
-                      <tr key={g.id || idx} className={idx % 2 === 1 ? "bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200" : "bg-white dark:bg-slate-900 border-b border-slate-200"}>
-                        <td className="text-center p-2 font-mono font-bold text-slate-400 border-r border-slate-200">{idx + 1}</td>
-                        <td className="p-2 font-bold text-slate-900 dark:text-slate-100 border-r border-slate-200">
-                          {g.student?.firstName} {g.student?.lastName}
-                        </td>
-                        <td className="p-2 text-center text-slate-600 border-r border-slate-200">{g.student?.class?.name || "—"}</td>
-                        <td className="p-2 text-slate-700 border-r border-slate-200">{g.subject?.name || "—"}</td>
-                        <td className="p-2 text-slate-900 border-r border-slate-200 font-medium">{g.title}</td>
-                        <td className="p-2 text-center border-r border-slate-200">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800">
-                            {g.term?.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="p-2 text-right font-mono font-bold text-sm text-emerald-700">
-                          {g.gradeValue} / {g.maxGrade || 20}
-                        </td>
-                      </tr>
-                    ))
+                    batchClass.students.map((st: any, idx: number) => {
+                      const val = batchGrades[st.id] !== undefined ? batchGrades[st.id] : "";
+                      return (
+                        <tr key={st.id} className={idx % 2 === 1 ? "bg-slate-50 dark:bg-slate-800/40 border-b border-slate-200" : "bg-white dark:bg-slate-900 border-b border-slate-200"}>
+                          <td className="text-center p-2.5 font-mono font-bold text-slate-400 border-r border-slate-200">{idx + 1}</td>
+                          <td className="p-2.5 font-mono text-[11px] font-semibold text-slate-600 border-r border-slate-200">{st.matricule || "—"}</td>
+                          <td className="p-2.5 font-bold text-slate-900 dark:text-slate-100 border-r border-slate-200">
+                            {st.lastName?.toUpperCase()} {st.firstName}
+                          </td>
+                          <td className="p-2.5 text-center">
+                            <div className="inline-flex items-center gap-1.5">
+                              <input 
+                                type="number"
+                                min={0}
+                                max={activeSubjectOption.max}
+                                step={0.5}
+                                placeholder="Note"
+                                value={val}
+                                onChange={(e) => {
+                                  const num = Math.max(0, Math.min(activeSubjectOption.max, Number(e.target.value) || 0));
+                                  setBatchGrades(prev => ({ ...prev, [st.id]: num }));
+                                }}
+                                className="w-20 px-2.5 py-1 text-center font-mono font-black text-sm bg-background border border-border/80 rounded-lg shadow-2xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                              />
+                              <span className="font-bold text-xs text-muted-foreground">/ {activeSubjectOption.max}</span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
             </div>
+
+            {batchClass?.students?.length > 0 && (
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+                <button 
+                  onClick={handleSaveBatchGrades}
+                  disabled={isSavingBatch}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-xs tracking-wider px-5 py-2 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isSavingBatch ? <Clock className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  <span>Enregistrer les notes saisies</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1060,9 +1441,9 @@ export function GradesClient({
                 className="w-full bg-background border border-border/70 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
               >
                 <option value="BILAN_ANNUEL" className="font-bold text-emerald-600">BILAN ANNUEL (Fin d'année)</option>
-                {TERMS.map(t => (
-                  <option key={t.value} value={t.value}>{t.labelFr}</option>
-                ))}
+                <option value="TRIMESTRE_1">1ère Composition (Trimestre 1)</option>
+                <option value="TRIMESTRE_2">2ème Composition (Trimestre 2)</option>
+                <option value="TRIMESTRE_3">3ème Composition (Trimestre 3)</option>
               </select>
             </div>
             <div>
@@ -1090,8 +1471,15 @@ export function GradesClient({
           {synthesisData && (
             <div className="bg-white text-slate-900 border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between border-b pb-3">
-                <h3 className="font-black text-sm uppercase">Tableau de Synthèse des Résultats</h3>
-                <span className="text-xs font-bold text-emerald-700">Moyenne Classe : {synthesisData.classAverage} / 10</span>
+                <div>
+                  <h3 className="font-black text-sm uppercase">Tableau de Synthèse des Résultats</h3>
+                  <p className="text-xs text-slate-500">
+                    Effectif : {synthesisData.totalStudents} élèves • Taux de passage : {synthesisData.passingRate || "N/A"}
+                  </p>
+                </div>
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                  Moyenne Classe : {synthesisData.classAverage} / 10
+                </span>
               </div>
               <table className="w-full text-xs">
                 <thead>
@@ -1100,96 +1488,32 @@ export function GradesClient({
                     <th className="p-2">Élève</th>
                     <th className="p-2 text-center">Matricule</th>
                     <th className="p-2 text-right">Moyenne / 10</th>
-                    <th className="p-2 text-right">Décision</th>
+                    <th className="p-2 text-center">Appréciation</th>
+                    <th className="p-2 text-center">Décision</th>
                   </tr>
                 </thead>
                 <tbody>
                   {synthesisData.ranking?.map((r: any, idx: number) => (
                     <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="p-2 text-center font-bold">{r.rank}</td>
-                      <td className="p-2 font-semibold text-slate-900">{r.studentName}</td>
-                      <td className="p-2 text-center font-mono text-slate-600">{r.matricule}</td>
-                      <td className="p-2 text-right font-mono font-bold text-emerald-800">{r.average}</td>
-                      <td className="p-2 text-right font-medium text-slate-700">{r.annualDecision || r.decision}</td>
+                      <td className="p-2 text-center font-black font-mono">{r.rank}</td>
+                      <td className="p-2 font-bold">{r.studentName}</td>
+                      <td className="p-2 text-center font-mono text-slate-500">{r.matricule || "—"}</td>
+                      <td className="p-2 text-right font-black font-mono text-emerald-800">{r.average} / 10</td>
+                      <td className="p-2 text-center italic text-slate-600">{r.appreciation || r.mention || "—"}</td>
+                      <td className="p-2 text-center font-bold">
+                        <span className={cn(
+                          "px-2 py-0.5 rounded text-[10px]",
+                          (r.decision === "Passe" || r.annualDecision === "Passe") ? "bg-emerald-100 text-emerald-800 font-black" : "bg-rose-100 text-rose-800 font-black"
+                        )}>
+                          {r.decision || r.annualDecision}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-        </div>
-      )}
-
-      {/* MODALE D'AJOUT DE NOTE */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-card border border-border w-full max-w-md rounded-2xl p-6 space-y-4 shadow-2xl">
-            <h3 className="text-base font-bold">Ajouter une Évaluation</h3>
-            <form onSubmit={handleAddGrade} className="space-y-3 text-xs">
-              <div>
-                <label className="font-bold text-muted-foreground block mb-1">Classe</label>
-                <select 
-                  value={selectedClassId}
-                  onChange={(e) => { setSelectedClassId(e.target.value); setSelectedStudentId(""); }}
-                  className="w-full bg-background border border-border rounded-xl p-2.5"
-                >
-                  {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="font-bold text-muted-foreground block mb-1">Élève</label>
-                <select 
-                  value={selectedStudentId}
-                  onChange={(e) => setSelectedStudentId(e.target.value)}
-                  className="w-full bg-background border border-border rounded-xl p-2.5"
-                >
-                  <option value="">Sélectionner...</option>
-                  {selectedClass?.students?.map((s: any) => (
-                    <option key={s.id} value={s.id}>{s.lastName} {s.firstName}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="font-bold text-muted-foreground block mb-1">Titre de l'évaluation</label>
-                <input 
-                  type="text" 
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ex: Devoir de Mathématiques N°1"
-                  className="w-full bg-background border border-border rounded-xl p-2.5"
-                />
-              </div>
-              <div>
-                <label className="font-bold text-muted-foreground block mb-1">Note obtenue (/20)</label>
-                <input 
-                  type="number" 
-                  step="0.5"
-                  min="0"
-                  max="20"
-                  value={gradeValue}
-                  onChange={(e) => setGradeValue(e.target.value)}
-                  placeholder="Ex: 16.5"
-                  className="w-full bg-background border border-border rounded-xl p-2.5"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button 
-                  type="button" 
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl border border-border hover:bg-muted font-bold"
-                >
-                  Annuler
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={isAdding}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-                >
-                  {isAdding ? "Enregistrement..." : "Enregistrer la note"}
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
       )}
 
