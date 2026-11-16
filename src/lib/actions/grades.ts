@@ -192,25 +192,13 @@ function generateOfficialStudentCard(
         c3Ar = Math.min(maxArByTerm.c3, Number(sRow.notesAr?.c3 ?? 0));
       }
     } else {
-      const seed = Math.abs((hash + rIdx * 19) % 100) / 100;
-      const ratioC1 = Math.min(0.95, Math.max(0.40, baseFactor + (seed * 0.15) - 0.08));
-      const ratioC2 = Math.min(0.98, Math.max(0.42, ratioC1 + ((Math.abs((hash + rIdx * 7) % 20) - 8) / 100)));
-      const ratioC3 = Math.min(0.99, Math.max(0.45, ratioC2 + ((Math.abs((hash + rIdx * 13) % 20) - 5) / 100)));
-
-      c1Fr = Math.round(maxFrByTerm.c1 * ratioC1);
-      c2Fr = Math.round(maxFrByTerm.c2 * ratioC2);
-      c3Fr = Math.round(maxFrByTerm.c3 * ratioC3);
-
-      if (def.hasAr) {
-        const arSeed = Math.abs((hash + rIdx * 31) % 100) / 100;
-        const arRatio1 = Math.min(1.0, Math.max(0.40, baseFactor + (arSeed * 0.20) - 0.05));
-        const arRatio2 = Math.min(1.0, Math.max(0.45, arRatio1 + ((Math.abs((hash + rIdx * 11) % 20) - 7) / 100)));
-        const arRatio3 = Math.min(1.0, Math.max(0.50, arRatio2 + ((Math.abs((hash + rIdx * 17) % 20) - 4) / 100)));
-
-        c1Ar = Math.round(maxArByTerm.c1 * arRatio1);
-        c2Ar = Math.round(maxArByTerm.c2 * arRatio2);
-        c3Ar = Math.round(maxArByTerm.c3 * arRatio3);
-      }
+      // Aucune note inventée en dur : un élève non encore noté démarre à 0
+      c1Fr = 0;
+      c2Fr = 0;
+      c3Fr = 0;
+      c1Ar = 0;
+      c2Ar = 0;
+      c3Ar = 0;
     }
 
     return {

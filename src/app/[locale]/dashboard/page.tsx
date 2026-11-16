@@ -42,7 +42,8 @@ export default async function DashboardPage({
     recentHifz,
     totalSchoolStudents,
     totalSchoolClasses,
-    totalSchoolTeachers
+    totalSchoolTeachers,
+    schoolTuitionTransactions
   ] = await Promise.all([
     fetchSafe(() => prisma.daara.findUnique({
       where: { id: daaraId },
@@ -78,7 +79,16 @@ export default async function DashboardPage({
     fetchSafe(() => prisma.user.count({
       where: { daaraId, space: "school", role: "OUSTAZ", deletedAt: null }
     }), 0),
+    fetchSafe(() => prisma.transaction.findMany({
+      where: { daaraId, space: "school", type: "INCOME", category: "SCOLARITE" },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }), []),
   ]);
+
+  const totalAmountPaid = schoolTuitionTransactions.reduce((sum: number, tx: any) => sum + (Number(tx.amount) || 0), 0);
+  const totalAmountDue = totalSchoolStudents * 5000;
+  const collectionRate = totalAmountDue > 0 ? Math.min(100, Math.round((totalAmountPaid / totalAmountDue) * 100)) : 0;
 
   return (
     <DashboardWrapperClient 
@@ -90,6 +100,10 @@ export default async function DashboardPage({
       totalSchoolStudents={totalSchoolStudents}
       totalClasses={totalSchoolClasses}
       totalTeachers={totalSchoolTeachers}
+      totalAmountDue={totalAmountDue}
+      totalAmountPaid={totalAmountPaid}
+      collectionRate={collectionRate}
+      recentTuitions={schoolTuitionTransactions}
       totalSponsorships={totalSponsorships}
       hifzRecordsToday={hifzRecordsToday}
       recentHifz={recentHifz}
