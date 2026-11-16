@@ -74,9 +74,9 @@ export const SCHOOL_NAV_SECTIONS: NavSection[] = [
         title: "CLASSES (CYCLE 3 ANS)",
         titleAr: "الفصول الدراسية",
         items: [
-            { label: "CI – CP", labelAr: "التحضيري الأول والثاني", icon: GraduationCap, href: "/grades?classe=CI" },
-            { label: "CE1 – CE2", labelAr: "الابتدائي الأول والثاني", icon: GraduationCap, href: "/grades?classe=CE1" },
-            { label: "CM1 – CM2", labelAr: "المتوسط الأول والثاني", icon: GraduationCap, href: "/grades?classe=CM1" },
+            { label: "CI – CP", labelAr: "التحضيري الأول والثاني", icon: GraduationCap, href: "/classes?classe=CI" },
+            { label: "CE1 – CE2", labelAr: "الابتدائي الأول والثاني", icon: GraduationCap, href: "/classes?classe=CE1" },
+            { label: "CM1 – CM2", labelAr: "المتوسط الأول والثاني", icon: GraduationCap, href: "/classes?classe=CM1" },
         ]
     },
     {

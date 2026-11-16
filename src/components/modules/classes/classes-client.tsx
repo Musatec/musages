@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { 
   UserCheck, 
   BookOpen, 
@@ -61,6 +62,18 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
   const [selectedHalqaId, setSelectedHalqaId] = useState<string>(
     initialClasses.length > 0 ? initialClasses[0].id : ""
   );
+
+  const searchParams = useSearchParams();
+  const classeQuery = searchParams.get("classe");
+
+  useEffect(() => {
+    if (!classeQuery || halqas.length === 0) return;
+    const matched = halqas.find((h) => h.name.toUpperCase().startsWith(classeQuery.toUpperCase()));
+    if (matched) {
+      setSelectedHalqaId(matched.id);
+      setActiveTab("register");
+    }
+  }, [classeQuery, halqas]);
 
   const [prevInitialClasses, setPrevInitialClasses] = useState(initialClasses);
 

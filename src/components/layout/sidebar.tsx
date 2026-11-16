@@ -119,8 +119,8 @@ export function Sidebar() {
                                         const itemClasseParam = itemQuery ? new URLSearchParams(itemQuery).get("classe") : null;
                                         const isActive = itemClasseParam
                                             ? pathname === itemPath && currentClasseParam === itemClasseParam
-                                            : itemPath === "/grades"
-                                            ? pathname === "/grades" && !currentClasseParam
+                                            : itemPath === "/classes"
+                                            ? pathname === "/classes" && !currentClasseParam
                                             : pathname === itemPath || (itemPath !== "/dashboard" && pathname.startsWith(itemPath));
                                         const label = isAr ? (item.labelAr || item.label) : item.label;
                                         return (
