@@ -324,7 +324,7 @@ function generateOfficialStudentCard(
       gender: student.gender || "M",
       parentName: student.parentName,
       parentPhone: student.parentPhone,
-      class: student.class || student.halqa || { name: "CE1" }
+      class: student.class || student.halqa || { name: "CI-CP" }
     },
     presence,
     schoolYear: cfg.schoolYear || "2025-2026",

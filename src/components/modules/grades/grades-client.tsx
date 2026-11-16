@@ -51,9 +51,9 @@ interface GradesClientProps {
 type GecTab = "PARAMETRES" | "LISTE" | "TRIMESTRE_1" | "TRIMESTRE_2" | "TRIMESTRE_3" | "BULLETINS";
 
 const TERMS = [
-  { value: "TRIMESTRE_1", labelFr: "1er Trimestre (1ère Composition)", labelAr: "الاختبار 1 (الفصل الأول)", compoKey: "c1" as const },
-  { value: "TRIMESTRE_2", labelFr: "2ème Trimestre (2ème Composition)", labelAr: "الاختبار 2 (الفصل الثاني)", compoKey: "c2" as const },
-  { value: "TRIMESTRE_3", labelFr: "3ème Trimestre & Bilan Général (Les 3 Compos)", labelAr: "الاختبار 3 والتقرير العام", compoKey: "c3" as const },
+  { value: "TRIMESTRE_1", labelFr: "Semestre 1", labelAr: "الفصل 1", compoKey: "c1" as const },
+  { value: "TRIMESTRE_2", labelFr: "Semestre 2", labelAr: "الفصل 2", compoKey: "c2" as const },
+  { value: "TRIMESTRE_3", labelFr: "Semestre 3 & Bilan Général", labelAr: "الفصل 3 والتقرير العام", compoKey: "c3" as const },
 ];
 
 const OFFICIAL_SUBJECT_METAS = [
@@ -198,7 +198,7 @@ const OfficialReportCard = ({
   const rows = data.rows || [];
   const summary = data.summary || {};
   const student = data.student || {};
-  const className = student.class?.name || reportClass?.name || "CE1";
+  const className = student.class?.name || reportClass?.name || "CI-CP";
 
   const isThreeCompos = highlightPeriod === "TRIMESTRE_3" || highlightPeriod === "ALL";
   const isCompo1Only = highlightPeriod === "TRIMESTRE_1";
@@ -321,17 +321,17 @@ const OfficialReportCard = ({
           </h1>
           {isCompo1Only && (
             <span className="text-[9px] sm:text-[10px] font-black bg-emerald-800 text-white px-2 py-0.5 rounded uppercase">
-              1er Trimestre
+              Semestre 1
             </span>
           )}
           {isCompo2Only && (
             <span className="text-[9px] sm:text-[10px] font-black bg-blue-800 text-white px-2 py-0.5 rounded uppercase">
-              2ème Trimestre
+              Semestre 2
             </span>
           )}
           {isThreeCompos && (
             <span className="text-[9px] sm:text-[10px] font-black bg-purple-800 text-white px-2 py-0.5 rounded uppercase">
-              3ème Trimestre & Bilan Général
+              Semestre 3 & Bilan Général
             </span>
           )}
         </div>
@@ -393,22 +393,22 @@ const OfficialReportCard = ({
             <tr className="border-b-2 border-slate-950 font-bold text-[8px] sm:text-[10px]">
               {isThreeCompos ? (
                 <>
-                  <th className="border-r border-slate-950 p-1 w-11 sm:w-12 bg-slate-900/5 font-black">1e Compo</th>
-                  <th className="border-r border-slate-950 p-1 w-11 sm:w-12 font-black">2è Compo</th>
-                  <th className="border-r-2 border-slate-950 p-1 w-11 sm:w-12 font-black">3è Compo</th>
-                  <th className="border-r border-slate-950 p-1 w-11 sm:w-12 font-arabic bg-slate-900/5 font-black">الاختبار 1</th>
-                  <th className="border-r border-slate-950 p-1 w-11 sm:w-12 font-arabic font-black">الاختبار 2</th>
-                  <th className="border-r-2 border-slate-950 p-1 w-11 sm:w-12 font-arabic font-black">الاختبار 3</th>
+                  <th className="border-r border-slate-950 p-1 w-14 bg-slate-900/5 font-black">Semestre 1</th>
+                  <th className="border-r border-slate-950 p-1 w-14 font-black">Semestre 2</th>
+                  <th className="border-r-2 border-slate-950 p-1 w-14 font-black">Semestre 3</th>
+                  <th className="border-r border-slate-950 p-1 w-12 font-arabic bg-slate-900/5 font-black">الفصل 1</th>
+                  <th className="border-r border-slate-950 p-1 w-12 font-arabic font-black">الفصل 2</th>
+                  <th className="border-r-2 border-slate-950 p-1 w-12 font-arabic font-black">الفصل 3</th>
                 </>
               ) : isCompo1Only ? (
                 <>
-                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 bg-slate-900/5 font-black">1e Compo</th>
-                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 font-arabic bg-slate-900/5 font-black">الاختبار 1</th>
+                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 bg-slate-900/5 font-black">Semestre 1</th>
+                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 font-arabic bg-slate-900/5 font-black">الفصل 1</th>
                 </>
               ) : (
                 <>
-                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 bg-slate-900/5 font-black">2è Compo</th>
-                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 font-arabic bg-slate-900/5 font-black">الاختبار 2</th>
+                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 bg-slate-900/5 font-black">Semestre 2</th>
+                  <th className="border-r-2 border-slate-950 p-1 w-16 sm:w-20 font-arabic bg-slate-900/5 font-black">الفصل 2</th>
                 </>
               )}
             </tr>
@@ -817,8 +817,8 @@ const OfficialReportCard = ({
             <span className="font-extrabold uppercase text-[11px] text-slate-800">Appréciations du Maître : </span>
             <span className="font-bold italic text-slate-950">
               {isCompo1Only 
-                ? (summary.moyGen?.c1 >= 5 ? "Bon travail au 1er trimestre, continue ainsi." : "Travail à intensifier au 2ème trimestre.")
-                : (summary.moyGen?.c2 >= 5 ? "Résultats satisfaisants au 2ème trimestre." : "Efforts nécessaires pour la 3ème composition.")}
+                ? (summary.moyGen?.c1 >= 5 ? "Bon travail au Semestre 1, continue ainsi." : "Travail à intensifier au Semestre 2.")
+                : (summary.moyGen?.c2 >= 5 ? "Résultats satisfaisants au Semestre 2." : "Efforts nécessaires pour le Semestre 3.")}
             </span>
           </div>
           <div className="text-right font-arabic font-bold text-slate-950 dir-rtl text-xs">
@@ -1259,14 +1259,14 @@ export function GradesClient({
     setClassReportCards(nextCards);
   };
 
-  // Render Trimester Evaluation Sheet (GEC Excel style)
+  // Render Trimester/Semestre Evaluation Sheet (GEC Excel style)
   const renderTrimesterEvaluationSheet = (compo: "c1" | "c2" | "c3") => {
     const titleLabel =
       compo === "c1"
-        ? "ÉVALUATION DU PREMIER TRIMESTRE"
+        ? "ÉVALUATION DU SEMESTRE 1"
         : compo === "c2"
-        ? "ÉVALUATION DU DEUXIÈME TRIMESTRE"
-        : "ÉVALUATION DU TROISIÈME TRIMESTRE";
+        ? "ÉVALUATION DU SEMESTRE 2"
+        : "ÉVALUATION DU SEMESTRE 3";
 
     const presentCards = classReportCards.filter(c => (c.presence?.[compo] || "P") === "P");
     const ontCompose = presentCards.length;
@@ -1305,7 +1305,7 @@ export function GradesClient({
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <div className="border-2 border-slate-800 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded text-center">
                 <div className="text-[9px] font-bold uppercase text-slate-500">Classe</div>
-                <div className="text-sm font-black text-slate-950 dark:text-white">{selectedClass?.name || "CM2"}</div>
+                <div className="text-sm font-black text-slate-950 dark:text-white">{selectedClass?.name || "CI-CP"}</div>
               </div>
 
               <div className="border-2 border-slate-800 bg-[#f6e6d5] text-slate-950 px-4 py-2 rounded font-black text-xs sm:text-sm md:text-base tracking-wide uppercase shadow-2xs">
@@ -1444,10 +1444,10 @@ export function GradesClient({
                 <th className="border-r border-slate-800 p-1 w-14 bg-amber-100 font-mono text-xs">10</th>
                 <th className="border-r-2 border-slate-800 p-1 w-12 bg-amber-100 font-mono text-xs">{ontCompose}</th>
 
-                {/* Bloc Récapitulatif Annuel à droite (exclusivement au 3e trimestre comme Capture 1) */}
+                {/* Bloc Récapitulatif Annuel à droite (exclusivement au Semestre 3) */}
                 {compo === "c3" && (
                   <th colSpan={6} className="p-1 bg-[#f6e6d5] text-slate-950 font-black uppercase tracking-wider text-xs border-l-2 border-slate-900">
-                    BILAN & PASSAGE ANNUEL (3 TRIMESTRES)
+                    BILAN & PASSAGE ANNUEL (3 SEMESTRES)
                   </th>
                 )}
               </tr>
@@ -1477,9 +1477,9 @@ export function GradesClient({
 
                 {compo === "c3" && (
                   <>
-                    <th className="border-r border-slate-700 p-1 w-12 bg-[#fdf4eb]">1er TRIM</th>
-                    <th className="border-r border-slate-700 p-1 w-12 bg-[#fdf4eb]">2e TRIM</th>
-                    <th className="border-r border-slate-700 p-1 w-12 bg-[#fdf4eb]">3e TRIM</th>
+                    <th className="border-r border-slate-700 p-1 w-12 bg-[#fdf4eb]">SEM. 1</th>
+                    <th className="border-r border-slate-700 p-1 w-12 bg-[#fdf4eb]">SEM. 2</th>
+                    <th className="border-r border-slate-700 p-1 w-12 bg-[#fdf4eb]">SEM. 3</th>
                     <th className="border-r border-slate-700 p-1 w-14 bg-amber-100 font-black">MOY. ANNUELLE</th>
                     <th className="border-r border-slate-700 p-1 w-12 bg-amber-100 font-black">RANG GÉN.</th>
                     <th className="p-1 w-16 bg-amber-100 font-black">PASSAGE</th>
@@ -1682,7 +1682,7 @@ export function GradesClient({
           </h1>
         </div>
 
-        {/* Sélecteur de Classe Global (CI, CP, CE1, CE2, CM1, CM2...) */}
+        {/* Sélecteur de Classe Global (CI-CP, CE1-CE2, CM1-CM2) */}
         <div className="flex items-center gap-2 bg-card p-2 rounded-xl border-2 border-emerald-600/40 shadow-xs">
           <span className="text-xs font-black uppercase px-2 text-emerald-800 dark:text-emerald-300">
             Classe active :
@@ -1742,7 +1742,7 @@ export function GradesClient({
           )}
         >
           <Table2 className="w-3.5 h-3.5" />
-          <span>3. Trimestre_1</span>
+          <span>3. Semestre 1</span>
         </button>
 
         <button
@@ -1756,7 +1756,7 @@ export function GradesClient({
           )}
         >
           <Table2 className="w-3.5 h-3.5" />
-          <span>4. Trimestre_2</span>
+          <span>4. Semestre 2</span>
         </button>
 
         <button
@@ -1770,7 +1770,7 @@ export function GradesClient({
           )}
         >
           <Table2 className="w-3.5 h-3.5" />
-          <span>5. Trimestre_3 (Bilan)</span>
+          <span>5. Semestre 3 (Bilan)</span>
         </button>
 
         <button
@@ -1925,7 +1925,7 @@ export function GradesClient({
             <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-5">
               {(["c1", "c2", "c3"] as const).map((compo, tIdx) => {
                 const title =
-                  tIdx === 0 ? "PREMIER TRIMESTRE" : tIdx === 1 ? "DEUXIÈME TRIMESTRE" : "TROISIÈME TRIMESTRE";
+                  tIdx === 0 ? "SEMESTRE 1" : tIdx === 1 ? "SEMESTRE 2" : "SEMESTRE 3";
                 const headerColor =
                   tIdx === 0 ? "bg-[#dce79c]" : tIdx === 1 ? "bg-[#f3e5ab]" : "bg-[#f5d5c6]";
 
@@ -2238,7 +2238,7 @@ export function GradesClient({
 
             <div className="space-y-1.5">
               <label className="text-xs font-black uppercase block text-amber-100">
-                Choisir un trimestre
+                Choisir un semestre
               </label>
               <select
                 value={reportPeriod}

@@ -947,7 +947,7 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
               <Input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                placeholder={isSchool ? "Ex: CP A, CE1 B, 6ème..." : "Ex: Halqa Omar Ibn Al-Khattab"}
+                placeholder={isSchool ? "Ex: CI-CP, CE1-CE2, CM1-CM2..." : "Ex: Halqa Omar Ibn Al-Khattab"}
                 required
               />
             </div>
@@ -964,7 +964,7 @@ export function ClassesClient({ daaraName, classes: initialClasses }: ClassesCli
                 {isSchool ? (
                   <>
                     <option value="Maternelle">Maternelle / Petite Enfance</option>
-                    <option value="Primaire">Primaire (CI - CM2)</option>
+                    <option value="Primaire">Primaire (CI-CP / CE1-CE2 / CM1-CM2)</option>
                     <option value="Collège">Collège (6ème - 3ème)</option>
                     <option value="Franco-Arabe">Spécial Franco-Arabe</option>
                   </>
