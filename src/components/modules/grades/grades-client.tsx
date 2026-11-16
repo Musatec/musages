@@ -893,7 +893,23 @@ export function GradesClient({
 
   const [classes, setClasses] = useState<any[]>(initialClasses);
   const [activeTab, setActiveTab] = useState<GecTab>("TRIMESTRE_1");
-  const [selectedClassId, setSelectedClassId] = useState(initialClasses[0]?.id || "");
+  const sortedClasses = useMemo(() => {
+    const order = (name: string) => {
+      if (name.startsWith("CI")) return 1;
+      if (name.startsWith("CE1")) return 2;
+      if (name.startsWith("CM1")) return 3;
+      return 99;
+    };
+    return [...classes].sort((a, b) => order(a.name) - order(b.name));
+  }, [classes]);
+
+  const [selectedClassId, setSelectedClassId] = useState(() => {
+    const first = [...initialClasses].sort((a, b) => {
+      const o = (n: string) => (n.startsWith("CI") ? 1 : n.startsWith("CE1") ? 2 : n.startsWith("CM1") ? 3 : 99);
+      return o(a.name) - o(b.name);
+    })[0];
+    return first?.id || "";
+  });
   const [isGreenPaper, setIsGreenPaper] = useState(true);
 
   // Full class data (reportCards of all students in selectedClassId + classConfig)
@@ -1691,22 +1707,44 @@ export function GradesClient({
           </h1>
         </div>
 
-        {/* Sélecteur de Classe Global (CI – CP, CE1 – CE2, CM1 – CM2) */}
-        <div className="flex items-center gap-2 bg-card p-2 rounded-xl border-2 border-emerald-600/40 shadow-xs">
-          <span className="text-xs font-black uppercase px-2 text-emerald-800 dark:text-emerald-300">
-            Classe active :
-          </span>
-          <select
-            value={selectedClassId}
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            className="bg-background border border-border rounded-lg px-3 py-1.5 text-xs sm:text-sm font-black focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            {classes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.students?.length || 0} élèves)
-              </option>
-            ))}
-          </select>
+        {/* Onglets indépendants directs pour chaque classe (CI – CP, CE1 – CE2, CM1 – CM2) */}
+        <div className="flex flex-wrap items-center gap-2">
+          {sortedClasses.map((c) => {
+            const isActive = c.id === selectedClassId;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setSelectedClassId(c.id)}
+                className={cn(
+                  "px-4 py-2 rounded-xl border-2 text-left transition-all flex items-center gap-2.5 shadow-2xs",
+                  isActive
+                    ? "bg-emerald-700 text-white border-emerald-800 shadow-md scale-[1.02]"
+                    : "bg-card text-foreground border-border hover:border-emerald-500/60 hover:bg-muted/60"
+                )}
+              >
+                <div>
+                  <div className="text-xs sm:text-sm font-black tracking-wide leading-tight">
+                    {c.name}
+                  </div>
+                  {c.level && (
+                    <div className={cn(
+                      "text-[10px] font-arabic font-bold leading-tight",
+                      isActive ? "text-emerald-100" : "text-muted-foreground"
+                    )}>
+                      {c.level}
+                    </div>
+                  )}
+                </div>
+                <span className={cn(
+                  "text-[10px] font-mono font-black px-2 py-0.5 rounded-full",
+                  isActive ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
+                )}>
+                  {c.students?.length || 0}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
