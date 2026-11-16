@@ -29,11 +29,11 @@ export default async function HifzPage({
       select: { name: true }
     }),
     prisma.halqa.findMany({
-      where: { daaraId },
+      where: { daaraId, space: "daara" },
       orderBy: { name: "asc" },
       include: {
         talibes: {
-          where: { deletedAt: null },
+          where: { deletedAt: null, space: "daara" },
           include: {
             hifzRecords: {
               orderBy: { date: "desc" },
@@ -45,7 +45,7 @@ export default async function HifzPage({
       }
     }),
     prisma.talibe.findMany({
-      where: { daaraId, deletedAt: null },
+      where: { daaraId, space: "daara", deletedAt: null },
       include: {
         halqa: true,
         hifzRecords: {

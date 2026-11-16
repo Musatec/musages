@@ -24,7 +24,7 @@ export async function giveAdvance(id?: string, amount?: number): Promise<{ succe
   if (!context) return { success: false, error: "Non autorise." };
   if (!id || !Number.isFinite(amount) || (amount ?? 0) <= 0) return { success: false, error: "Acompte invalide." };
   const employee = await prisma.user.findFirst({
-    where: { id, daaraId: context.daaraId, role: "OUSTAZ", deletedAt: null },
+    where: { id, daaraId: context.daaraId, space: context.space, role: "OUSTAZ", deletedAt: null },
     select: { id: true },
   });
   if (!employee) return { success: false, error: "Employe introuvable." };
@@ -36,7 +36,7 @@ export async function payRestSalary(id?: string): Promise<{ success: boolean; er
   if (!context) return { success: false, error: "Non autorise." };
   if (!id) return { success: false, error: "Employe introuvable." };
   const employee = await prisma.user.findFirst({
-    where: { id, daaraId: context.daaraId, role: "OUSTAZ", deletedAt: null },
+    where: { id, daaraId: context.daaraId, space: context.space, role: "OUSTAZ", deletedAt: null },
     select: { id: true },
   });
   if (!employee) return { success: false, error: "Employe introuvable." };

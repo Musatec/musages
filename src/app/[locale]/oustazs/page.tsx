@@ -27,23 +27,23 @@ export default async function OustazsDirectoryPage({
     where: { id: daaraId }
   });
 
-  // Récupération des Halqas et des Oustazs
+  // Récupération des Halqas et des Oustazs (strictement Espace Daara)
   const halqas = await prisma.halqa.findMany({
-    where: { daaraId },
+    where: { daaraId, space: "daara" },
     orderBy: { name: "asc" },
     include: {
       talibes: {
-        where: { deletedAt: null }
+        where: { deletedAt: null, space: "daara" }
       },
       _count: {
-        select: { talibes: { where: { deletedAt: null } } }
+        select: { talibes: { where: { deletedAt: null, space: "daara" } } }
       }
     }
   });
 
-  // Récupération des comptes utilisateurs Oustazs
+  // Récupération des comptes utilisateurs Oustazs (strictement Espace Daara)
   const oustazUsers = await prisma.user.findMany({
-    where: { daaraId, role: "OUSTAZ" },
+    where: { daaraId, space: "daara", role: "OUSTAZ", deletedAt: null },
     orderBy: { name: "asc" },
     select: { id: true, name: true, email: true, phone: true, role: true, createdAt: true },
   });

@@ -47,9 +47,7 @@ export function SpaceProvider({
             const cookieVal = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
             if (cookieVal !== activeSpace) {
                 writeSpaceCookie(activeSpace);
-                if (activeSpace === "school") {
-                    router.refresh();
-                }
+                router.refresh();
             }
         }
     }, [activeSpace, router]);

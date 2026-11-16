@@ -26,9 +26,9 @@ export default async function KhatmPage({
   // Fetch Khatm records and Daara info
   const { records, daara } = await getKhatmRecords();
 
-  // Fetch all Talibes in the Daara for the modal selection
+  // Fetch all Talibes in the Daara (strictly space: "daara") for the modal selection
   const talibes = await prisma.talibe.findMany({
-    where: { daaraId, deletedAt: null },
+    where: { daaraId, space: "daara", deletedAt: null },
     select: { id: true, firstName: true, lastName: true, matricule: true },
     orderBy: { lastName: "asc" }
   });

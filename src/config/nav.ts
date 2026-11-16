@@ -102,7 +102,7 @@ export const SCHOOL_NAV_SECTIONS: NavSection[] = [
         titleAr: "الرسوم والاشتراكات",
         items: [
             { label: "Recouvrement Écolages", labelAr: "تحصيل رسوم الدراسة", icon: CreditCard, href: "/tuition" },
-            { label: "Salaires Enseignants", labelAr: "أجور المعلمين", icon: BadgeDollarSign, href: "/hr" },
+            { label: "Salaires Enseignants", labelAr: "أجور المعلمين", icon: BadgeDollarSign, href: "/teachers" },
             { label: "Cas Sociaux & Bourses", labelAr: "الحالات الاجتماعية", icon: HeartHandshake, href: "/cas-sociaux" },
             { label: "Trésorerie École", labelAr: "خزينة المدرسة", icon: TrendingUp, href: "/expenses" },
             { label: "Paramètres École", labelAr: "إعدادات المدرسة", icon: Settings, href: "/settings" },

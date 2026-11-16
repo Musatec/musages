@@ -44,7 +44,7 @@ export async function addHifzRecord(data: HifzRecordInput) {
     }
 
     const talibe = await prisma.talibe.findFirst({
-      where: { id: data.talibeId, daaraId, deletedAt: null },
+      where: { id: data.talibeId, daaraId, space: "daara", deletedAt: null },
       select: { id: true },
     });
     if (!talibe) return { error: "Talibé introuvable dans ce Daara." };

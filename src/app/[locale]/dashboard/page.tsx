@@ -58,13 +58,13 @@ export default async function DashboardPage({
       where: { daaraId, space: "daara" }
     }), 0),
     fetchSafe(() => prisma.sponsorship.count({
-      where: { daaraId, status: "ACTIVE" }
+      where: { daaraId, status: "ACTIVE", talibe: { space: "daara", deletedAt: null } }
     }), 0),
     fetchSafe(() => prisma.hifzProgress.count({
-      where: { daaraId }
+      where: { daaraId, talibe: { space: "daara", deletedAt: null } }
     }), 0),
     fetchSafe(() => prisma.hifzProgress.findMany({
-      where: { daaraId },
+      where: { daaraId, talibe: { space: "daara", deletedAt: null } },
       include: { talibe: true },
       orderBy: { date: "desc" },
       take: 6,

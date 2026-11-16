@@ -66,7 +66,7 @@ export async function getSponsorshipTalibes() {
 
   try {
     const talibes = await prisma.talibe.findMany({
-      where: { daaraId: context.daaraId, deletedAt: null },
+      where: { daaraId: context.daaraId, space: "daara", deletedAt: null },
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
       select: { id: true, firstName: true, lastName: true, matricule: true },
     });
@@ -100,7 +100,7 @@ export async function createSponsorship(data: {
 
   try {
     const talibe = await prisma.talibe.findFirst({
-      where: { id: talibeId, daaraId: context.daaraId, deletedAt: null },
+      where: { id: talibeId, daaraId: context.daaraId, space: "daara", deletedAt: null },
       select: { id: true },
     });
     if (!talibe) return { success: false, error: "Talibé introuvable dans ce Daara." };
