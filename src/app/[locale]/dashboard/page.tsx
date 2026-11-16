@@ -90,6 +90,26 @@ export default async function DashboardPage({
   const totalAmountDue = totalSchoolStudents * 5000;
   const collectionRate = totalAmountDue > 0 ? Math.min(100, Math.round((totalAmountPaid / totalAmountDue) * 100)) : 0;
 
+  const formattedSchoolTuitions = schoolTuitionTransactions.map((tx: any) => {
+    const dt = tx.createdAt ? new Date(tx.createdAt) : new Date();
+    return {
+      id: tx.id,
+      amount: Number(tx.amount) || 0,
+      month: dt.getMonth() + 1,
+      year: dt.getFullYear(),
+      status: "PAID",
+      description: tx.description || "Écolage scolaire",
+      student: {
+        firstName: tx.description || "Paiement Écolage",
+        lastName: "",
+        matricule: tx.reference || "ECO",
+        parentName: "Parent",
+        parentPhone: "",
+        class: { name: "École" },
+      },
+    };
+  });
+
   return (
     <DashboardWrapperClient 
       daaraName={daara?.name || "Daara Ibnoul Khayim Al Diawziya"}
@@ -103,7 +123,7 @@ export default async function DashboardPage({
       totalAmountDue={totalAmountDue}
       totalAmountPaid={totalAmountPaid}
       collectionRate={collectionRate}
-      recentTuitions={schoolTuitionTransactions}
+      recentTuitions={formattedSchoolTuitions}
       totalSponsorships={totalSponsorships}
       hifzRecordsToday={hifzRecordsToday}
       recentHifz={recentHifz}

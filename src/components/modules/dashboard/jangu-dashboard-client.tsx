@@ -218,17 +218,17 @@ export function JanguDashboardClient({
                           {idx + 1}
                         </td>
                         <td className="px-3 py-2 font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
-                          <div>{item.student.firstName} {item.student.lastName}</div>
-                          <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">{item.student.matricule}</div>
+                          <div>{item.student?.firstName || item.description || "Élève"} {item.student?.lastName || ""}</div>
+                          <div className="font-mono text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">{item.student?.matricule || "—"}</div>
                         </td>
                         <td className="px-3 py-2 text-center font-medium text-slate-700 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-700/80">
-                          {item.student.class?.name || "—"}
+                          {item.student?.class?.name || "—"}
                         </td>
                         <td className="px-3 py-2 text-center font-medium text-slate-700 dark:text-slate-300 border-r border-b border-slate-200 dark:border-slate-700/80">
-                          {MONTH_NAMES[item.month - 1]} {item.year}
+                          {MONTH_NAMES[((item.month || currentMonth) - 1)] || MONTH_NAMES[currentMonth - 1]} {item.year || currentYear}
                         </td>
                         <td className="px-3 py-2 text-right font-mono font-bold text-slate-900 dark:text-slate-100 border-r border-b border-slate-200 dark:border-slate-700/80">
-                          {item.amount.toLocaleString('fr-FR')} F
+                          {(item.amount || 0).toLocaleString('fr-FR')} F
                         </td>
                         <td className="px-3 py-2 text-center border-r border-b border-slate-200 dark:border-slate-700/80">
                           <span className={cn(
@@ -242,7 +242,7 @@ export function JanguDashboardClient({
                         </td>
                         <td className="px-3 py-2 text-center border-b border-slate-200 dark:border-slate-700/80">
                           <button
-                            onClick={() => handleSendWhatsAppReminder(item.student.parentPhone, item.student.parentName, item.student.firstName, item.amount)}
+                            onClick={() => handleSendWhatsAppReminder(item.student?.parentPhone || "", item.student?.parentName || "Parent", item.student?.firstName || "l'élève", item.amount || 0)}
                             className="px-2 py-0.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white font-bold rounded border border-emerald-200 text-[10px] transition-all inline-flex items-center gap-1 shadow-2xs"
                             title="Envoyer un rappel de cotisation par WhatsApp"
                           >
