@@ -53,7 +53,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <MobileHeader />
 
             {/* Sidebar Fixe (À Droite en Arabe, à Gauche en Français sur Desktop) */}
-            <Sidebar />
+            <Suspense fallback={null}>
+                <Sidebar />
+            </Suspense>
 
             {/* Barre de navigation mobile inférieure */}
             <MobileNav />

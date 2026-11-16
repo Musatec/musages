@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { LogOut, PanelLeftClose, UserRound, X } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { Link, usePathname } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useSidebar } from "@/components/providers/sidebar-provider";
 import { useSpace } from "@/components/providers/space-provider";
@@ -17,6 +18,8 @@ export function Sidebar() {
     const { data: session } = useSession();
     const { activeSpace } = useSpace();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const currentClasseParam = searchParams.get("classe");
     const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
 
     const userRole = session?.user?.role || "SERIGNE_DAARA";
@@ -112,7 +115,13 @@ export function Sidebar() {
                                 )}
                                 <div className="space-y-1">
                                     {visibleItems.map((item) => {
-                                        const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                                        const [itemPath, itemQuery] = item.href.split("?");
+                                        const itemClasseParam = itemQuery ? new URLSearchParams(itemQuery).get("classe") : null;
+                                        const isActive = itemClasseParam
+                                            ? pathname === itemPath && currentClasseParam === itemClasseParam
+                                            : itemPath === "/grades"
+                                            ? pathname === "/grades" && !currentClasseParam
+                                            : pathname === itemPath || (itemPath !== "/dashboard" && pathname.startsWith(itemPath));
                                         const label = isAr ? (item.labelAr || item.label) : item.label;
                                         return (
                                             <Link

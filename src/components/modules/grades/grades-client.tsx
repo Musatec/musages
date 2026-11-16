@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   CheckCircle2, 
@@ -952,9 +953,20 @@ export function GradesClient({
   const [reportPeriod, setReportPeriod] = useState("TRIMESTRE_1");
   const [isClassReport, setIsClassReport] = useState(false);
   const [isEditingReport, setIsEditingReport] = useState(false);
+  const selectedClass = classes.find(c => c.id === selectedClassId) || classes[0];
+
   const [isSavingReport, setIsSavingReport] = useState(false);
 
-  const selectedClass = classes.find(c => c.id === selectedClassId) || classes[0];
+  const searchParams = useSearchParams();
+  const classeQuery = searchParams.get("classe");
+
+  useEffect(() => {
+    if (!classeQuery || sortedClasses.length === 0) return;
+    const matched = sortedClasses.find((c) => c.name.toUpperCase().startsWith(classeQuery.toUpperCase()));
+    if (matched && matched.id !== selectedClassId) {
+      setSelectedClassId(matched.id);
+    }
+  }, [classeQuery, sortedClasses]);
 
   // Load full class report cards and config whenever selectedClassId changes
   const loadClassFullData = async (cid: string) => {

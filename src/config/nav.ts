@@ -13,7 +13,8 @@ import {
     CreditCard,
     HeartHandshake,
     BadgeDollarSign,
-    Gift
+    Gift,
+    GraduationCap
 } from "lucide-react";
 
 export interface NavItem {
@@ -70,12 +71,21 @@ export const NAV_SECTIONS: NavSection[] = [
 // 2. NAVIGATION DÉDIÉE ÉCOLE FRANCO-ARABE (PATHÉ POGNE / JANGU ERP)
 export const SCHOOL_NAV_SECTIONS: NavSection[] = [
     {
+        title: "CLASSES (CYCLE 3 ANS)",
+        titleAr: "الفصول الدراسية",
+        items: [
+            { label: "CI – CP", labelAr: "التحضيري الأول والثاني", icon: GraduationCap, href: "/grades?classe=CI" },
+            { label: "CE1 – CE2", labelAr: "الابتدائي الأول والثاني", icon: GraduationCap, href: "/grades?classe=CE1" },
+            { label: "CM1 – CM2", labelAr: "المتوسط الأول والثاني", icon: GraduationCap, href: "/grades?classe=CM1" },
+        ]
+    },
+    {
         title: "GESTION ÉCOLE FRANCO-ARABE",
         titleAr: "شؤون المدرسة والمراحل",
         items: [
             { label: "Tableau de Bord École", labelAr: "لوحة تحكم المدرسة", icon: LayoutDashboard, href: "/dashboard" },
             { label: "Effectif des Élèves", labelAr: "سجل التلاميذ", icon: Users, href: "/students" },
-            { label: "Classes & Salles (CI – CP / CE1 – CE2 / CM1 – CM2)", labelAr: "الفصول والصفوف", icon: UserCheck, href: "/classes" },
+            { label: "Paramètres Salles", labelAr: "إدارة الفصول", icon: UserCheck, href: "/classes" },
             { label: "Présences & Absences", labelAr: "سجل الحضور والغياب", icon: CalendarCheck, href: "/attendance" },
         ]
     },
