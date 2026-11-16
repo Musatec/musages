@@ -23,8 +23,8 @@ export default async function TeachersPage({
   if (!daaraId) redirect(`/${locale}/setup`);
   const space = await getActiveSpace();
 
-  // Fetch oustaz / teachers and payments in parallel
-  const [oustazList, recentPayments] = await Promise.all([
+  // Fetch oustaz / teachers, payments, and classes in parallel
+  const [oustazList, recentPayments, classesList] = await Promise.all([
     prisma.user.findMany({
       where: { daaraId, space, role: "OUSTAZ", deletedAt: null },
       orderBy: { name: "asc" },
@@ -39,6 +39,11 @@ export default async function TeachersPage({
       },
       orderBy: { createdAt: "desc" },
       take: 50
+    }),
+    prisma.halqa.findMany({
+      where: { daaraId, space },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true }
     })
   ]);
 
@@ -46,6 +51,7 @@ export default async function TeachersPage({
     <TeachersClient 
       teachers={oustazList as any}
       recentPayments={recentPayments as any}
+      classes={classesList as any}
     />
   );
 }

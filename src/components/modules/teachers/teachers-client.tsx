@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Plus, 
@@ -8,9 +8,22 @@ import {
   Banknote,
   Search,
   Pencil,
-  Loader2
+  Loader2,
+  Calculator,
+  Save,
+  Copy,
+  Printer,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
-import { addTeacher, updateTeacher, deleteTeacher, payTeacher } from "@/lib/actions/teachers";
+import { 
+  addTeacher, 
+  updateTeacher, 
+  deleteTeacher, 
+  payTeacher,
+  getMonthlySalaries,
+  saveMonthlySalaries
+} from "@/lib/actions/teachers";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ImportExcelModal } from "@/components/modules/common/import-excel-modal";
@@ -36,10 +49,41 @@ interface PaymentItem {
   amount: number;
 }
 
+interface ClassOption {
+  id: string;
+  name: string;
+}
+
 interface TeachersClientProps {
   teachers: TeacherItem[];
   recentPayments: PaymentItem[];
+  classes?: ClassOption[];
 }
+
+interface SalarySheetRow {
+  teacherId: string;
+  teacherName: string;
+  classe: string;
+  th: number;
+  ch: number;
+  status: "payé" | "non payé";
+  transactionId?: string | null;
+}
+
+const MONTHS_LIST = [
+  { key: "08", label: "Août", prefix: "MOIS D'août" },
+  { key: "09", label: "Septembre", prefix: "MOIS DE septembre" },
+  { key: "10", label: "Octobre", prefix: "MOIS D'octobre" },
+  { key: "11", label: "Novembre", prefix: "MOIS DE novembre" },
+  { key: "12", label: "Décembre", prefix: "MOIS DE décembre" },
+  { key: "01", label: "Janvier", prefix: "MOIS DE janvier" },
+  { key: "02", label: "Février", prefix: "MOIS DE février" },
+  { key: "03", label: "Mars", prefix: "MOIS DE mars" },
+  { key: "04", label: "Avril", prefix: "MOIS D'avril" },
+  { key: "05", label: "Mai", prefix: "MOIS DE mai" },
+  { key: "06", label: "Juin", prefix: "MOIS DE juin" },
+  { key: "07", label: "Juillet", prefix: "MOIS DE juillet" },
+];
 
 function normalizeTeacher(teacher: TeacherItem) {
   const parts = (teacher.name || "").trim().split(/\s+/).filter(Boolean);
@@ -55,15 +99,150 @@ function normalizeTeacher(teacher: TeacherItem) {
   };
 }
 
-export function TeachersClient({ teachers: initialTeachers, recentPayments: initialPayments }: TeachersClientProps) {
+export function TeachersClient({ teachers: initialTeachers, recentPayments: initialPayments, classes = [] }: TeachersClientProps) {
   const { activeSpace } = useSpace();
   const isSchool = activeSpace === "school";
 
   const teachersList = initialTeachers.map(normalizeTeacher);
   const paymentsList = initialPayments;
 
-  const [activeTab, setActiveTab] = useState<"TEACHERS" | "PAYMENTS">("TEACHERS");
+  const [activeTab, setActiveTab] = useState<"TEACHERS" | "SALARIES" | "PAYMENTS">("SALARIES");
   const [search, setSearch] = useState("");
+
+  // Monthly Salary Sheet State (TH * CH = MONTANT)
+  const now = new Date();
+  const [salaryYear, setSalaryYear] = useState<string>(String(now.getFullYear()));
+  const [salaryMonth, setSalaryMonth] = useState<string>(String(now.getMonth() + 1).padStart(2, "0"));
+  const [salaryRows, setSalaryRows] = useState<SalarySheetRow[]>([]);
+  const [isLoadingSalaries, setIsLoadingSalaries] = useState(false);
+  const [isSavingSalaries, setIsSavingSalaries] = useState(false);
+  const [newRowName, setNewRowName] = useState("");
+
+  const monthMeta = MONTHS_LIST.find((m) => m.key === salaryMonth) || MONTHS_LIST[2];
+  const monthKey = `${salaryYear}-${salaryMonth}`;
+  const monthTitle = `${monthMeta.prefix} ${salaryYear}`;
+
+  const classOptions = Array.from(
+    new Set([
+      ...classes.map((c) => c.name),
+      "CI – CP",
+      "CE1 – CE2",
+      "CM1 – CM2",
+      "FRANCO",
+    ])
+  );
+
+  const loadMonthSheet = async (mKey: string) => {
+    setIsLoadingSalaries(true);
+    const res = await getMonthlySalaries(mKey);
+    const savedRows: SalarySheetRow[] = res.rows || [];
+
+    // Merge registered teachers with saved sheet rows so every teacher appears automatically
+    const merged: SalarySheetRow[] = [...savedRows];
+    for (const t of teachersList) {
+      const fullName = `${t.firstName} ${t.lastName}`.trim();
+      const exists = merged.some((r) => r.teacherId === t.id);
+      if (!exists) {
+        merged.push({
+          teacherId: t.id,
+          teacherName: fullName,
+          classe: isSchool ? "CI – CP" : "Halqa",
+          th: 0,
+          ch: t.hourlyRate > 0 ? t.hourlyRate : 1500,
+          status: "non payé",
+          transactionId: null,
+        });
+      }
+    }
+    setSalaryRows(merged);
+    setIsLoadingSalaries(false);
+  };
+
+  useEffect(() => {
+    if (activeTab === "SALARIES") {
+      loadMonthSheet(monthKey);
+    }
+  }, [activeTab, monthKey]);
+
+  const handleSalaryRowChange = (index: number, field: keyof SalarySheetRow, value: any) => {
+    setSalaryRows((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  };
+
+  const handleSaveMonthlySheet = async (recordAccounting = true) => {
+    setIsSavingSalaries(true);
+    toast.loading("Enregistrement de la feuille de paie...");
+    const res = await saveMonthlySalaries(monthKey, `${monthMeta.label} ${salaryYear}`, salaryRows, recordAccounting);
+    toast.dismiss();
+
+    if (res.error) {
+      toast.error(res.error);
+    } else {
+      toast.success(res.message || "Salaires enregistrés avec succès !");
+      if (res.rows) {
+        setSalaryRows(res.rows);
+      }
+    }
+    setIsSavingSalaries(false);
+  };
+
+  const handleCopyFromPreviousMonth = async () => {
+    const mNum = Number(salaryMonth);
+    const yNum = Number(salaryYear);
+    const prevMonth = mNum === 1 ? 12 : mNum - 1;
+    const prevYear = mNum === 1 ? yNum - 1 : yNum;
+    const prevKey = `${prevYear}-${String(prevMonth).padStart(2, "0")}`;
+
+    toast.loading("Récupération des classes et coûts horaires du mois précédent...");
+    const res = await getMonthlySalaries(prevKey);
+    toast.dismiss();
+
+    if (!res.rows || res.rows.length === 0) {
+      toast.info("Aucune feuille enregistrée pour le mois précédent.");
+      return;
+    }
+
+    setSalaryRows(
+      res.rows.map((r: any) => ({
+        teacherId: r.teacherId,
+        teacherName: r.teacherName,
+        classe: r.classe,
+        th: r.th || 0,
+        ch: r.ch || 1500,
+        status: "non payé" as const,
+        transactionId: null,
+      }))
+    );
+    toast.success("Données copiées ! Vous pouvez ajuster les heures (TH) et enregistrer.");
+  };
+
+  const handleAddManualSalaryRow = () => {
+    const clean = newRowName.trim();
+    if (!clean) {
+      toast.error("Saisissez le nom de l'enseignant ou vacataire.");
+      return;
+    }
+    setSalaryRows((prev) => [
+      ...prev,
+      {
+        teacherId: `custom-${Date.now()}`,
+        teacherName: clean,
+        classe: isSchool ? "FRANCO" : "Halqa",
+        th: 0,
+        ch: 1500,
+        status: "non payé",
+        transactionId: null,
+      },
+    ]);
+    setNewRowName("");
+  };
+
+  const handleRemoveSalaryRow = (index: number) => {
+    setSalaryRows((prev) => prev.filter((_, idx) => idx !== index));
+  };
   
   // Teacher state
   const [showAddModal, setShowAddModal] = useState(false);
@@ -206,31 +385,291 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
             {isSchool ? "Gestion des professeurs (Français & Arabe), vacataires et émoluments." : "Gestion du corps professoral et de la paie du Daara."}
           </p>
         </div>
-        <div className="flex bg-card p-1 rounded-2xl border border-border/50">
+        <div className="flex bg-card p-1 rounded-2xl border border-border/50 overflow-x-auto">
+          <button 
+            onClick={() => setActiveTab("SALARIES")}
+            className={cn(
+              "px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-1.5 shrink-0",
+              activeTab === "SALARIES" 
+                ? (isSchool ? "bg-gradient-to-r from-emerald-600 to-green-600 text-white font-extrabold shadow-md" : "bg-primary text-black shadow-md shadow-primary/20") 
+                : "text-muted-foreground hover:bg-muted/50"
+            )}
+          >
+            <Calculator className="w-4 h-4" /> Calcul Salaires (TH×CH)
+          </button>
           <button 
             onClick={() => setActiveTab("TEACHERS")}
             className={cn(
-              "px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all",
+              "px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shrink-0",
               activeTab === "TEACHERS" 
                 ? (isSchool ? "bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-extrabold shadow-md" : "bg-primary text-black shadow-md shadow-primary/20") 
                 : "text-muted-foreground hover:bg-muted/50"
             )}
           >
-            Enseignants
+            Enseignants ({teachersList.length})
           </button>
           <button 
             onClick={() => setActiveTab("PAYMENTS")}
             className={cn(
-              "px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2",
+              "px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-1.5 shrink-0",
               activeTab === "PAYMENTS" 
                 ? (isSchool ? "bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 font-extrabold shadow-md" : "bg-primary text-black shadow-md shadow-primary/20") 
                 : "text-muted-foreground hover:bg-muted/50"
             )}
           >
-            <Banknote className="w-4 h-4" /> Historique Paie
+            <Banknote className="w-4 h-4" /> Historique
           </button>
         </div>
       </div>
+
+      {/* --- FEUILLE DE CALCUL AUTOMATIQUE DES SALAIRES MENSUELS (TH × CH = MONTANT) --- */}
+      {activeTab === "SALARIES" && (
+        <div className="space-y-4">
+          {/* Barre de contrôle supérieure : Année + Actions */}
+          <div className="bg-card border border-border/60 rounded-2xl p-3.5 sm:p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 print:hidden">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-black uppercase text-muted-foreground">Année :</span>
+              <select
+                value={salaryYear}
+                onChange={(e) => setSalaryYear(e.target.value)}
+                className="bg-background border border-border rounded-xl px-3 py-1.5 text-xs font-black focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                {["2025", "2026", "2027"].map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+
+              <button
+                type="button"
+                onClick={handleCopyFromPreviousMonth}
+                className="bg-muted hover:bg-muted/80 text-foreground font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 border border-border transition-all"
+              >
+                <Copy className="w-3.5 h-3.5 text-blue-600" />
+                <span>Copier mois précédent</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Imprimer / PDF</span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="text"
+                placeholder="Ajouter un prof / vacataire..."
+                value={newRowName}
+                onChange={(e) => setNewRowName(e.target.value)}
+                className="bg-background border border-border rounded-xl px-3 py-1.5 text-xs font-semibold w-48 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              <button
+                type="button"
+                onClick={handleAddManualSalaryRow}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl flex items-center gap-1 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Ajouter ligne</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSaveMonthlySheet(true)}
+                disabled={isSavingSalaries}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase text-xs px-4 py-1.5 rounded-xl shadow-md flex items-center gap-1.5 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {isSavingSalaries ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                <span>Enregistrer & Valider</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Onglets des Mois (comme les feuilles en bas du Google Sheets) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 print:hidden">
+            {MONTHS_LIST.map((m) => (
+              <button
+                key={m.key}
+                type="button"
+                onClick={() => setSalaryMonth(m.key)}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 border",
+                  salaryMonth === m.key
+                    ? "bg-[#548235] text-white border-[#385723] shadow-sm font-black"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted"
+                )}
+              >
+                {m.label} {salaryYear}
+              </button>
+            ))}
+          </div>
+
+          {/* TABLEAU STYLE GOOGLE SHEETS DU UTILISATEUR */}
+          <div className="w-full overflow-x-auto touch-pan-x -webkit-overflow-scrolling-touch border-2 border-slate-900 rounded-xl bg-white text-slate-950 shadow-lg print:shadow-none">
+            {/* Bannière Titre Vert Tendre : MOIS D'octobre 2026 */}
+            <div className="bg-[#c5e0b4] border-b-2 border-slate-900 py-3 px-4 text-center">
+              <h2 className="text-lg sm:text-xl font-black uppercase tracking-wider text-slate-950">
+                {monthTitle}
+              </h2>
+            </div>
+
+            <table className="w-full min-w-[700px] border-collapse text-center text-xs sm:text-sm font-sans">
+              <thead>
+                <tr className="bg-[#548235] text-white font-black uppercase text-xs tracking-wider border-b-2 border-slate-900">
+                  <th className="p-2.5 border-r border-slate-800 text-left pl-4 min-w-[180px]">ENSEIGNANTS</th>
+                  <th className="p-2.5 border-r border-slate-800 min-w-[120px]">CLASSE</th>
+                  <th className="p-2.5 border-r border-slate-800 w-24" title="Total Heures">TH</th>
+                  <th className="p-2.5 border-r border-slate-800 w-28" title="Coût Horaire (FCFA)">CH</th>
+                  <th className="p-2.5 border-r border-slate-800 min-w-[140px]">MONTANT</th>
+                  <th className="p-2.5 border-r border-slate-800 min-w-[140px]">SIGNATURE</th>
+                  <th className="p-2.5 w-12 print:hidden">—</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoadingSalaries ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-slate-500 font-bold">
+                      Chargement de la feuille de paie...
+                    </td>
+                  </tr>
+                ) : salaryRows.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-slate-500 italic">
+                      Aucun enseignant. Ajoutez une ligne ou inscrivez vos professeurs.
+                    </td>
+                  </tr>
+                ) : (
+                  salaryRows.map((row, idx) => {
+                    const montant = (Number(row.th) || 0) * (Number(row.ch) || 0);
+                    const isPaid = row.status === "payé";
+                    return (
+                      <tr key={row.teacherId || idx} className="border-b border-slate-400 hover:bg-emerald-50/40 transition-colors">
+                        {/* ENSEIGNANTS */}
+                        <td className="p-2 border-r border-slate-400 text-left pl-3 font-bold text-slate-950">
+                          <input
+                            type="text"
+                            value={row.teacherName}
+                            onChange={(e) => handleSalaryRowChange(idx, "teacherName", e.target.value)}
+                            className="w-full bg-transparent font-bold text-slate-950 focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-600 rounded px-1 py-0.5"
+                          />
+                        </td>
+
+                        {/* CLASSE */}
+                        <td className="p-2 border-r border-slate-400 font-semibold">
+                          <select
+                            value={row.classe}
+                            onChange={(e) => handleSalaryRowChange(idx, "classe", e.target.value)}
+                            className="w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs font-bold text-center focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                          >
+                            {!classOptions.includes(row.classe) && (
+                              <option value={row.classe}>{row.classe}</option>
+                            )}
+                            {classOptions.map((c) => (
+                              <option key={c} value={c}>{c}</option>
+                            ))}
+                          </select>
+                        </td>
+
+                        {/* TH (Total Heures) */}
+                        <td className="p-2 border-r border-slate-400">
+                          <input
+                            type="number"
+                            min={0}
+                            step={0.5}
+                            value={row.th}
+                            onChange={(e) => handleSalaryRowChange(idx, "th", Number(e.target.value) || 0)}
+                            className="w-20 px-2 py-1 text-center font-mono font-black text-slate-950 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:border-emerald-600 focus:outline-none"
+                          />
+                        </td>
+
+                        {/* CH (Coût Horaire) */}
+                        <td className="p-2 border-r border-slate-400">
+                          <input
+                            type="number"
+                            min={0}
+                            step={100}
+                            value={row.ch}
+                            onChange={(e) => handleSalaryRowChange(idx, "ch", Number(e.target.value) || 0)}
+                            className="w-24 px-2 py-1 text-center font-mono font-bold text-slate-950 bg-slate-50 border border-slate-300 rounded focus:bg-white focus:border-emerald-600 focus:outline-none"
+                          />
+                        </td>
+
+                        {/* MONTANT = TH × CH (Calcul automatique) */}
+                        <td className="p-2 border-r border-slate-400 font-mono font-black text-slate-950 bg-slate-50/60">
+                          {montant.toLocaleString("fr-FR")} CFA
+                        </td>
+
+                        {/* SIGNATURE / STATUT (payé / non payé) */}
+                        <td className="p-2 border-r border-slate-400">
+                          <button
+                            type="button"
+                            onClick={() => handleSalaryRowChange(idx, "status", isPaid ? "non payé" : "payé")}
+                            className={cn(
+                              "px-4 py-1 rounded-full text-xs font-black lowercase tracking-wide inline-flex items-center gap-1.5 shadow-xs transition-all cursor-pointer",
+                              isPaid
+                                ? "bg-[#2e7d5b] text-white hover:bg-[#246348]"
+                                : "bg-[#d94141] text-white hover:bg-[#b83232]"
+                            )}
+                          >
+                            {isPaid ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                            <span>{row.status}</span>
+                          </button>
+                        </td>
+
+                        <td className="p-2 text-center print:hidden">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSalaryRow(idx)}
+                            title="Retirer cette ligne"
+                            className="text-slate-400 hover:text-rose-600 p-1"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+
+                {/* LIGNE TOTAL AUTOMATIQUE (sans #VALUE!) */}
+                {(() => {
+                  const totalTh = salaryRows.reduce((acc, r) => acc + (Number(r.th) || 0), 0);
+                  const totalMontant = salaryRows.reduce((acc, r) => acc + (Number(r.th) || 0) * (Number(r.ch) || 0), 0);
+                  const totalPaid = salaryRows
+                    .filter((r) => r.status === "payé")
+                    .reduce((acc, r) => acc + (Number(r.th) || 0) * (Number(r.ch) || 0), 0);
+                  const totalUnpaid = totalMontant - totalPaid;
+
+                  return (
+                    <tr className="bg-[#182230] text-white font-black text-sm border-t-2 border-slate-900">
+                      <td colSpan={2} className="p-3 text-center uppercase tracking-widest border-r border-slate-700">
+                        TOTAL
+                      </td>
+                      <td className="p-3 text-center font-mono text-base border-r border-slate-700 text-amber-300">
+                        {totalTh}
+                      </td>
+                      <td className="p-3 text-center border-r border-slate-700 text-slate-400">
+                        —
+                      </td>
+                      <td className="p-3 text-center font-mono text-base border-r border-slate-700 text-emerald-300 bg-white/5">
+                        {totalMontant.toLocaleString("fr-FR")} CFA
+                      </td>
+                      <td colSpan={2} className="p-2.5 text-center text-[11px] font-bold">
+                        <span className="text-emerald-300">Payé : {totalPaid.toLocaleString("fr-FR")}</span>
+                        {totalUnpaid > 0 && (
+                          <span className="ml-2 text-rose-300">• Reste : {totalUnpaid.toLocaleString("fr-FR")}</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })()}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {activeTab === "TEACHERS" && (
         <div className="space-y-6">

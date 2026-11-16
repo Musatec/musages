@@ -4,6 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { TransactionType } from "@prisma/client";
 import { DAARA_MANAGER_ROLES, getActionContext } from "@/lib/action-context";
+import {
+  getMonthlySalarySheet,
+  saveMonthlySalarySheet,
+  type MonthlySalaryRow,
+} from "@/lib/salary-storage";
 
 export async function addTeacher(data: {
   firstName: string;
@@ -215,5 +220,89 @@ export async function deleteTeacher(id: string) {
     return { success: true };
   } catch {
     return { error: "Impossible de supprimer l'Oustaz." };
+  }
+}
+
+export async function getMonthlySalaries(monthKey: string) {
+  try {
+    const context = await getActionContext(DAARA_MANAGER_ROLES);
+    if (!context) return { error: "Non autorisé." };
+
+    const storedRows = getMonthlySalarySheet(context.daaraId, context.space, monthKey);
+    return { success: true, rows: storedRows };
+  } catch (error: any) {
+    console.error("[GET_MONTHLY_SALARIES_ERROR]", error);
+    return { error: "Erreur lors du chargement de la feuille de paie." };
+  }
+}
+
+export async function saveMonthlySalaries(
+  monthKey: string,
+  monthLabel: string,
+  rows: Array<{
+    teacherId: string;
+    teacherName: string;
+    classe: string;
+    th: number;
+    ch: number;
+    status: "payé" | "non payé";
+    transactionId?: string | null;
+  }>,
+  recordAccounting: boolean = true
+) {
+  try {
+    const context = await getActionContext(DAARA_MANAGER_ROLES);
+    if (!context) return { error: "Non autorisé." };
+
+    const existingRows = getMonthlySalarySheet(context.daaraId, context.space, monthKey);
+    const updatedRows: MonthlySalaryRow[] = [];
+
+    for (const r of rows) {
+      const th = Math.max(0, Number(r.th) || 0);
+      const ch = Math.max(0, Number(r.ch) || 0);
+      const amount = th * ch;
+      const prev = existingRows.find((e) => e.teacherId === r.teacherId);
+      let txId = r.transactionId || prev?.transactionId || null;
+
+      // Si le statut passe à "payé" et qu'aucune transaction comptable n'a encore été enregistrée pour ce mois
+      if (recordAccounting && r.status === "payé" && !txId && amount > 0) {
+        const tx = await prisma.transaction.create({
+          data: {
+            daaraId: context.daaraId,
+            space: context.space,
+            amount,
+            type: TransactionType.EXPENSE,
+            category: "SALAIRE_OUSTAZ",
+            description: `Salaire ${r.teacherName} (${r.classe || "École"}) - ${monthLabel} (${th}h × ${ch} FCFA)`,
+          },
+        });
+        txId = tx.id;
+      }
+
+      updatedRows.push({
+        teacherId: r.teacherId,
+        teacherName: r.teacherName,
+        classe: r.classe,
+        th,
+        ch,
+        status: r.status === "payé" ? "payé" : "non payé",
+        transactionId: txId,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    const ok = saveMonthlySalarySheet(context.daaraId, context.space, monthKey, updatedRows);
+    if (!ok) return { error: "Erreur lors de l'enregistrement des salaires." };
+
+    revalidatePath("/teachers");
+    revalidatePath("/expenses");
+    return {
+      success: true,
+      rows: updatedRows,
+      message: `Feuille de paie (${monthLabel}) enregistrée avec succès !`,
+    };
+  } catch (error: any) {
+    console.error("[SAVE_MONTHLY_SALARIES_ERROR]", error);
+    return { error: "Erreur interne lors de l'enregistrement de la paie." };
   }
 }
