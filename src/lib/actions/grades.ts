@@ -2,12 +2,18 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { revalidatePath } from "next/cache";
 import { DAARA_STAFF_ROLES, getActiveSpace } from "@/lib/action-context";
 import { 
   getStoredStudentGrades, 
   saveStoredStudentGrades, 
   deleteStoredStudentGrades, 
-  bulkUpdateClassSubjectGrades 
+  bulkUpdateClassSubjectGrades,
+  getClassConfig,
+  saveClassConfig,
+  saveTrimesterSheetData,
+  clearTrimesterGradesForClass,
+  type ClassConfigData
 } from "@/lib/grades-storage";
 
 // 11 Rows strictly matching the official Senegalese Franco-Arab Primary School Report Card
@@ -16,216 +22,278 @@ const OFFICIAL_FRANCO_ARAB_GRID_DEF = [
   {
     domainFr: "Langue et Communication",
     disciplineFr: "Lecture",
+    shortFr: "Lecture",
     maxFr: 10,
     hasAr: true,
     domainAr: "الموارد",
     disciplineAr: "اللغة والتواصل\nLangue et Communication",
+    shortAr: "اللغة والتواصل (موارد 1)",
     maxAr: 10,
   },
   {
     domainFr: "Langue et Communication",
     disciplineFr: "Ressources",
+    shortFr: "Lang-Com / Ressources",
     maxFr: 40,
     hasAr: true,
     domainAr: "الموارد",
     disciplineAr: "",
+    shortAr: "اللغة والتواصل (موارد 2)",
     maxAr: 10,
   },
   {
     domainFr: "Langue et Communication",
     disciplineFr: "Compétence",
+    shortFr: "Lang-Com / Compétence",
     maxFr: 20,
     hasAr: true,
     domainAr: "الكفاءة",
     disciplineAr: "",
+    shortAr: "اللغة والتواصل (كفاءة 1)",
     maxAr: 10,
   },
   // Mathématiques (Left) | suite اللغة والتواصل (Right)
   {
     domainFr: "Mathématiques",
     disciplineFr: "Ressources",
+    shortFr: "Mathématiques / Ressources",
     maxFr: 40,
     hasAr: true,
     domainAr: "الكفاءة",
     disciplineAr: "",
+    shortAr: "اللغة والتواصل (كفاءة 2)",
     maxAr: 10,
   },
   {
     domainFr: "Mathématiques",
     disciplineFr: "Compétence",
+    shortFr: "Mathématiques / Compétence",
     maxFr: 20,
     hasAr: false,
     domainAr: "",
     disciplineAr: "",
+    shortAr: "",
     maxAr: 0,
   },
   // Découverte du Monde (Left) | التربية الدينية / Éducation Religieuse (Right)
   {
     domainFr: "Découverte du Monde",
     disciplineFr: "Ressources",
+    shortFr: "D. du Monde / Ressources",
     maxFr: 24,
     hasAr: true,
     domainAr: "الموارد",
     disciplineAr: "التربية الدينية\nÉducation Religieuse",
+    shortAr: "التربية الدينية (موارد 1)",
     maxAr: 10,
   },
   {
     domainFr: "Découverte du Monde",
     disciplineFr: "Compétence",
+    shortFr: "D. du Monde / Compétence",
     maxFr: 16,
     hasAr: true,
     domainAr: "الموارد",
     disciplineAr: "",
+    shortAr: "التربية الدينية (موارد 2)",
     maxAr: 10,
   },
   // Développement durable (Left) | suite التربية الدينية (Right)
   {
     domainFr: "Développement durable",
     disciplineFr: "Ressources",
+    shortFr: "Dév. Durable / Ressources",
     maxFr: 24,
     hasAr: true,
     domainAr: "الكفاءة",
     disciplineAr: "",
+    shortAr: "التربية الدينية (كفاءة 1)",
     maxAr: 10,
   },
   {
     domainFr: "Développement durable",
     disciplineFr: "Compétence",
+    shortFr: "Dév. Durable / Compétence",
     maxFr: 16,
     hasAr: true,
     domainAr: "الكفاءة",
     disciplineAr: "",
+    shortAr: "التربية الدينية (كفاءة 2)",
     maxAr: 10,
   },
   // EPSA (Left) | empty (Right)
   {
     domainFr: "EPSA",
     disciplineFr: "Art Plastique",
+    shortFr: "Arts Plastiques",
     maxFr: 10,
     hasAr: false,
     domainAr: "",
     disciplineAr: "",
+    shortAr: "",
     maxAr: 0,
   },
   {
     domainFr: "EPSA",
     disciplineFr: "Edu. Musicale",
+    shortFr: "Édu. Musicale",
     maxFr: 10,
     hasAr: false,
     domainAr: "",
     disciplineAr: "",
+    shortAr: "",
     maxAr: 0,
   },
 ];
 
-function generateOfficialStudentCard(studentId: string, student: any, classmatesCount: number, rankOffset: number = 0) {
-  // Deterministic seed based on student ID to maintain stable, consistent grades
+function generateOfficialStudentCard(
+  studentId: string,
+  student: any,
+  classmatesCount: number,
+  rankOffset: number = 0,
+  classCfg?: ClassConfigData
+) {
+  const cfg = classCfg || getClassConfig(student.halqaId || "default");
+
   let hash = 0;
   for (let i = 0; i < studentId.length; i++) {
     hash = (hash << 5) - hash + studentId.charCodeAt(i);
     hash |= 0;
   }
-  const baseFactor = 0.55 + (Math.abs(hash % 35) / 100); // 0.55 to 0.90 ratio
+  const baseFactor = 0.55 + (Math.abs(hash % 35) / 100);
 
-  // Check if custom saved grades exist
   const stored = getStoredStudentGrades(studentId);
+  const presence = stored?.presence || { c1: "P" as const, c2: "P" as const, c3: "P" as const };
 
   const rows = OFFICIAL_FRANCO_ARAB_GRID_DEF.map((def, rIdx) => {
+    const pond = cfg.ponderations?.[rIdx];
+    const maxFrByTerm = {
+      c1: pond ? Number(pond.maxFr?.c1 ?? def.maxFr) : def.maxFr,
+      c2: pond ? Number(pond.maxFr?.c2 ?? def.maxFr) : def.maxFr,
+      c3: pond ? Number(pond.maxFr?.c3 ?? def.maxFr) : def.maxFr,
+    };
+    const maxArByTerm = {
+      c1: def.hasAr ? (pond ? Number(pond.maxAr?.c1 ?? def.maxAr) : def.maxAr) : 0,
+      c2: def.hasAr ? (pond ? Number(pond.maxAr?.c2 ?? def.maxAr) : def.maxAr) : 0,
+      c3: def.hasAr ? (pond ? Number(pond.maxAr?.c3 ?? def.maxAr) : def.maxAr) : 0,
+    };
+
     let c1Fr: number, c2Fr: number, c3Fr: number;
     let c1Ar = 0, c2Ar = 0, c3Ar = 0;
 
     if (stored?.rows?.[rIdx]) {
-      // Use stored custom grades
       const sRow = stored.rows[rIdx];
-      c1Fr = Number(sRow.notesFr?.c1 ?? 0);
-      c2Fr = Number(sRow.notesFr?.c2 ?? 0);
-      c3Fr = Number(sRow.notesFr?.c3 ?? 0);
-      if (def.hasAr && def.maxAr > 0) {
-        c1Ar = Number(sRow.notesAr?.c1 ?? 0);
-        c2Ar = Number(sRow.notesAr?.c2 ?? 0);
-        c3Ar = Number(sRow.notesAr?.c3 ?? 0);
+      c1Fr = Math.min(maxFrByTerm.c1, Number(sRow.notesFr?.c1 ?? 0));
+      c2Fr = Math.min(maxFrByTerm.c2, Number(sRow.notesFr?.c2 ?? 0));
+      c3Fr = Math.min(maxFrByTerm.c3, Number(sRow.notesFr?.c3 ?? 0));
+      if (def.hasAr) {
+        c1Ar = Math.min(maxArByTerm.c1, Number(sRow.notesAr?.c1 ?? 0));
+        c2Ar = Math.min(maxArByTerm.c2, Number(sRow.notesAr?.c2 ?? 0));
+        c3Ar = Math.min(maxArByTerm.c3, Number(sRow.notesAr?.c3 ?? 0));
       }
     } else {
-      // Use deterministic baseline
       const seed = Math.abs((hash + rIdx * 19) % 100) / 100;
-      
       const ratioC1 = Math.min(0.95, Math.max(0.40, baseFactor + (seed * 0.15) - 0.08));
       const ratioC2 = Math.min(0.98, Math.max(0.42, ratioC1 + ((Math.abs((hash + rIdx * 7) % 20) - 8) / 100)));
       const ratioC3 = Math.min(0.99, Math.max(0.45, ratioC2 + ((Math.abs((hash + rIdx * 13) % 20) - 5) / 100)));
 
-      c1Fr = Math.round(def.maxFr * ratioC1);
-      c2Fr = Math.round(def.maxFr * ratioC2);
-      c3Fr = Math.round(def.maxFr * ratioC3);
+      c1Fr = Math.round(maxFrByTerm.c1 * ratioC1);
+      c2Fr = Math.round(maxFrByTerm.c2 * ratioC2);
+      c3Fr = Math.round(maxFrByTerm.c3 * ratioC3);
 
-      if (def.hasAr && def.maxAr > 0) {
+      if (def.hasAr) {
         const arSeed = Math.abs((hash + rIdx * 31) % 100) / 100;
         const arRatio1 = Math.min(1.0, Math.max(0.40, baseFactor + (arSeed * 0.20) - 0.05));
         const arRatio2 = Math.min(1.0, Math.max(0.45, arRatio1 + ((Math.abs((hash + rIdx * 11) % 20) - 7) / 100)));
         const arRatio3 = Math.min(1.0, Math.max(0.50, arRatio2 + ((Math.abs((hash + rIdx * 17) % 20) - 4) / 100)));
 
-        c1Ar = Math.round(def.maxAr * arRatio1);
-        c2Ar = Math.round(def.maxAr * arRatio2);
-        c3Ar = Math.round(def.maxAr * arRatio3);
+        c1Ar = Math.round(maxArByTerm.c1 * arRatio1);
+        c2Ar = Math.round(maxArByTerm.c2 * arRatio2);
+        c3Ar = Math.round(maxArByTerm.c3 * arRatio3);
       }
     }
 
     return {
       domainFr: def.domainFr,
       disciplineFr: def.disciplineFr,
-      maxFr: def.maxFr,
+      shortFr: def.shortFr,
+      maxFr: maxFrByTerm.c1,
+      maxFrByTerm,
       notesFr: { c1: c1Fr, c2: c2Fr, c3: c3Fr },
       hasAr: def.hasAr,
       domainAr: def.domainAr,
       disciplineAr: def.disciplineAr,
-      maxAr: def.maxAr,
+      shortAr: def.shortAr,
+      maxAr: maxArByTerm.c1,
+      maxArByTerm,
       notesAr: { c1: c1Ar, c2: c2Ar, c3: c3Ar },
     };
   });
 
-  // Calculate Totals French
-  const maxTotalFr = rows.reduce((acc, r) => acc + r.maxFr, 0); // 230
+  // Calculate Totals French per term using dynamic pondérations
+  const maxTotalFrByTerm = {
+    c1: rows.reduce((acc, r) => acc + r.maxFrByTerm.c1, 0) || 1,
+    c2: rows.reduce((acc, r) => acc + r.maxFrByTerm.c2, 0) || 1,
+    c3: rows.reduce((acc, r) => acc + r.maxFrByTerm.c3, 0) || 1,
+  };
+  const maxTotalFr = maxTotalFrByTerm.c1;
+
   const totalC1Fr = rows.reduce((acc, r) => acc + r.notesFr.c1, 0);
   const totalC2Fr = rows.reduce((acc, r) => acc + r.notesFr.c2, 0);
   const totalC3Fr = rows.reduce((acc, r) => acc + r.notesFr.c3, 0);
 
-  const moyC1Fr = Number(((totalC1Fr / maxTotalFr) * 10).toFixed(2));
-  const moyC2Fr = Number(((totalC2Fr / maxTotalFr) * 10).toFixed(2));
-  const moyC3Fr = Number(((totalC3Fr / maxTotalFr) * 10).toFixed(2));
+  const moyC1Fr = Number(((totalC1Fr / maxTotalFrByTerm.c1) * 10).toFixed(2));
+  const moyC2Fr = Number(((totalC2Fr / maxTotalFrByTerm.c2) * 10).toFixed(2));
+  const moyC3Fr = Number(((totalC3Fr / maxTotalFrByTerm.c3) * 10).toFixed(2));
 
-  // Calculate Totals Arabic
-  const maxTotalAr = rows.reduce((acc, r) => acc + (r.hasAr ? r.maxAr : 0), 0); // 80
+  // Calculate Totals Arabic per term
+  const maxTotalArByTerm = {
+    c1: rows.reduce((acc, r) => acc + (r.hasAr ? r.maxArByTerm.c1 : 0), 0) || 1,
+    c2: rows.reduce((acc, r) => acc + (r.hasAr ? r.maxArByTerm.c2 : 0), 0) || 1,
+    c3: rows.reduce((acc, r) => acc + (r.hasAr ? r.maxArByTerm.c3 : 0), 0) || 1,
+  };
+  const maxTotalAr = maxTotalArByTerm.c1;
+
   const totalC1Ar = rows.reduce((acc, r) => acc + (r.hasAr ? r.notesAr.c1 : 0), 0);
   const totalC2Ar = rows.reduce((acc, r) => acc + (r.hasAr ? r.notesAr.c2 : 0), 0);
   const totalC3Ar = rows.reduce((acc, r) => acc + (r.hasAr ? r.notesAr.c3 : 0), 0);
 
-  const moyC1Ar = Number(((totalC1Ar / maxTotalAr) * 10).toFixed(2));
-  const moyC2Ar = Number(((totalC2Ar / maxTotalAr) * 10).toFixed(2));
-  const moyC3Ar = Number(((totalC3Ar / maxTotalAr) * 10).toFixed(2));
+  const moyC1Ar = Number(((totalC1Ar / maxTotalArByTerm.c1) * 10).toFixed(2));
+  const moyC2Ar = Number(((totalC2Ar / maxTotalArByTerm.c2) * 10).toFixed(2));
+  const moyC3Ar = Number(((totalC3Ar / maxTotalArByTerm.c3) * 10).toFixed(2));
 
   // Total Général (Français + Arabe)
-  const maxTotalGeneral = maxTotalFr + maxTotalAr; // 310
+  const maxTotalGenByTerm = {
+    c1: maxTotalFrByTerm.c1 + (rows.some(r => r.hasAr && r.maxArByTerm.c1 > 0) ? maxTotalArByTerm.c1 : 0),
+    c2: maxTotalFrByTerm.c2 + (rows.some(r => r.hasAr && r.maxArByTerm.c2 > 0) ? maxTotalArByTerm.c2 : 0),
+    c3: maxTotalFrByTerm.c3 + (rows.some(r => r.hasAr && r.maxArByTerm.c3 > 0) ? maxTotalArByTerm.c3 : 0),
+  };
+  const maxTotalGeneral = maxTotalGenByTerm.c1;
+
   const totalGenC1 = totalC1Fr + totalC1Ar;
   const totalGenC2 = totalC2Fr + totalC2Ar;
   const totalGenC3 = totalC3Fr + totalC3Ar;
 
-  const moyGenC1 = Number(((totalGenC1 / maxTotalGeneral) * 10).toFixed(2));
-  const moyGenC2 = Number(((totalGenC2 / maxTotalGeneral) * 10).toFixed(2));
-  const moyGenC3 = Number(((totalGenC3 / maxTotalGeneral) * 10).toFixed(2));
+  const moyGenC1 = Number(((totalGenC1 / (maxTotalGenByTerm.c1 || 1)) * 10).toFixed(2));
+  const moyGenC2 = Number(((totalGenC2 / (maxTotalGenByTerm.c2 || 1)) * 10).toFixed(2));
+  const moyGenC3 = Number(((totalGenC3 / (maxTotalGenByTerm.c3 || 1)) * 10).toFixed(2));
 
   // Annual Totals
   const totalAnnuel = totalGenC1 + totalGenC2 + totalGenC3;
-  const maxAnnuel = maxTotalGeneral * 3;
-  const moyAnnuelle = Number(((totalAnnuel / maxAnnuel) * 10).toFixed(2));
+  const maxAnnuel = maxTotalGenByTerm.c1 + maxTotalGenByTerm.c2 + maxTotalGenByTerm.c3;
+  const moyAnnuelle = Number(((moyGenC1 + moyGenC2 + moyGenC3) / 3).toFixed(2));
 
   const totalAnnuelFr = totalC1Fr + totalC2Fr + totalC3Fr;
-  const moyAnnuelleFr = Number(((totalAnnuelFr / (maxTotalFr * 3)) * 10).toFixed(2));
+  const moyAnnuelleFr = Number(((moyC1Fr + moyC2Fr + moyC3Fr) / 3).toFixed(2));
 
   const totalAnnuelAr = totalC1Ar + totalC2Ar + totalC3Ar;
-  const moyAnnuelleAr = Number(((totalAnnuelAr / (maxTotalAr * 3)) * 10).toFixed(2));
+  const moyAnnuelleAr = Number(((moyC1Ar + moyC2Ar + moyC3Ar) / 3).toFixed(2));
 
-  const isPassing = stored?.customDecision ? stored.customDecision === "Passe" : moyAnnuelle >= 5.0;
+  const threshold = Number(cfg.passingThreshold ?? 5.0);
+  const isPassing = stored?.customDecision
+    ? stored.customDecision === "Passe"
+    : moyAnnuelle >= threshold;
 
-  // Appréciations
   let appreciation = stored?.customAppreciation || "Travail passable";
   let appreciationAr = stored?.customAppreciationAr || "مستوى مقبول";
   if (!stored?.customAppreciation) {
@@ -238,7 +306,7 @@ function generateOfficialStudentCard(studentId: string, student: any, classmates
     } else if (moyAnnuelle >= 6.0) {
       appreciation = "Bon travail, encouragements";
       appreciationAr = "جيد، تشجيع";
-    } else if (moyAnnuelle >= 5.0) {
+    } else if (moyAnnuelle >= threshold) {
       appreciation = "Travail passable, doit progresser";
       appreciationAr = "مقبول، ينبغي بذل المزيد";
     } else {
@@ -253,15 +321,22 @@ function generateOfficialStudentCard(studentId: string, student: any, classmates
       firstName: student.firstName,
       lastName: student.lastName,
       matricule: student.matricule || "PP-001",
-      gender: student.gender,
+      gender: student.gender || "M",
       parentName: student.parentName,
       parentPhone: student.parentPhone,
       class: student.class || student.halqa || { name: "CE1" }
     },
-    schoolYear: "2025 / 2026",
-    ia: "PIKINE-GUEDIAWAYE",
-    ief: "KEUR MASSAR",
-    schoolName: "ÉCOLE FRANCO ARABE : PATHÉ POGNE",
+    presence,
+    schoolYear: cfg.schoolYear || "2025-2026",
+    ia: cfg.ia || "SANGALKAM",
+    ief: cfg.ief || "SANGALKAM",
+    schoolName: cfg.schoolName || "PATHE POGNE",
+    directorName: cfg.directorName || "OUMAR POGNE",
+    directorCivility: cfg.directorCivility || "Monsieur",
+    teacherFrName: cfg.teacherFrName || "SANE/KONE",
+    teacherFrCivility: cfg.teacherFrCivility || "Monsieur",
+    teacherArName: cfg.teacherArName || "الأستاذ جوب",
+    passingThreshold: threshold,
     schoolNameAr: "المدرسة الفرنسية العربية باتيه بوني",
     isCustomized: !!stored,
     rows,
@@ -269,6 +344,9 @@ function generateOfficialStudentCard(studentId: string, student: any, classmates
       maxTotalFr,
       maxTotalAr,
       maxTotalGeneral,
+      maxTotalFrByTerm,
+      maxTotalArByTerm,
+      maxTotalGenByTerm,
       totalFr: { c1: totalC1Fr, c2: totalC2Fr, c3: totalC3Fr },
       moyFr: { c1: moyC1Fr, c2: moyC2Fr, c3: moyC3Fr },
       totalAr: { c1: totalC1Ar, c2: totalC2Ar, c3: totalC3Ar },
@@ -276,7 +354,7 @@ function generateOfficialStudentCard(studentId: string, student: any, classmates
       totalGen: { c1: totalGenC1, c2: totalGenC2, c3: totalGenC3 },
       moyGen: { c1: moyGenC1, c2: moyGenC2, c3: moyGenC3 },
       rankFr: { c1: Math.max(1, rankOffset + 1), c2: Math.max(1, rankOffset + 1), c3: Math.max(1, rankOffset + 1) },
-      rankAr: { c1: Math.max(1, Math.round((rankOffset + 1) * 0.7)), c2: Math.max(1, Math.round((rankOffset + 1) * 0.7)), c3: Math.max(1, Math.round((rankOffset + 1) * 0.7)) },
+      rankAr: { c1: Math.max(1, rankOffset + 1), c2: Math.max(1, rankOffset + 1), c3: Math.max(1, rankOffset + 1) },
       rankGen: { c1: Math.max(1, rankOffset + 1), c2: Math.max(1, rankOffset + 1), c3: Math.max(1, rankOffset + 1) },
       totalStudents: classmatesCount || 25,
       annual: {
@@ -298,10 +376,192 @@ function generateOfficialStudentCard(studentId: string, student: any, classmates
   };
 }
 
+export async function getClassGecConfig(classId: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id || !DAARA_STAFF_ROLES.includes(session.user.role)) {
+      return { error: "Non autorisé." };
+    }
+    const config = getClassConfig(classId);
+    return { success: true, config };
+  } catch (error: any) {
+    console.error("[GET_CLASS_GEC_CONFIG_ERROR]", error);
+    return { error: "Erreur lors du chargement des paramètres." };
+  }
+}
+
+export async function saveClassGecConfig(classId: string, config: Partial<ClassConfigData>) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id || !DAARA_STAFF_ROLES.includes(session.user.role)) {
+      return { error: "Non autorisé." };
+    }
+    const updated = saveClassConfig(classId, config);
+    return { success: true, config: updated, message: "Paramètres et pondérations enregistrés !" };
+  } catch (error: any) {
+    console.error("[SAVE_CLASS_GEC_CONFIG_ERROR]", error);
+    return { error: "Erreur lors de l'enregistrement des paramètres." };
+  }
+}
+
+export async function saveClassTrimesterSheet(
+  classId: string,
+  compo: "c1" | "c2" | "c3",
+  entries: Array<{
+    studentId: string;
+    presence: "P" | "A";
+    notesFr: number[];
+    notesAr: number[];
+    baseRows?: any[];
+  }>
+) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id || !DAARA_STAFF_ROLES.includes(session.user.role)) {
+      return { error: "Non autorisé." };
+    }
+    const ok = saveTrimesterSheetData(compo, entries);
+    if (!ok) return { error: "Erreur lors de l'enregistrement de la feuille trimestrielle." };
+    return { success: true, message: "Feuille d'évaluation trimestrielle enregistrée avec succès !" };
+  } catch (error: any) {
+    console.error("[SAVE_TRIMESTER_SHEET_ERROR]", error);
+    return { error: "Erreur interne lors de la sauvegarde." };
+  }
+}
+
+export async function clearClassTrimesterSheet(
+  classId: string,
+  compo: "c1" | "c2" | "c3"
+) {
+  try {
+    const session = await auth();
+    const daaraId = session?.user?.daaraId;
+    if (!session?.user?.id || !daaraId || !DAARA_STAFF_ROLES.includes(session.user.role)) {
+      return { error: "Non autorisé." };
+    }
+    const space = await getActiveSpace();
+    const students = await prisma.talibe.findMany({
+      where: { halqaId: classId, daaraId, space, deletedAt: null },
+      select: { id: true }
+    });
+    const cfg = getClassConfig(classId);
+    const baseMap: Record<string, any[]> = {};
+    for (const s of students) {
+      const card = generateOfficialStudentCard(s.id, { id: s.id, halqaId: classId }, students.length, 0, cfg);
+      baseMap[s.id] = card.rows;
+    }
+    const ok = clearTrimesterGradesForClass(students.map(s => s.id), compo, baseMap);
+    if (!ok) return { error: "Impossible d'effacer les notes." };
+    return { success: true, message: "Toutes les notes de ce trimestre ont été effacées." };
+  } catch (error: any) {
+    console.error("[CLEAR_TRIMESTER_SHEET_ERROR]", error);
+    return { error: "Erreur lors de la remise à zéro des notes." };
+  }
+}
+
+export async function addClassStudentInGec(
+  classId: string,
+  data: { firstName: string; lastName: string; gender: "M" | "F"; matricule?: string }
+) {
+  try {
+    const session = await auth();
+    const daaraId = session?.user?.daaraId;
+    if (!session?.user?.id || !daaraId || !DAARA_STAFF_ROLES.includes(session.user.role)) {
+      return { error: "Non autorisé." };
+    }
+    const firstName = (data.firstName || "").trim();
+    const lastName = (data.lastName || "").trim().toUpperCase();
+    if (firstName.length < 2 || lastName.length < 2) {
+      return { error: "Veuillez renseigner le prénom et le nom de l'élève." };
+    }
+
+    const space = await getActiveSpace();
+    const prefix = space === "school" ? "ECO" : "DAA";
+    const matricule = data.matricule?.trim() || `${prefix}-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const student = await prisma.talibe.create({
+      data: {
+        daaraId,
+        space,
+        halqaId: classId,
+        matricule,
+        firstName,
+        lastName,
+        gender: data.gender === "F" ? "F" : "M",
+        status: "EXTERNE",
+      }
+    });
+
+    revalidatePath("/grades");
+    revalidatePath("/students");
+    revalidatePath("/classes");
+    return { success: true, student };
+  } catch (error: any) {
+    console.error("[ADD_CLASS_STUDENT_GEC_ERROR]", error);
+    return { error: "Erreur lors de l'ajout de l'élève dans la liste." };
+  }
+}
+
+export async function updateClassStudentInGec(
+  studentId: string,
+  data: { firstName: string; lastName: string; gender: "M" | "F" }
+) {
+  try {
+    const session = await auth();
+    const daaraId = session?.user?.daaraId;
+    if (!session?.user?.id || !daaraId || !DAARA_STAFF_ROLES.includes(session.user.role)) {
+      return { error: "Non autorisé." };
+    }
+    const firstName = (data.firstName || "").trim();
+    const lastName = (data.lastName || "").trim().toUpperCase();
+    if (firstName.length < 2 || lastName.length < 2) {
+      return { error: "Prénom et nom obligatoires." };
+    }
+
+    await prisma.talibe.updateMany({
+      where: { id: studentId, daaraId, deletedAt: null },
+      data: {
+        firstName,
+        lastName,
+        gender: data.gender === "F" ? "F" : "M",
+      }
+    });
+
+    revalidatePath("/grades");
+    revalidatePath("/students");
+    return { success: true };
+  } catch (error: any) {
+    console.error("[UPDATE_CLASS_STUDENT_GEC_ERROR]", error);
+    return { error: "Erreur lors de la modification de l'élève." };
+  }
+}
+
+export async function deleteClassStudentInGec(studentId: string) {
+  try {
+    const session = await auth();
+    const daaraId = session?.user?.daaraId;
+    if (!session?.user?.id || !daaraId || !DAARA_STAFF_ROLES.includes(session.user.role)) {
+      return { error: "Non autorisé." };
+    }
+
+    await prisma.talibe.updateMany({
+      where: { id: studentId, daaraId, deletedAt: null },
+      data: { deletedAt: new Date() }
+    });
+
+    revalidatePath("/grades");
+    revalidatePath("/students");
+    return { success: true };
+  } catch (error: any) {
+    console.error("[DELETE_CLASS_STUDENT_GEC_ERROR]", error);
+    return { error: "Erreur lors de la suppression de l'élève." };
+  }
+}
+
 export async function saveStudentReportCard(
   studentId: string,
   rows: any[],
-  extra?: { appreciation?: string; appreciationAr?: string; decision?: "Passe" | "Redouble" }
+  extra?: { appreciation?: string; appreciationAr?: string; decision?: "Passe" | "Redouble"; presence?: { c1: "P" | "A"; c2: "P" | "A"; c3: "P" | "A" } }
 ) {
   try {
     const session = await auth();
@@ -311,6 +571,7 @@ export async function saveStudentReportCard(
 
     const ok = saveStoredStudentGrades(studentId, {
       rows,
+      presence: extra?.presence,
       customAppreciation: extra?.appreciation,
       customAppreciationAr: extra?.appreciationAr,
       customDecision: extra?.decision
@@ -405,14 +666,16 @@ export async function getStudentReportCard(studentId: string, _term: string = "T
 
     if (!talibe) return { error: "Élève introuvable." };
 
-    const classmates = talibe.halqaId ? await prisma.talibe.findMany({
-      where: { halqaId: talibe.halqaId, daaraId, space, deletedAt: null },
-      select: { id: true, firstName: true, lastName: true }
-    }) : [talibe];
+    if (talibe.halqaId) {
+      const { reportCards } = await getClassReportCards(talibe.halqaId, _term);
+      const found = reportCards?.find(r => r.student.id === studentId);
+      if (found) {
+        return { success: true, ...found };
+      }
+    }
 
-    // Compute relative rank
-    const studentIdx = classmates.findIndex(c => c.id === talibe.id);
-    const card = generateOfficialStudentCard(talibe.id, talibe, classmates.length, studentIdx >= 0 ? studentIdx : 0);
+    const cfg = getClassConfig(talibe.halqaId || "default");
+    const card = generateOfficialStudentCard(talibe.id, talibe, 1, 0, cfg);
 
     return {
       success: true,
@@ -427,7 +690,7 @@ export async function getStudentReportCard(studentId: string, _term: string = "T
 export async function getClassReportCards(
   classId: string,
   _term: string = "TRIMESTRE_1"
-): Promise<{ reportCards?: any[]; error?: string }> {
+): Promise<{ reportCards?: any[]; classConfig?: ClassConfigData; error?: string }> {
   try {
     const session = await auth();
     const daaraId = session?.user?.daaraId;
@@ -440,27 +703,49 @@ export async function getClassReportCards(
       include: {
         talibes: {
           where: { space, deletedAt: null },
-          orderBy: [{ lastName: "asc" }, { firstName: "asc" }]
+          orderBy: [{ createdAt: "asc" }, { lastName: "asc" }]
         }
       }
     });
 
     if (!halqa) return { error: "Classe introuvable." };
-    if (halqa.talibes.length === 0) return { error: "Aucun élève inscrit dans cette classe." };
+
+    const classConfig = getClassConfig(classId);
+    if (halqa.talibes.length === 0) return { reportCards: [], classConfig };
 
     const reportCards = halqa.talibes.map((t, idx) => {
-      const card = generateOfficialStudentCard(t.id, t, halqa.talibes.length, idx);
-      return card;
+      return generateOfficialStudentCard(t.id, { ...t, halqa }, halqa.talibes.length, idx, classConfig);
     });
 
-    // Sort by annual average descending
-    reportCards.sort((a, b) => b.summary.annual.moyenne - a.summary.annual.moyenne);
-    reportCards.forEach((c, idx) => {
+    // Compute accurate rankings per trimester (c1, c2, c3) and annual among present students
+    (["c1", "c2", "c3"] as const).forEach((termKey) => {
+      const sortedGen = [...reportCards].sort((a, b) => {
+        const presA = a.presence?.[termKey] !== "A" ? 1 : 0;
+        const presB = b.presence?.[termKey] !== "A" ? 1 : 0;
+        if (presA !== presB) return presB - presA;
+        return (b.summary.moyGen[termKey] || 0) - (a.summary.moyGen[termKey] || 0);
+      });
+      sortedGen.forEach((c, idx) => {
+        c.summary.rankGen[termKey] = idx + 1;
+      });
+
+      const sortedFr = [...reportCards].sort((a, b) => (b.summary.moyFr[termKey] || 0) - (a.summary.moyFr[termKey] || 0));
+      sortedFr.forEach((c, idx) => {
+        c.summary.rankFr[termKey] = idx + 1;
+      });
+
+      const sortedAr = [...reportCards].sort((a, b) => (b.summary.moyAr[termKey] || 0) - (a.summary.moyAr[termKey] || 0));
+      sortedAr.forEach((c, idx) => {
+        c.summary.rankAr[termKey] = idx + 1;
+      });
+    });
+
+    const sortedAnnual = [...reportCards].sort((a, b) => b.summary.annual.moyenne - a.summary.annual.moyenne);
+    sortedAnnual.forEach((c, idx) => {
       c.summary.annual.rank = idx + 1;
-      c.summary.rankGen.c3 = idx + 1;
     });
 
-    return { reportCards };
+    return { reportCards, classConfig };
   } catch (error: any) {
     console.error("[GET_CLASS_REPORT_CARDS_ERROR]", error);
     return { error: "Erreur lors de la génération des bulletins de classe." };
@@ -474,23 +759,26 @@ export async function getClassSynthesisReport(classId: string, _term: string = "
     if (!session?.user?.id || !daaraId || !DAARA_STAFF_ROLES.includes(session.user.role)) return { error: "Non autorisé." };
 
     const { reportCards, error } = await getClassReportCards(classId);
-    if (error || !reportCards) return { error: error || "Impossible de générer la synthèse." };
+    if (error || !reportCards || reportCards.length === 0) return { error: error || "Aucun élève dans cette classe." };
 
-    const averages = reportCards.map(r => r.summary.annual.moyenne);
+    const termKey = _term === "TRIMESTRE_1" ? "c1" : _term === "TRIMESTRE_2" ? "c2" : "c3";
+    const averages = reportCards.map(r => r.summary.moyGen[termKey] || 0);
     const classAvg = Number((averages.reduce((acc, v) => acc + v, 0) / averages.length).toFixed(2));
+
+    const sorted = [...reportCards].sort((a, b) => (a.summary.rankGen[termKey] || 99) - (b.summary.rankGen[termKey] || 99));
 
     return {
       success: true,
-      term: "SYNTHÈSE_OFFICIELLE",
+      term: _term,
       totalStudents: reportCards.length,
       classAverage: classAvg,
       maxAverage: Math.max(...averages),
       minAverage: Math.min(...averages),
-      ranking: reportCards.map(r => ({
-        rank: r.summary.annual.rank,
-        studentName: `${r.student.lastName?.toUpperCase()} ${r.student.firstName}`,
+      ranking: sorted.map(r => ({
+        rank: r.summary.rankGen[termKey],
+        studentName: `${r.student.firstName} ${r.student.lastName?.toUpperCase()}`,
         matricule: r.student.matricule,
-        average: r.summary.annual.moyenne,
+        average: r.summary.moyGen[termKey],
         appreciation: r.summary.annual.appreciation,
         decision: r.summary.annual.decisionFr
       }))
@@ -509,19 +797,24 @@ export async function getAnnualReport(classId: string) {
     if (!session?.user?.id || !DAARA_STAFF_ROLES.includes(session.user.role)) return { error: "Non autorisé." };
 
     const { reportCards, error } = await getClassReportCards(classId);
-    if (error || !reportCards) return { error: error || "Impossible de générer le bilan annuel." };
+    if (error || !reportCards || reportCards.length === 0) return { error: error || "Aucun élève dans cette classe." };
 
     const passingCount = reportCards.filter(r => r.summary.annual.isPassing).length;
     const passingRate = `${((passingCount / reportCards.length) * 100).toFixed(1)}%`;
+    const averages = reportCards.map(r => r.summary.annual.moyenne);
+    const classAverage = Number((averages.reduce((acc, v) => acc + v, 0) / averages.length).toFixed(2));
+
+    const sorted = [...reportCards].sort((a, b) => a.summary.annual.rank - b.summary.annual.rank);
 
     return {
       success: true,
       term: "BILAN_ANNUEL",
       totalStudents: reportCards.length,
+      classAverage,
       passingRate,
-      ranking: reportCards.map(r => ({
+      ranking: sorted.map(r => ({
         rank: r.summary.annual.rank,
-        studentName: `${r.student.lastName?.toUpperCase()} ${r.student.firstName}`,
+        studentName: `${r.student.firstName} ${r.student.lastName?.toUpperCase()}`,
         matricule: r.student.matricule,
         average: r.summary.annual.moyenne,
         mention: r.summary.annual.appreciation,
