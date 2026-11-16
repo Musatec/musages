@@ -106,7 +106,7 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
   const teachersList = initialTeachers.map(normalizeTeacher);
   const paymentsList = initialPayments;
 
-  const [activeTab, setActiveTab] = useState<"TEACHERS" | "SALARIES" | "PAYMENTS">("SALARIES");
+  const [activeTab, setActiveTab] = useState<"TEACHERS" | "SALARIES" | "PAYMENTS">("TEACHERS");
   const [search, setSearch] = useState("");
 
   // Monthly Salary Sheet State (TH * CH = MONTANT)
@@ -387,17 +387,6 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
         </div>
         <div className="flex bg-card p-1 rounded-2xl border border-border/50 overflow-x-auto">
           <button 
-            onClick={() => setActiveTab("SALARIES")}
-            className={cn(
-              "px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-1.5 shrink-0",
-              activeTab === "SALARIES" 
-                ? (isSchool ? "bg-gradient-to-r from-emerald-600 to-green-600 text-white font-extrabold shadow-md" : "bg-primary text-black shadow-md shadow-primary/20") 
-                : "text-muted-foreground hover:bg-muted/50"
-            )}
-          >
-            <Calculator className="w-4 h-4" /> Calcul Salaires (TH×CH)
-          </button>
-          <button 
             onClick={() => setActiveTab("TEACHERS")}
             className={cn(
               "px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shrink-0",
@@ -407,6 +396,17 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
             )}
           >
             Enseignants ({teachersList.length})
+          </button>
+          <button 
+            onClick={() => setActiveTab("SALARIES")}
+            className={cn(
+              "px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-1.5 shrink-0",
+              activeTab === "SALARIES" 
+                ? (isSchool ? "bg-gradient-to-r from-emerald-600 to-green-600 text-white font-extrabold shadow-md" : "bg-primary text-black shadow-md shadow-primary/20") 
+                : "text-muted-foreground hover:bg-muted/50"
+            )}
+          >
+            <Calculator className="w-4 h-4" /> Salaires (TH×CH)
           </button>
           <button 
             onClick={() => setActiveTab("PAYMENTS")}

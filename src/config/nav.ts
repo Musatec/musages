@@ -94,7 +94,7 @@ export const SCHOOL_NAV_SECTIONS: NavSection[] = [
         titleAr: "الدرجات والامتحانات",
         items: [
             { label: "Examens & Bulletins", labelAr: "الامتحانات والدرجات", icon: BookOpen, href: "/grades" },
-            { label: "Corps Enseignant", labelAr: "كادر المعلمين", icon: UserCheck, href: "/teachers" },
+            { label: "Enseignants", labelAr: "المعلمون", icon: UserCheck, href: "/teachers" },
         ]
     },
     {
@@ -102,7 +102,6 @@ export const SCHOOL_NAV_SECTIONS: NavSection[] = [
         titleAr: "الرسوم والاشتراكات",
         items: [
             { label: "Recouvrement Écolages", labelAr: "تحصيل رسوم الدراسة", icon: CreditCard, href: "/tuition" },
-            { label: "Salaires Enseignants", labelAr: "أجور المعلمين", icon: BadgeDollarSign, href: "/teachers" },
             { label: "Cas Sociaux & Bourses", labelAr: "الحالات الاجتماعية", icon: HeartHandshake, href: "/cas-sociaux" },
             { label: "Trésorerie École", labelAr: "خزينة المدرسة", icon: TrendingUp, href: "/expenses" },
             { label: "Paramètres École", labelAr: "إعدادات المدرسة", icon: Settings, href: "/settings" },
