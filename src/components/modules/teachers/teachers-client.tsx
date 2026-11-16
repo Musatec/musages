@@ -164,10 +164,24 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
     }
   }, [activeTab, monthKey]);
 
+function getHourlyRateForClass(classe: string): number {
+  const upper = (classe || "").toUpperCase();
+  if (upper.includes("CM1") || upper.includes("CM2")) return 2000;
+  return 1500;
+}
+
   const handleSalaryRowChange = (index: number, field: keyof SalarySheetRow, value: any) => {
     setSalaryRows((prev) => {
       const next = [...prev];
-      next[index] = { ...next[index], [field]: value };
+      if (field === "classe") {
+        next[index] = {
+          ...next[index],
+          classe: value,
+          ch: getHourlyRateForClass(String(value)),
+        };
+      } else {
+        next[index] = { ...next[index], [field]: value };
+      }
       return next;
     });
   };
@@ -686,12 +700,6 @@ export function TeachersClient({ teachers: initialTeachers, recentPayments: init
             </div>
             <div className="flex gap-2">
               <ImportExcelModal type="teachers" onSuccess={() => window.location.reload()} />
-              <button 
-                onClick={() => setShowPayModal(true)}
-                className="bg-card hover:bg-muted border border-border/50 text-foreground font-black uppercase text-[11px] px-4 sm:px-6 py-3 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 tracking-widest flex-1"
-              >
-                <Banknote className="w-4 h-4" /> Payer Salaire
-              </button>
               <button 
                 onClick={() => setShowAddModal(true)}
                 className="bg-primary hover:bg-primary/90 text-black font-black uppercase text-[11px] px-4 sm:px-6 py-3 rounded-2xl shadow-lg shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 tracking-widest flex-1"
