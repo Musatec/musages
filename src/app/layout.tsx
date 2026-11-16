@@ -27,7 +27,7 @@ import { Suspense } from "react";
 import { cookies } from "next/headers";
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: "#059669",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -44,6 +44,11 @@ export const metadata: Metadata = {
   keywords: ["Daara Ibnoul Khayim Al Diawziya", "Ecole Ibnoul Khayim Al Jawziya", "مدرسة ابن القيم الجوزية", "Mémorisation Coran", "60 Hizbs", "Tajweed", "E-Daara"],
   metadataBase: new URL('https://musages.vercel.app'),
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Daara & École",
+  },
   icons: {
     icon: '/logo-daara-ibnoul-khayim.png',
     shortcut: '/logo-daara-ibnoul-khayim.png',
