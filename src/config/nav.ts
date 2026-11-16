@@ -75,7 +75,7 @@ export const SCHOOL_NAV_SECTIONS: NavSection[] = [
         items: [
             { label: "Tableau de Bord École", labelAr: "لوحة تحكم المدرسة", icon: LayoutDashboard, href: "/dashboard" },
             { label: "Effectif des Élèves", labelAr: "سجل التلاميذ", icon: Users, href: "/students" },
-            { label: "Classes & Salles (CI-CP, CE1-CE2, CM1-CM2)", labelAr: "الفصول والصفوف", icon: UserCheck, href: "/classes" },
+            { label: "Classes & Salles (CI – CP / CE1 – CE2 / CM1 – CM2)", labelAr: "الفصول والصفوف", icon: UserCheck, href: "/classes" },
             { label: "Présences & Absences", labelAr: "سجل الحضور والغياب", icon: CalendarCheck, href: "/attendance" },
         ]
     },

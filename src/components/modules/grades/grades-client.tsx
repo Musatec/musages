@@ -198,7 +198,15 @@ const OfficialReportCard = ({
   const rows = data.rows || [];
   const summary = data.summary || {};
   const student = data.student || {};
-  const className = student.class?.name || reportClass?.name || "CI-CP";
+  const className = student.class?.name || reportClass?.name || "CI – CP";
+  const classLevelAr =
+    student.class?.level ||
+    reportClass?.level ||
+    (className.includes("CM1")
+      ? "المتوسط الأول والثاني"
+      : className.includes("CE1")
+      ? "الابتدائي الأول والثاني"
+      : "التحضيري الأول والثاني");
 
   const isThreeCompos = highlightPeriod === "TRIMESTRE_3" || highlightPeriod === "ALL";
   const isCompo1Only = highlightPeriod === "TRIMESTRE_1";
@@ -304,8 +312,9 @@ const OfficialReportCard = ({
           <p className="tracking-wide">ANNÉE SCOLAIRE : {data.schoolYear || "2025-2026"}</p>
           <p className="tracking-wide">
             CLASSE : <span className="font-black text-xs sm:text-sm underline">{className}</span>
+            <span className="font-arabic font-bold text-xs sm:text-sm mx-1.5 text-slate-900">({classLevelAr})</span>
             {data.teacherFrName && (
-              <span className="ml-2 text-[9px] sm:text-[10px] font-semibold">
+              <span className="ml-1 text-[9px] sm:text-[10px] font-semibold">
                 (Tenue par {data.teacherFrCivility === "Madame" ? "Mme" : "M."} {data.teacherFrName})
               </span>
             )}
@@ -1305,7 +1314,7 @@ export function GradesClient({
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <div className="border-2 border-slate-800 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded text-center">
                 <div className="text-[9px] font-bold uppercase text-slate-500">Classe</div>
-                <div className="text-sm font-black text-slate-950 dark:text-white">{selectedClass?.name || "CI-CP"}</div>
+                <div className="text-sm font-black text-slate-950 dark:text-white">{selectedClass?.name || "CI – CP"}</div>
               </div>
 
               <div className="border-2 border-slate-800 bg-[#f6e6d5] text-slate-950 px-4 py-2 rounded font-black text-xs sm:text-sm md:text-base tracking-wide uppercase shadow-2xs">
@@ -1682,7 +1691,7 @@ export function GradesClient({
           </h1>
         </div>
 
-        {/* Sélecteur de Classe Global (CI-CP, CE1-CE2, CM1-CM2) */}
+        {/* Sélecteur de Classe Global (CI – CP, CE1 – CE2, CM1 – CM2) */}
         <div className="flex items-center gap-2 bg-card p-2 rounded-xl border-2 border-emerald-600/40 shadow-xs">
           <span className="text-xs font-black uppercase px-2 text-emerald-800 dark:text-emerald-300">
             Classe active :
